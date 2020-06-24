@@ -2,9 +2,57 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">@color/Primary</item>
     </style>
+
+    <style name="MainPageTableSection">
+        <item name="android:layout_weight">1</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+
+    </style>
+
+    <style name="MainPageTableSeperatorViewe">
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_width">3pt</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_column">2</item>
+    </style>
+
+    <style name="MainPageTableTabSeperator">
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_width">3pt</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="MainPageTableTextDescription">
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">3pt</item>
+        <item name="android:layout_column">0</item>
+    </style>
+    <style name="MainPageTableTextInputTime">
+        <item name="android:layout_weight">0</item>
+        <item name="android:textColor">@color/Editable</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">7pt</item>
+        <item name="android:inputType">numberSigned</item>
+        <item name="android:ems">2</item>
+        <item name="android:layout_margin">-4px</item>
+    </style>
+    <style name="MainPageTableTextInfo">
+        <item name="android:layout_weight">0</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_column">3</item>
+    </style>
+
 
 </resources>

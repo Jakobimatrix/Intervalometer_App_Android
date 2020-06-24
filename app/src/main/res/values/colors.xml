@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="Primary">#363333</color>
+    <color name="Secondary">#454745</color>
+    <color name="Letters">#DED2BA</color>
+    <color name="Editable">#ECF5DB</color>
+    <color name="ERROR">#FF0000</color>
+    <color name="WARNING">#FFA500</color>
+    <color name="debug1">#00FF00</color>
+    <color name="debug2">#FF00FF</color>
+    <color name="debug3">#0000FF</color>
 </resources>

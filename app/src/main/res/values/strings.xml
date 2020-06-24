@@ -1,6 +1,37 @@
 <resources>
-    <string name="app_name">Intervallometer</string>
+    <string name="app_name">Intervalometer</string>
     <string name="title_home">Preview</string>
     <string name="title_dashboard">Presets</string>
     <string name="title_notifications">Save</string>
+
+    <!-- Main Page Status and input fields -->
+    <string name="section_status">Status</string>
+    <string name="section_status_connection">Connection:</string>
+    <string name="section_status_connected">Connected with\n</string>
+    <string name="section_status_bt_unsupported">Bluetooth not available on your device.</string>
+    <string name="section_status_bt_off">Please enable Bluetooth on your device.</string>
+    <string name="section_status_disconnected">Not Connected</string>
+    <string name="section_status_connect_button_disconnected">Connect</string>
+    <string name="section_status_connect_button_connected">Disconnect</string>
+    <string name="section_input">Input</string>
+    <string name="section_input_template">Template</string>
+    <string name="section_input_duration">Duration:</string>
+    <string name="section_input_number_photos">Number of Shots:</string>
+    <string name="section_input_interval_function">Interval Function:</string>
+    <string name="section_input_interval_function_constant">Constant</string>
+    <string name="section_input_interval_function_linear">Linear</string>
+    <string name="section_input_interval_function_quadratic">Quadratic</string>
+    <string name="section_input_interval_function_sin">Sinus</string>
+    <string name="section_input_duration_h">h</string>
+    <string name="section_input_duration_m">m</string>
+    <string name="section_input_duration_s">s</string>
+
+    <!-- Text msgs -->
+    <string name="msg_click_to_dismiss">Click here to Dismiss Info.</string>
+    <string name="msg_click_after_fix">Click here after Fixing this.</string>
+    <string name="msg_click_to_shutdown">Click here to Shut Down App.</string>
+    <string name="msg_bt_disconnect_failed">Disconnecting with Device failed.</string>
+    <string name="msg_bt_connecting_failed">Connecting with</string>
+    <string name="msg_failed">failed. Please make sure that the Intervalometer is On and Bluetooth is enabled.</string>
+
 </resources>
