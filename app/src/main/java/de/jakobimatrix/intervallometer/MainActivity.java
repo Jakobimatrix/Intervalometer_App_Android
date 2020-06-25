@@ -2,6 +2,7 @@ package de.jakobimatrix.intervallometer;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         //PrintInfoMsg("Hallo WELT2", MSG.ERROR, shut_down);
 
         PrintInfoMsg("Try Sample", MSG.DISMISS, send_sample);
+        PrintInfoMsg("Read", MSG.DISMISS, read);
     }
 
     /*!
@@ -257,18 +259,41 @@ public class MainActivity extends AppCompatActivity {
         public void callback(){finish();}
     };
 
+    final private CallBackVoid read = new CallBackVoid() {
+        @Override
+        public CharSequence dismiss_info(){return "DEBUG click to red";}
+
+        @Override
+        public void callback() {
+            Log.i("callbackRead", "called back");
+            StringBuilder msg = new StringBuilder("");
+            try {
+                if(bluetooth_manager.read(4, msg)){
+                    PrintInfoMsg("Next picture in "+msg+"ms", MSG.DISMISS, read);
+                }else{
+                    PrintInfoMsg("nothing to read", MSG.DISMISS, read);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                PrintInfoMsg("reading throw exeption", MSG.DISMISS, read);
+            }
+        }
+    };
+
     final private CallBackVoid send_sample = new CallBackVoid(){
         public CharSequence dismiss_info(){return "DEBUG click to transmit working example";}
         public void callback(){
 // const , 15 pictures , c = 500 (alle 500 ms)
-            byte[] buffer = {0x1,0x0,0x0,0x0,0xF, 0x0,0x1,0xF,0x4, 0xF};
+            int c = 1000;
+            byte buffer_c[] = new byte[4];
+            bluetooth_manager.int2Bytes(c, buffer_c);
+            byte[] buffer = {0x01, 0x00,0x00,0x00,0x0F, buffer_c[0],buffer_c[1],buffer_c[2],buffer_c[3], 0x00};
             try {
                 if(bluetooth_manager.send(buffer)){
                     PrintInfoMsg("Transmittion successful", MSG.DISMISS, send_sample);
                 }else{
                     PrintInfoMsg("Transmittion failed", MSG.ERROR, send_sample);
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
                 PrintInfoMsg("Transmittion failed with exeption throw", MSG.ERROR, send_sample);

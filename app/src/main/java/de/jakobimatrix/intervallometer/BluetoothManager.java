@@ -4,13 +4,17 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.ParcelUuid;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Vector;
+
+import static java.lang.Math.min;
 
 public class BluetoothManager {
 
@@ -51,6 +55,7 @@ public class BluetoothManager {
      * \return true if device was found. false if not. Throws exception if found but connection failed.
      */
     public boolean connect(String device_name) throws IOException {
+        Log.i("BT::connect","start");
         for (BluetoothDevice device : current_paired_devices) {
             if(device_name.equals(device.getName())){
                 connected_device = device;
@@ -94,14 +99,58 @@ public class BluetoothManager {
         getPairedDevices(true);
     }
 
-    /* no reading for now
-    public boolean read(int length_byte, String message) throws IOException {
-        byte[] buffer = new byte[length_byte];
-        final int index_start = 0;
-        final int num_bytes_red = input_stream.read(buffer, index_start, length_byte-index_start);
+    public boolean read(int length_byte, StringBuilder message) throws IOException {
+        if(input_stream == null){
+            return false;
+        }
+        if(input_stream.available() <= 0){
+            return false;
+        }
+        final int read_bytes = min(input_stream.available(), length_byte);
 
+        byte[] buffer = new byte[read_bytes];
+        final int index_start = 0;
+        final int num_bytes_red = input_stream.read(buffer, index_start, read_bytes-index_start);
+
+        message.append(bytes2string(buffer,read_bytes));
+        return true;
     }
-   */
+
+    public String Bytes2String(byte[] buffer, int length){
+        String s = "[";
+        String supplement = "";
+        for(int i = 0; i < length; i++){
+            s = s + supplement + String.format("%2s", Integer.toHexString(buffer[i] & 0xFF)).replace(' ', '0');
+            supplement = "|";
+        }
+        s = s + "]";
+        return s;
+    }
+
+    public void int2Bytes(int i, byte[] buffer){
+        buffer[0] = (byte)((i >> 24) & 0xFF) ;
+        buffer[1] = (byte)((i >> 16) & 0xFF) ;
+        buffer[2] = (byte)((i >> 8) & 0XFF);
+        buffer[3] = (byte)((i & 0XFF));
+    }
+
+    public String bytes2string(byte[] buffer, int length){
+        // in Java int has 4 bytes
+        // on ATtiny long has 4 bytes
+        String hex = Bytes2String(buffer, length);
+        String s = null;
+        try {
+            s = new String(buffer, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            s = "throw exeption";
+        }
+        Log.i("read as String:",s);
+        Log.i("read as Hex:", hex);
+
+        return hex;
+    }
+
     /*!
      * \brief getPairedDeviceDames returns a list of all devices which are paired and ready for communication.
      * \param paired_devices An Vector to fill in the device names.
