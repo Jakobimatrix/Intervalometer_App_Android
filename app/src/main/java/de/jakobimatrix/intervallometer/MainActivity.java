@@ -62,15 +62,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void connectWithUI(){
         bluetooth_connection_button = (Button) findViewById(R.id.button_bt);
+        delete_template_button = (Button) findViewById(R.id.button_delete_selection);
+        add_new_template_button = (Button) findViewById(R.id.button_add_new_template);
+        copy_template_button = (Button) findViewById(R.id.button_copy_selected_template);
+        run_selected_template_button = (Button) findViewById(R.id.button_start_intervalometer);
+        open_settings_button = (Button) findViewById(R.id.button_settings);
         bluetooth_status = (TextView) findViewById(R.id.bt_status);
-        bluetooth_status.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // request your webservice here. Possible use of AsyncTask and ProgressDialog
-                // show the result here - dialog or Toast
-            }
-
-        });
         spinner_bluetooth_device = (Spinner) findViewById(R.id.spinner_bluetooth_device);
     }
 
@@ -250,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         }
         tv.setGravity(Gravity.CENTER_HORIZONTAL);
         tv.setId(new_id);
-        msg_layout.addView(tv);
+        //msg_layout.addView(tv);
     }
 
     /*!
@@ -373,9 +370,9 @@ public class MainActivity extends AppCompatActivity {
      * \brief moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe moves the table view to show messages underneath.
      */
     private void moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe(){
-        DrawerLayout.LayoutParams params = (DrawerLayout.LayoutParams) table_layout.getLayoutParams();
-        params.setMargins(0,getMessageHeight(),0,0);
-        table_layout.setLayoutParams(params);
+       // DrawerLayout.LayoutParams params = (DrawerLayout.LayoutParams) table_layout.getLayoutParams();
+        //params.setMargins(0,getMessageHeight(),0,0);
+        //table_layout.setLayoutParams(params);
     }
 
     private Settings settings;
@@ -385,8 +382,11 @@ public class MainActivity extends AppCompatActivity {
     // UI
     private Button bluetooth_connection_button;
     private TextView bluetooth_status;
-    private TableLayout table_layout;
-    private LinearLayout msg_layout;
+    private Button delete_template_button;
+    private Button add_new_template_button;
+    private Button copy_template_button;
+    private Button run_selected_template_button;
+    private Button open_settings_button;
     private Map<Integer,TextView> msgs = new HashMap<>();
     private Integer msg_id = 0;
     private Spinner spinner_bluetooth_device;

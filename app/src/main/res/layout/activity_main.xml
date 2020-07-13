@@ -21,7 +21,7 @@
     <Button
         style="@style/clickableButton"
         android:id="@+id/button_settings"
-        android:background="@drawable/ic_menue_icon"
+        android:background="@drawable/ic_baseline_settings_24"
         android:layout_alignParentRight="true"
         android:text="" />
 
