@@ -1,18 +1,10 @@
 <resources>
     <string name="app_name">Intervalometer</string>
-    <string name="title_home">Preview</string>
-    <string name="title_dashboard">Presets</string>
-    <string name="title_notifications">Save</string>
+    <string name="bt_status_connected">Connected with: </string>
+    <string name="bt_status_bt_unsupported">Bluetooth not available on your device.</string>
+    <string name="bt_status_bt_off">Please enable Bluetooth on your device.</string>
+    <string name="bt_status_disconnected">Click the Bluetooth Symbol to Connect to Device.</string>
 
-    <!-- Main Page Status and input fields -->
-    <string name="section_status">Status</string>
-    <string name="section_status_connection">Connection:</string>
-    <string name="section_status_connected">Connected with\n</string>
-    <string name="section_status_bt_unsupported">Bluetooth not available on your device.</string>
-    <string name="section_status_bt_off">Please enable Bluetooth on your device.</string>
-    <string name="section_status_disconnected">Not Connected</string>
-    <string name="section_status_connect_button_disconnected">Connect</string>
-    <string name="section_status_connect_button_connected">Disconnect</string>
     <string name="section_input">Input</string>
     <string name="section_input_template">Template</string>
     <string name="section_input_duration">Duration:</string>

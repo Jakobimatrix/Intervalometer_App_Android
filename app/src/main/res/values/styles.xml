@@ -1,8 +1,31 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="android:style/Theme.NoTitleBar.Fullscreen">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/Primary</item>
+    </style>
+
+    <style name="clickableButton">
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">@dimen/min_clickable_button_size</item>
+        <item name="android:layout_width">@dimen/min_clickable_button_size</item>
+        <item name="android:gravity">center</item>
+        <item name="layout_constraintWidth_max">@dimen/min_clickable_button_size</item>
+        <item name="android:maxWidth">@dimen/min_clickable_button_size</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:scaleGravity">fill_vertical</item>
+    </style>
+
+    <style name="spacerBottomButtons">
+        <item name="android:layout_weight">10</item>
+        <item name="android:layout_below">@id/scroll_view_templates</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+
+    <style name="clickableButtonBot" parent="@style/clickableButton">
+        <item name="android:layout_below">@id/scroll_view_templates</item>
+        <item name="android:layout_weight">1</item>
     </style>
 
     <style name="MainPageTableSection">

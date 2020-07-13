@@ -22,6 +22,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,10 +61,16 @@ public class MainActivity extends AppCompatActivity {
      * \brief connectWithUI Connects all buttons and input fields with private variables.
      */
     private void connectWithUI(){
-        bluetooth_connection_button = (Button) findViewById(R.id.section_status_connect_button);
-        bluetooth_status = (TextView) findViewById(R.id.section_status_connection);
-        table_layout = (TableLayout) findViewById(R.id.table_layout);
-        msg_layout = (LinearLayout) findViewById(R.id.msg_layout);
+        bluetooth_connection_button = (Button) findViewById(R.id.button_bt);
+        bluetooth_status = (TextView) findViewById(R.id.bt_status);
+        bluetooth_status.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // request your webservice here. Possible use of AsyncTask and ProgressDialog
+                // show the result here - dialog or Toast
+            }
+
+        });
         spinner_bluetooth_device = (Spinner) findViewById(R.id.spinner_bluetooth_device);
     }
 
@@ -78,19 +85,27 @@ public class MainActivity extends AppCompatActivity {
 
         if(!bluetooth_manager.isBluetoothSupported()){
             bluetooth_connection_button.setEnabled(false);
-            PrintInfoMsg(getString(R.string.section_status_bt_unsupported), MSG.ERROR, shut_down);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_disabled_24));
+            }
+            PrintInfoMsg(getString(R.string.bt_status_bt_unsupported), MSG.ERROR, shut_down);
             return;
         }
         if(!bluetooth_manager.isBluetoothEnabled()){
             bluetooth_connection_button.setEnabled(false);
-            PrintInfoMsg(getString(R.string.section_status_bt_off), MSG.FIX, restart_bluetooth);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_disabled_24));
+            }
+            PrintInfoMsg(getString(R.string.bt_status_bt_off), MSG.FIX, restart_bluetooth);
             return;
         }
         bluetooth_connection_button.setEnabled(true);
         if(bluetooth_manager.isConnected()){
             // connection with last device was successful
-            bluetooth_connection_button.setText(getString(R.string.section_status_connect_button_connected));
-            bluetooth_status.setText(getString(R.string.section_status_connected) + " "  + settings.getLastConnectedDeviceName());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_audio_24));
+            }
+            bluetooth_status.setText(getString(R.string.bt_status_connected) + " "  + settings.getLastConnectedDeviceName());
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     try {
@@ -104,8 +119,10 @@ public class MainActivity extends AppCompatActivity {
             });
         }else{
             // no device connected
-            bluetooth_status.setText(getString(R.string.section_status_disconnected));
-            bluetooth_connection_button.setText(getString(R.string.section_status_connect_button_disconnected));
+            bluetooth_status.setText(getString(R.string.bt_status_disconnected));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_24));
+            }
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     enableSpinnerBluetooth(true);
@@ -284,12 +301,25 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence dismiss_info(){return "DEBUG click to transmit working example";}
         public void callback(){
 // const , 15 pictures , c = 500 (alle 500 ms)
-            int c = 1000;
-            byte buffer_c[] = new byte[4];
-            bluetooth_manager.int2Bytes(c, buffer_c);
-            byte[] buffer = {0x01, 0x00,0x00,0x00,0x0F, buffer_c[0],buffer_c[1],buffer_c[2],buffer_c[3], 0x00};
+
+            byte buffer_temp_a[] = new byte[4];
+            byte buffer_temp_b[] = new byte[4];
+            byte buffer_temp_c[] = new byte[4];
+            bluetooth_manager.int2Bytes(1000, buffer_temp_c);
+            byte[] buffer_f1 = {0x01, 0x00,0x00,0x00,0x0F, buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3]};
+            bluetooth_manager.int2Bytes(100, buffer_temp_b);
+            byte[] buffer_f2 = {0x02, 0x00,0x00,0x00,0x0A,
+                    buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
+                    buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
+            bluetooth_manager.int2Bytes(-100, buffer_temp_b);
+            bluetooth_manager.int2Bytes(2000, buffer_temp_c);
+            byte[] buffer_f3 = {0x02, 0x00,0x00,0x00,0x0A,
+                    buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
+                    buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
+            byte[] buffer_fEnd = {0x00};
+            byte[] combined = concatAll(buffer_f1, buffer_f2, buffer_f3, buffer_fEnd);
             try {
-                if(bluetooth_manager.send(buffer)){
+                if(bluetooth_manager.send(combined)){
                     PrintInfoMsg("Transmittion successful", MSG.DISMISS, send_sample);
                 }else{
                     PrintInfoMsg("Transmittion failed", MSG.ERROR, send_sample);
@@ -300,6 +330,21 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    //https://stackoverflow.com/questions/80476/how-can-i-concatenate-two-arrays-in-java
+    public static  byte[] concatAll(byte[] first, byte[]... rest) {
+        int totalLength = first.length;
+        for (byte[] array : rest) {
+            totalLength += array.length;
+        }
+        byte[] result = Arrays.copyOf(first, totalLength);
+        int offset = first.length;
+        for (byte[] array : rest) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
+    }
 
     /*!
      * \brief getMessageHeight Calculates the height of all messages and returns the sum.
