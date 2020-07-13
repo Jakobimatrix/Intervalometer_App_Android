@@ -10,7 +10,7 @@
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="@dimen/min_clickable_button_size"
-        android:minHeight=""
+        android:minHeight="@dimen/H1"
         android:paddingLeft="10sp"
         android:paddingTop="7sp"
         android:background="@color/Secondary"
@@ -45,7 +45,7 @@
     <Spinner
         android:id="@+id/spinner_bluetooth_device"
         android:layout_width="match_parent"
-        android:layout_height="0px"
+        android:layout_height="wrap_content"
         android:layout_below="@id/bt_status"
         android:background="@android:drawable/btn_dropdown"
         android:spinnerMode="dropdown" />

@@ -1,5 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -12,10 +14,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -30,7 +34,7 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 enum MSG{FIX,DISMISS,ERROR};
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         connectWithUI();
+        setButtonFunctions();
         loadSettings();
         setUpBluetooth();
 
@@ -71,6 +76,89 @@ public class MainActivity extends AppCompatActivity {
         spinner_bluetooth_device = (Spinner) findViewById(R.id.spinner_bluetooth_device);
     }
 
+    private void setButtonFunctions(){
+        open_settings_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startSettingsActivity();
+            }
+        });
+        delete_template_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Vector <Integer> del = getAllSelectedTemplates();
+                for (int id: del) {
+                    if(!deleteTemplate(id)){
+                        // todo
+                    }
+                }
+            }
+        });
+
+        add_new_template_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startEditTemplateActivity(true);
+            }
+        });
+
+        copy_template_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Vector <Integer> del = getAllSelectedTemplates();
+                for (int id: del) {
+                    if(!copyTemplate(id)){
+                        // todo
+                    }
+                }
+            }
+        });
+
+        run_selected_template_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Vector <Integer> ids = getAllSelectedTemplates();
+                if(ids.size() == 1){
+                    // todo get function and send via bt
+                }
+            }
+        });
+    }
+
+    private void startSettingsActivity(){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    private void startEditTemplateActivity(boolean new_template){
+        int selected_id = -1;
+        if(!new_template){
+            // todo 1 selected? -> get id
+            // 0 selected -> id = -1 (new)
+        }
+        Intent intent = new Intent(this, EditTemplateActivity.class);
+        Bundle b = new Bundle();
+        b.putInt(ActivityParameters.selectedTemplate, selected_id);
+        intent.putExtras(b);
+        startActivity(intent);
+    }
+
+    private boolean deleteTemplate(int id){
+        // todo
+        return false;
+    }
+
+    private Vector<Integer> getAllSelectedTemplates(){
+        // todo
+        Vector<Integer> v = new Vector<Integer>();
+
+        return v;
+    }
+
+    private boolean copyTemplate(int id){
+        // todo
+        return false;
+    }
 
     private void setUpBluetooth(){
         if(bluetooth_manager == null){
@@ -123,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     enableSpinnerBluetooth(true);
+                    bluetooth_status.setText(getString(R.string.bt_status_select_device));
                     ArrayList<String> spinnerArray = new ArrayList<String>();
                     bluetooth_manager.getPairedDeviceNames(spinnerArray);
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>
@@ -164,13 +253,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enableSpinnerBluetooth(boolean enable){
+        ViewGroup.LayoutParams layout = spinner_bluetooth_device.getLayoutParams();
         if(enable){
-            spinner_bluetooth_device.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                    TableRow.LayoutParams.MATCH_PARENT, 1f));
+            layout.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         }else{
-            spinner_bluetooth_device.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-                    0, 1f));
+            layout.height = 0;
         }
+        spinner_bluetooth_device.setLayoutParams(layout);
     }
 
     @Override
