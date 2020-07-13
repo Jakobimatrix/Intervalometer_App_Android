@@ -1,3 +1,3 @@
-[submodule "positionlib"]
+[submodule "app/src/main/java/de/jakobimatrix/intervallometer/positionlib"]
 	path = app/src/main/java/de/jakobimatrix/intervallometer/positionlib
 	url = https://github.com/Jakobimatrix/positionlib.git
