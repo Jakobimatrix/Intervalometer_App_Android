@@ -1,68 +1,58 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.opengl.GLES20;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import javax.microedition.khronos.opengles.GL10;
 
-public class MovableDot {
+import pos3d.Pos3d;
 
-    MovableDot(Context c, pos3d.Pos2d init_pos){
-        pos = init_pos;
-        setupShader(c);
-        setupVertexBuffer();
+public class MovableDot extends Movable{
+    public MovableDot(Context context_, Pos3d position_, float diameter_) {
+        super(new DrawableCircle(context_, position_, diameter_));
+        final float golden_ratio = 1.6180339887f;
+        inner_circle = new DrawableCircle(context_, position_, diameter_/golden_ratio);
+        unlock();
+        parent.adChild(inner_circle);
     }
 
-    private void setupVertexBuffer() {
-        //vertex_buffer = com.example.user.squareobjectwithopengl.tools.BufferUtils.newFloatBuffer(todoCoords.length);
-        vertex_buffer.put(todoCoords);
-        vertex_buffer.position(0);
-        IntBuffer buffer = IntBuffer.allocate(1);
-        GLES20.glGenBuffers(1,buffer);
-        vertex_buffer_id = buffer.get(0);
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertex_buffer_id);
-        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, todoCoords.length * 4, vertex_buffer, GLES20.GL_STATIC_DRAW);
-
-        vertex_count = todoCoords.length / (COORDS_PER_VERTEX + COLORS_PER_VERTEX);
-        vertex_stride = (COORDS_PER_VERTEX + COLORS_PER_VERTEX) * 4;
+    @Override
+    public boolean isWithin(Pos3d p) {
+        return false;
     }
 
-    private void setupShader(Context c) {
-        /*shader = new ShaderProgram(
-                com.example.user.squareobjectwithopengl.tools.ShaderUtils.readShaderFileFromFilePath(c, R.raw.simple_vertex_shader),
-                com.example.user.squareobjectwithopengl.tools.ShaderUtils.readShaderFileFromFilePath(c, R.raw.simple_fragment_shader)
-        );*/
+    @Override
+    public void draw(GL10 gl) {
+        parent.draw(gl);
     }
 
-    public void draw(){
-        /*shader.begin();
-        shader.enableVertexAttribute("a_Position");
-        shader.setVertexAttribute("a_Position", COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertex_stride, 0);
-        shader.enableVertexAttribute("a_Color");
-        shader.setVertexAttribute("a_Color", COLORS_PER_VERTEX, GLES20.GL_FLOAT, false, vertex_stride, COORDS_PER_VERTEX * SIZE_OF_FLOAT);
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertex_buffer_id);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertex_count);
-        shader.disableVertexAttribute("a_Position");
-        shader.disableVertexAttribute("a_Color");
-        shader.end();*/
+    public void lock(){
+        is_locked = true;
+        parent.setColor(LOCKED_OUTER_CIRCLE);
+        inner_circle.setColor(LOCKED_INNER_CIRCLE);
     }
 
-    private pos3d.Pos2d pos;
-    private FloatBuffer vertex_buffer;
-    private int vertex_buffer_id;
-    private int vertex_count;
-    private int vertex_stride;
+    public void unlock(){
+        is_locked = false;
+        parent.setColor(MOVABLE_OUTER_CIRCLE);
+        inner_circle.setColor(MOVABLE_INNER_CIRCLE);
+    }
 
-    static final int COORDS_PER_VERTEX = 3;
-    static final int COLORS_PER_VERTEX = 4;
-    static final int SIZE_OF_FLOAT = 4;
-    static final float todoCoords[] = {
-            -0.5f, 0.5f, 0, 1f, 0, 0, 1f,
-            -0.5f, -0.5f, 0, 0, 1f, 0, 1f,
-            0.5f, -0.5f, 0, 0, 0, 1f, 1f,
-            -0.5f, 0.5f, 0, 1f, 0, 0, 1f,
-            0.5f, -0.5f, 0, 0, 0, 1f, 1f,
-            0.5f, 0.5f, 0, 0, 1f, 0, 1f,
-    };
+    boolean is_locked(){
+        return is_locked;
+    }
+
+    public void setPosition(Pos3d p){
+        if(!is_locked) {
+            super.setPosition(p);
+        }
+    }
+
+    DrawableCircle inner_circle;
+
+    private boolean is_locked;
+
+    final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0.8,0.8,0.8,1.0);
+    final static ColorRGBA LOCKED_INNER_CIRCLE = new ColorRGBA(0.5,0.5,0.0,1.0);
+    final static ColorRGBA MOVABLE_OUTER_CIRCLE = new ColorRGBA(0.7,0.7,0.7,1.0);
+    final static ColorRGBA MOVABLE_INNER_CIRCLE = new ColorRGBA(0,0.8,0,1.0);
 }

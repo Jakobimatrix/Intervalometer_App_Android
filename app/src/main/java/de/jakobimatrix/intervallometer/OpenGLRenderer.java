@@ -6,6 +6,10 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import java.util.Vector;
+
+import pos3d.Pos3d;
+
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -18,13 +22,14 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig egl_config){
 
-        gl10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
         gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 
-        //test_dot = new MovableDot(context, pos3d.Pos2d(1,1));
-         Sp1 = new Sphere(1f,0,0,0,0,(char)1);
+        for(int i = 0; i < 10; i++){
+            dots.add(new MovableDot(context, new Pos3d(i,i,0), 1));
+        }
     }
 
     @Override
@@ -40,11 +45,15 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 gl10){
         prepareFrame(gl10);
+        Pos3d p = new Pos3d();
+        for(int i = 0; i < dots.size(); i++){
+            p.setRand();
+            //p.setZ(0);
+            dots.get(i).setPosition(p);
+            dots.get(i).draw(gl10);
+        }
 
-
-        Sp1.draw(gl10);
-        //test_dot.draw();
-
+        sp.draw(gl10);
 
         // Disable the vertices buffer.
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
@@ -78,24 +87,29 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      * \brief onTouchEvent Is called through the EditTemplateActivity whenever the user dares to touch his screen.
      */
     public boolean onTouchEvent(MotionEvent e) {
-        Log.i("touch event", "touched");
         float x = e.getX();
         float y = e.getY();
+        Pos3d pos = new Pos3d(x,y,0);
+        final Pos3d dp = lastPos.sub(pos);
         switch (e.getAction()) {
             case MotionEvent.ACTION_MOVE:
-                Log.i("touch event", "x: "+x+" - y:"+ y);
-                //float dx = x - mPreviousX;
-                //float dy = y - mPreviousY;
-                //mAngleY = (mAngleY + (int)(dx * TOUCH_SCALE_FACTOR) + 360) % 360;
-                //mAngleX = (mAngleX + (int)(dy * TOUCH_SCALE_FACTOR) + 360) % 360;
+                for(int i = 0; i < dots.size(); i++){
+                    if(!dots.get(i).is_locked()){
+                        if(dots.get(i).isHold(pos)){
+                            dots.get(i).move(dp);
+                            Log.i("touch event", "moved by " + dp.toString());
+                            break;
+                        }
+                    }
+                }
                 break;
         }
-        //mPreviousX = x;
-        //mPreviousY = y;
+        lastPos = pos;
         return true;
     }
 
+    Pos3d lastPos = new Pos3d(0,0,0);
+    Sphere sp = new Sphere(1f,0f,0f,0f,3f, (char) 1);
     private Context context;
-    private MovableDot test_dot;
-    private Sphere Sp1;
+    private Vector<MovableDot> dots = new Vector<>();
 }

@@ -17,7 +17,7 @@
     </style>
 
     <style name="spacerBottomButtons">
-        <item name="android:layout_weight">10</item>
+        <item name="android:layout_weight">100</item>
         <item name="android:layout_below">@id/scroll_view_templates</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">wrap_content</item>
