@@ -8,12 +8,10 @@ import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import pos3d.Pos3d;
-
 // implements the minimal functionality to draw something.
 public abstract class Drawable {
 
-    public Drawable(Context context_, pos3d.Pos3d position_){
+    public Drawable(Context context_, Pos3d position_){
         context = context_;
         position = position_;
     }
@@ -37,18 +35,18 @@ public abstract class Drawable {
             child.draw(gl);
         }
 
-        // Enabled the vertices buffer for writing and to be used during
-        // rendering.
-        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        // Specifies the location and data format of an array of vertex
-        // coordinates to use when rendering.
         gl.glVertexPointer(COORDS_PER_VERTEX, GL10.GL_FLOAT, vertex_stride, vertex_buffer);
         gl.glColor4f(color.r, color.g, color.b, color.a);
-
-        //gl.glDrawElements(GL10.GL_LINES, vertex_count, GL10.GL_UNSIGNED_SHORT, index_buffer);    //You see longitude and latitude
-        gl.glDrawElements(GL10.GL_TRIANGLE_STRIP, connected_vertex_count, GL10.GL_UNSIGNED_SHORT, index_buffer); //Surface colored
-        //gl.glDrawElements(GL10.GL_TRIANGLES, vertex_count, GL10.GL_UNSIGNED_SHORT, index_buffer); //does not what you want! try it...
-        //gl.glDrawElements(GL10.GL_TRIANGLE_FAN, vertex_count, GL10.GL_UNSIGNED_SHORT, index_buffer);//Surface colored
+       /*
+        gl.glDrawRangeElements(
+                GLenum mode,
+                GLuint start,
+                GLuint end,
+                GLsizei count,
+                GLenum type,
+  	            const void * indices);
+        */
+        gl.glDrawElements(triangle_coloring, index_buffer_size, GL10.GL_UNSIGNED_SHORT, index_buffer);
     }
 
     public void setColor(ColorRGBA c){
@@ -61,12 +59,11 @@ public abstract class Drawable {
     }
 
     public void setPosition(final Pos3d p){
-        // Is this necessary? this is just a reference right? I dont want to change it.
-        Pos3d new_position = new Pos3d(p);
-        position = new_position.add(translation_2_parent);
+        position = new Pos3d(p);
+        position.add(translation_2_parent);
         needs_rendering = true;
         for (Drawable child : children) {
-            child.move(position);
+            child.setPosition(position);
         }
     }
 
@@ -78,12 +75,12 @@ public abstract class Drawable {
         position.add(dp);
         needs_rendering = true;
         for (Drawable child : children) {
-            child.move(dp);
+            child.setPosition(position);
         }
     }
 
     public void setRelativePositionToParent(Pos3d p){
-        translation_2_parent = p;
+        translation_2_parent = new Pos3d(p);
         // set the new position which will than add the translation to the parent
         // as well as the new position for all other children.
         setPosition(position);
@@ -100,8 +97,7 @@ public abstract class Drawable {
     }
 
     public void adChild(Drawable child){
-        Pos3d relative_translation_2_parent = new Pos3d(0,0,0);
-        adChild(child, relative_translation_2_parent);
+        adChild(child, new Pos3d(0,0,0));
     }
 
     public void adChild(Drawable child, Pos3d relative_translation_2_parent){
@@ -126,14 +122,23 @@ public abstract class Drawable {
         return a;
     }
 
+    void setColoringMethodFill(){
+        triangle_coloring = GL10.GL_TRIANGLE_STRIP;
+    }
+
+    void setColoringMethodLines(){
+        triangle_coloring = GL10.GL_LINE_STRIP;
+    }
+
     protected Context context;
 
-    protected pos3d.Pos3d position;
-    protected ColorRGBA color;
+    protected Pos3d position;
+    static final ColorRGBA DEFAULT_COLOR = new ColorRGBA(0,0,0,1);//Black
+    protected ColorRGBA color = DEFAULT_COLOR;
     // number of triangles*3
-    protected int connected_vertex_count;
     protected int vertex_stride = 0;
     protected FloatBuffer vertex_buffer;
+    int index_buffer_size;
     protected ShortBuffer index_buffer;
 
     static final int COORDS_PER_VERTEX = 3; // x,y,z
@@ -145,4 +150,8 @@ public abstract class Drawable {
     Vector<Drawable> children = new Vector<>();
     Drawable parent = null;
     Pos3d translation_2_parent = new Pos3d(0,0,0);
+
+    int triangle_coloring = GL10.GL_TRIANGLE_STRIP;
+
+
 }

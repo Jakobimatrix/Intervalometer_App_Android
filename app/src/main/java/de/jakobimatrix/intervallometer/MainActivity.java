@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -14,15 +13,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +23,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 enum MSG{FIX,DISMISS,ERROR};
 public class MainActivity extends Activity {
@@ -41,7 +32,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        connectWithUI();
+        connectWithGUI();
         setButtonFunctions();
         loadSettings();
         setUpBluetooth();
@@ -65,7 +56,7 @@ public class MainActivity extends Activity {
     /*!
      * \brief connectWithUI Connects all buttons and input fields with private variables.
      */
-    private void connectWithUI(){
+    private void connectWithGUI(){
         bluetooth_connection_button = (Button) findViewById(R.id.button_bt);
         delete_template_button = (Button) findViewById(R.id.button_delete_selection);
         add_new_template_button = (Button) findViewById(R.id.button_add_new_template);

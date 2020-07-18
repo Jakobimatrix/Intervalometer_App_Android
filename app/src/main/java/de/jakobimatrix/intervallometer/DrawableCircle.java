@@ -7,13 +7,10 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.Vector;
 
-import pos3d.Pos3d;
-
 public class DrawableCircle extends Drawable {
     public DrawableCircle(Context context_, Pos3d position_, float radius) {
         super(context_, position_);
         R = radius;
-        Render();
     }
 
     @Override
@@ -30,9 +27,9 @@ public class DrawableCircle extends Drawable {
         // center
         int v = 0;
         int g = 0;
-        vertices_v.set(v++, (float)position.getX());
-        vertices_v.set(v++, (float)position.getY());
-        vertices_v.set(v++, (float)position.getZ());
+        vertices_v.set(v++, (float)position.x);
+        vertices_v.set(v++, (float)position.y);
+        vertices_v.set(v++, (float)position.z);
         final short center_id = 0;
 
         short connect_nr = 1;
@@ -40,24 +37,23 @@ public class DrawableCircle extends Drawable {
         int points = 0;
         for (float Phi = 0; points < NUM_POINTS; Phi += increment) {
             points++;
-            vertices_v.set(v++, (float) (R * Math.cos(Math.toRadians(Phi)) +  position.getX()));//X
-            vertices_v.set(v++, (float) (R * Math.sin(Math.toRadians(Phi)) + position.getY()));//Y
-            //vertices_v.set(v++, (float) (R * Math.sin(Math.toRadians(Phi)) + position.getZ()));
-            vertices_v.set(v++, (float) position.getZ());//Z
+            vertices_v.set(v++, (float) (R * Math.cos(Math.toRadians(Phi)) +  position.x));//X
+            vertices_v.set(v++, (float) (R * Math.sin(Math.toRadians(Phi)) + position.y));//Y
+            vertices_v.set(v++, (float) position.z);//Z
             vertices_ids_v.set(g++, connect_nr);
             vertices_ids_v.set(g++, center_id);
             connect_nr++;
             vertices_ids_v.set(g++, connect_nr);
         }
         // the last vertices doesnt exist, this should be the very first instead
-        vertices_ids_v.set( (int) connect_nr, (short) 1);
+        vertices_ids_v.set( --g , (short) 1);
 
         // convert to arrays
         final short vertices_ids_a[] = Vector2ArrayShort(vertices_ids_v);
         final float vertices_a[] = Vector2ArrayFloat(vertices_v);
 
         // set the buffer and the size variables
-        connected_vertex_count = vertices_ids_v.size();
+        index_buffer_size = vertices_ids_v.size();
         vertex_stride = 0;
 
         ByteBuffer vbb = ByteBuffer.allocateDirect(vertices_a.length * SIZE_OF_FLOAT);
@@ -75,8 +71,7 @@ public class DrawableCircle extends Drawable {
 
     @Override
     public boolean isWithin(Pos3d p) {
-        Pos3d dif = p.sub(position);
-        double norm = dif.getNorm();
+        double norm = position.distance(p);
         return norm < R;
     }
 

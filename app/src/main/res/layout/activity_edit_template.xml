@@ -11,4 +11,20 @@
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true" />
 
+    <SeekBar
+        android:id="@+id/x_mover"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <SeekBar
+        android:id="@+id/y_mover"
+        android:layout_below="@id/x_mover"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <SeekBar
+        android:id="@+id/z_mover"
+        android:layout_below="@id/y_mover"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
 </RelativeLayout>

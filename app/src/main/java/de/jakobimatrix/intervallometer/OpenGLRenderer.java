@@ -8,8 +8,6 @@ import android.view.MotionEvent;
 
 import java.util.Vector;
 
-import pos3d.Pos3d;
-
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -25,11 +23,12 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
-        gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 
         for(int i = 0; i < 10; i++){
-            dots.add(new MovableDot(context, new Pos3d(i,i,0), 1));
+            dots.add(new MovableDot(context, new Pos3d(i,i,0), 0.3f));
         }
+
+        rect = new DrawableRectangle(context, new Pos3d(0,0,0), 1, 1);
     }
 
     @Override
@@ -44,19 +43,19 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl10){
+
+         gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+        //gl10.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
         prepareFrame(gl10);
-        Pos3d p = new Pos3d();
+
         for(int i = 0; i < dots.size(); i++){
-            p.setRand();
-            //p.setZ(0);
-            dots.get(i).setPosition(p);
             dots.get(i).draw(gl10);
         }
 
-        sp.draw(gl10);
+        rect.draw(gl10);
 
-        // Disable the vertices buffer.
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+        //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
     }
 
     /*!
@@ -69,7 +68,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glLoadIdentity();
 
         // zoom and rotation of the scene
-        float zoom = 1;
+        // zoom should be negative to render things at z=0x
         gl10.glTranslatef(0.0f, 0.0f, zoom);
         float roll = 0;
         float pitch = 0;
@@ -90,7 +89,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         float x = e.getX();
         float y = e.getY();
         Pos3d pos = new Pos3d(x,y,0);
-        final Pos3d dp = lastPos.sub(pos);
+        final Pos3d dp = Pos3d.sub(lastPos, pos);
         switch (e.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 for(int i = 0; i < dots.size(); i++){
@@ -108,8 +107,30 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return true;
     }
 
+    public  void moveX(double x){
+        for(int i = 0; i < dots.size(); i++){
+            Pos3d p = new Pos3d(dots.get(i).getPosition());
+            p.x = x;
+            dots.get(i).setPosition(p);
+        }
+    }
+
+    public  void moveY(double y){
+        for(int i = 0; i < dots.size(); i++){
+            Pos3d p = new Pos3d(dots.get(i).getPosition());
+            p.y = y;
+            dots.get(i).setPosition(p);
+        }
+    }
+
+    public  void moveZ(double z){
+        zoom = (float) z;
+    }
+
     Pos3d lastPos = new Pos3d(0,0,0);
-    Sphere sp = new Sphere(1f,0f,0f,0f,3f, (char) 1);
     private Context context;
     private Vector<MovableDot> dots = new Vector<>();
+    private DrawableRectangle rect;
+    private float zoom = -4;
+
 }

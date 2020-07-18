@@ -41,12 +41,6 @@ public class MovableDot extends Movable{
         return is_locked;
     }
 
-    public void setPosition(Pos3d p){
-        if(!is_locked) {
-            super.setPosition(p);
-        }
-    }
-
     DrawableCircle inner_circle;
 
     private boolean is_locked;

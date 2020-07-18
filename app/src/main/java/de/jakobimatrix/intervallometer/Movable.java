@@ -7,8 +7,6 @@ import java.util.Calendar;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import pos3d.Pos3d;
-
 // implements the basic features of a movable and drawable object.
 public abstract class Movable {
 
@@ -42,6 +40,10 @@ public abstract class Movable {
         parent.setPosition(p);
     }
 
+    public Pos3d getPosition(){
+        return parent.getPosition();
+    }
+
     public void move(Pos3d p){
         parent.move(p);
     }
@@ -49,6 +51,5 @@ public abstract class Movable {
     Drawable parent;
 
     private long last_contact = 0;
-    private
-    static final long HOLD_DURATION_MS = 100;
+    private static final long HOLD_DURATION_MS = 100;
 }
