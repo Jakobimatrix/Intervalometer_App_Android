@@ -13,19 +13,6 @@ import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 
 public class Sphere {
-    char color = 0;
-    float center[]={0,0,0};
-    float R;
-    float zoom;
-    int detail = 10;
-    boolean change = false;
-    boolean lockedDetail = true;
-
-    int connectingPointslength;
-    // Our vertex buffer.
-    private FloatBuffer vertexBuffer;
-    // Our index buffer.
-    private ShortBuffer indexBuffer;
 
     public double DegToRad(double Deg){
         return Deg*2*3.14159265359/360;
@@ -161,4 +148,19 @@ public class Sphere {
             this.change = true;
         }
     }
+
+
+    char color = 0;
+    float center[]={0,0,0};
+    float R;
+    float zoom;
+    int detail = 10;
+    boolean change = false;
+    boolean lockedDetail = true;
+
+    int connectingPointslength;
+    // Our vertex buffer.
+    private FloatBuffer vertexBuffer;
+    // Our index buffer.
+    private ShortBuffer indexBuffer;
 }

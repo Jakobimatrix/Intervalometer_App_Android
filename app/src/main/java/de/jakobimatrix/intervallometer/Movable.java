@@ -1,55 +1,93 @@
 package de.jakobimatrix.intervallometer;
 
-import android.content.Context;
-
-import java.time.Instant;
-import java.util.Calendar;
+import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
 // implements the basic features of a movable and drawable object.
 public abstract class Movable {
 
+    /*!
+     * \brief A movable consists at least out of 1 parent.
+     */
     public Movable(Drawable parent_) {
         parent = parent_;
     }
 
+    /*!
+     * \brief isWithin This should return true if a given position_ is within the region of the drawable
+     */
     abstract public boolean isWithin(Pos3d position_);
 
+    /*!
+     * \brief draw shall call the parent and his children to draw them.
+     */
     abstract public void draw(GL10 gl);
 
+    /*!
+     * \brief isHold checks of the touch position is withing its limits if it is movable.
+     * return true if movable And touched.
+     */
     public boolean isHold(Pos3d touch_pos){
-        if(isWithin(touch_pos)){
-            long now;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                Instant current_instant = Instant.now();
-                now = current_instant.toEpochMilli();
-            }else{
-                now = Calendar.getInstance().getTimeInMillis();
-            }
-            long time_hold = now - last_contact;
-            last_contact = now;
-            if(time_hold < HOLD_DURATION_MS){
-                return true;
-            }
-        }
-        return false;
+        return !is_locked && isHold(touch_pos);
     }
 
+    /*!
+     * \brief setPosition sets the position of this Drawable.
+     * \param p The position this Drawable shall have in OpenGL coordinates.
+     */
     public void setPosition(Pos3d p){
         parent.setPosition(p);
     }
 
+    /*!
+     * \brief getPosition Return the current position of this drawable.
+     * \return current position.
+     */
     public Pos3d getPosition(){
         return parent.getPosition();
     }
 
-    public void move(Pos3d p){
-        parent.move(p);
+    /*!
+     * \brief move Moves the Movable and all his children relative to its current position
+     * dp Relative movement in openGL-view coordinate
+     */
+    public void move(Pos3d dp){
+        parent.move(dp);
+    }
+
+    /*!
+     * \brief isLocked returns if the movable shall be able to be moved or not.
+     * There is no real prevention for moving if Movable is locked but this->move() or this->setPosition() is called.
+     * \return True if tis Movable shall not be moved.
+     */
+    public boolean isLocked(){
+        return is_locked;
+    }
+
+    /*!
+     * \brief getAllDrawable Collects all drawables (parent and children, grandchildren, ...)
+     * \return A vector of all drawables which paint this Movable.
+     */
+    public  Vector<Drawable> getAllDrawable(){
+        Vector<Drawable> v = getAllDrawableChildren(parent);
+        v.add(parent);
+        return v;
+    }
+
+    /*!
+     * \brief getAllDrawableChildren Collects all drawable children, grandchildren,... from a given parent
+     * \return A vector of all drawable children.
+     */
+    private Vector<Drawable> getAllDrawableChildren(Drawable parent){
+        Vector<Drawable> children = parent.getChildren();
+        for(int i = 0; i < children.size(); i++){
+            Vector<Drawable> grand_children = getAllDrawableChildren(children.get(i));
+            children.addAll(grand_children);
+        }
+        return children;
     }
 
     Drawable parent;
-
-    private long last_contact = 0;
-    private static final long HOLD_DURATION_MS = 100;
+    boolean is_locked = true;
 }

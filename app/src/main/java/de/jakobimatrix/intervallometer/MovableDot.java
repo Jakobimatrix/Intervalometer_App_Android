@@ -4,9 +4,8 @@ import android.content.Context;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import pos3d.Pos3d;
-
 public class MovableDot extends Movable{
+
     public MovableDot(Context context_, Pos3d position_, float diameter_) {
         super(new DrawableCircle(context_, position_, diameter_));
         final float golden_ratio = 1.6180339887f;
@@ -17,7 +16,7 @@ public class MovableDot extends Movable{
 
     @Override
     public boolean isWithin(Pos3d p) {
-        return false;
+        return parent.isWithin(p);
     }
 
     @Override
@@ -37,13 +36,7 @@ public class MovableDot extends Movable{
         inner_circle.setColor(MOVABLE_INNER_CIRCLE);
     }
 
-    boolean is_locked(){
-        return is_locked;
-    }
-
     DrawableCircle inner_circle;
-
-    private boolean is_locked;
 
     final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0.8,0.8,0.8,1.0);
     final static ColorRGBA LOCKED_INNER_CIRCLE = new ColorRGBA(0.5,0.5,0.0,1.0);
