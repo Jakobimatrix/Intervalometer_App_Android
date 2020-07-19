@@ -4,7 +4,7 @@ import android.content.Context;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -32,6 +32,9 @@ public abstract class Drawable {
             needs_rendering = false;
         }
         for (Drawable child : children) {
+            if(child == this){
+                throw new IllegalArgumentException( "NEIN FUCK" );
+            }
             child.draw(gl);
         }
 
@@ -46,7 +49,7 @@ public abstract class Drawable {
                 GLenum type,
   	            const void * indices);
         */
-        gl.glDrawElements(triangle_coloring, index_buffer_size, GL10.GL_UNSIGNED_SHORT, index_buffer);
+       gl.glDrawElements(triangle_coloring, index_buffer_size, GL10.GL_UNSIGNED_SHORT, index_buffer);
     }
 
     /*!
@@ -132,14 +135,6 @@ public abstract class Drawable {
     }
 
     /*!
-     * \brief getChildren returns a vector containing all children.
-     * \return vector of all children.
-     */
-    public Vector<Drawable> getChildren(){
-        return children;
-    }
-
-    /*!
      * \brief adChild adds the child to an internal vector. The relative translation of that child is 0
      * \param child The new Drawable child
      */
@@ -153,25 +148,12 @@ public abstract class Drawable {
      * \param relative_translation_2_parent the translation between this Drawable (parent) and the new child.
      */
     public void adChild(Drawable child, Pos3d relative_translation_2_parent){
+        if(this == child){
+            throw new IllegalArgumentException( "Drawable::adChild: Parent cant be his own child!");
+        }
         child.setRelativePositionToParent(relative_translation_2_parent);
         child.parent = this;
         children.add(child);
-    }
-
-    final protected short[] Vector2ArrayShort(final Vector<Short> v){
-        short a[] = new short[v.size()];
-        for (int i = 0; i < v.size(); i++) {
-            a[i] = v.get(i);
-        }
-        return a;
-    }
-
-    final protected float[] Vector2ArrayFloat(final Vector<Float> v){
-        float a[] = new float[v.size()];
-        for (int i = 0; i < v.size(); i++) {
-            a[i] = v.get(i);
-        }
-        return a;
     }
 
     void setColoringMethodFill(){
@@ -199,11 +181,9 @@ public abstract class Drawable {
 
     protected boolean needs_rendering = true;
 
-    Vector<Drawable> children = new Vector<>();
+    ArrayList<Drawable> children = new ArrayList<>();
     Drawable parent = null;
     Pos3d translation_2_parent = new Pos3d(0,0,0);
 
     int triangle_coloring = GL10.GL_TRIANGLE_STRIP;
-
-
 }

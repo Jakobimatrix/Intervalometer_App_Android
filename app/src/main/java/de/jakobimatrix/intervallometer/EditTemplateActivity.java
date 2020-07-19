@@ -1,15 +1,20 @@
 package de.jakobimatrix.intervallometer;
 
 import androidx.annotation.Dimension;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -40,6 +45,8 @@ public class EditTemplateActivity extends Activity {
         renderer = new OpenGLRenderer(this);
         gl_view.setRenderer(renderer);
 
+        button_save = (Button) findViewById(R.id.button_save);
+
         // DEBUG
         seeker_y = (TextView) findViewById(R.id.seeker_y);
         seeker_x = (TextView) findViewById(R.id.seeker_x);
@@ -50,7 +57,12 @@ public class EditTemplateActivity extends Activity {
      * set all OnTouch-, Onchange-, and Onwhatever events to private connected Gui elements.
      */
     private void setGUIFunctions(){
-
+        button_save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveAndExit();
+            }
+        });
         /*
         // example for on slider listeners
         slider.seekbar.setOnSeekBarChangeListener(
@@ -104,6 +116,42 @@ public class EditTemplateActivity extends Activity {
         return renderer.onTouchEvent(event);
     }
 
+    private void save(){
+        // TODO
+        if(is_new_template){
+
+        }else{
+
+        }
+    }
+
+    private void saveAndExit(){
+        save();
+        exit();
+    }
+
+    private void exit(){
+        this.finish();
+    }
+
+    public void onBackPressed(){
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        saveAndExit();
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        exit();
+                }
+            }
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.edit_template_save_dialog)).setPositiveButton(getString(R.string.yes), dialogClickListener)
+                .setNegativeButton(getString(R.string.no), dialogClickListener).show();
+    }
+
     /*!
      * \brief loadTemplate
      * \TODO
@@ -115,16 +163,17 @@ public class EditTemplateActivity extends Activity {
             value = b.getInt(ActivityParameters.selectedTemplate);
         }
         if(value == -1){
-            // new template
+            is_new_template = true;
         }else{
-            // from db
+            is_new_template = false;
         }
     }
     // UI stuff
     private GLSurfaceView gl_view;
     private OpenGLRenderer renderer;
 
-    //private Slider slider;
+    private Button button_save;
+    boolean is_new_template;
 
     // DEBUG
     private TextView seeker_y;

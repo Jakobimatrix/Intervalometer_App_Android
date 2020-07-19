@@ -6,11 +6,9 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -22,6 +20,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // will be set onSurfaceChanged which also will be called once
         screen_width_px = 1;
         screen_height_px = 1;
+
     }
 
     @Override
@@ -34,6 +33,19 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
+
+        arrows[0] = new DrawableArrow(context, Pos3d.Zero(), 1,0.1f);
+        arrows[0].color = new ColorRGBA(1,0,0,1);
+        arrows[0].setRotationUP();
+        arrows[1] = new DrawableArrow(context, Pos3d.Zero(), 1,0.2f);
+        arrows[1].color = new ColorRGBA(1,1,0,1);
+        arrows[1].setRotationLEFT();
+        arrows[2] = new DrawableArrow(context, Pos3d.Zero(), 1,0.3f);
+        arrows[2].color = new ColorRGBA(1,0,1,1);
+        arrows[2].setRotationDOWN();
+        arrows[3] = new DrawableArrow(context, Pos3d.Zero(), 1,0.4f);
+        arrows[3].color = new ColorRGBA(0,1,1,1);
+        arrows[3].setRotationRIGHT();
     }
 
     @Override
@@ -47,7 +59,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glLoadIdentity();
         // clipping distance from camera
         float near = 1.0f;
-        float far = 1000.0f;
+        float far = -zoom+1;
         float bottom = -1.0f;
         float top = 1.0f;
         float left = -ratio;
@@ -57,18 +69,18 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl10){
-
-         gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+        gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         //gl10.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
         prepareFrame(gl10);
-
-        final int num_drawables = drawables.size();
         // TODO it would be faster to collect all vertices and ids and copy that to the gpu at once.
         // TODO if this gets slow implement the thing one line above.
-        for(int i = 0; i < num_drawables; i++){
-            drawables.get(i).draw(gl10);
-        }
 
+        for (Movable movable : movables.values()) {
+            movable.draw(gl10);
+        }
+        for(int i = 0; i < 4; i++) {
+            arrows[i].draw(gl10);
+        }
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
     }
@@ -111,24 +123,23 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         final Pos3d dp_openGL = Pos3d.sub(pos_openGL, last_pos_openGL);
         switch (e.getAction()) {
             case MotionEvent.ACTION_MOVE:
-                final int num_movables = movables.size();
-                if(movable_guess > 0 && movable_guess < num_movables){
-                    Movable mv = movables.get(num_movables);
+                if(movables.containsKey(movable_guess)){
+                    Movable mv = movables.get(movable_guess);
                     if(!mv.isLocked() && mv.isHold(pos_openGL)){
                         mv.setPosition(pos_openGL);
                     }else{
-                        movable_guess = -1;
+                        movable_guess = INVALID_KEY;
                     }
                 }
                 if(movable_guess == -1) {
-                    for (int i = 0; i < num_movables; i++) {
-                        Movable mv = movables.get(i);
+                    for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
+                        Movable mv = entry.getValue();
                         if (!mv.isLocked()) {
                             if (mv.isHold(pos_openGL)) {
                                 mv.setPosition(pos_openGL);
                                 // there can only be one movable to be hold at a time;
                                 // set a guess for the next time
-                                movable_guess = i;
+                                movable_guess = entry.getKey();
                                 break;
                             }
                         }
@@ -142,97 +153,26 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     }
 
     /*!
-     * \brief addDrawable Adds the given Drawable into the private vector of drawables.
-     * It will be rendered until it gets deleted via this->removeDrawable(id).
-     * It shall only be added once! If it is added twice an exception will be thrown upon deletion.
-     * \param drawable The Drawable which should be rendered henceforth.
-     * \return The unique Key to access or delete the drawable.
-     */
-    private Integer addDrawable(Drawable drawable){
-        drawables.put(drawables_id_counter, drawable);
-        Integer ret = new Integer(drawables_id_counter);
-        drawables_id_counter++;
-        return ret;
-    }
-
-    /*!
-     * \brief addDrawable Adds all the given Drawables into the private vector of drawables.
-     * See this->addDrawable(Drawable drawable).
-     * \param drawables_add The Vector of Drawables which should be rendered henceforth.
-     * \return The unique Key of each added drawable for deletion later.
-     */
-    private Vector<Integer> addDrawable(Vector<Drawable> drawables_add){
-        Vector<Integer> added_ids = new Vector<>();
-        for(int i = 0; i < drawables_add.size(); i++){
-            added_ids.add(addDrawable(drawables_add.get(i)));
-        }
-        return added_ids;
-    }
-
-    /*!
-     * \brief removeDrawable Removes a Drawable which id was given. It wont be rendered anymore.
-     * \param id The unique identifier
-     * \return True if the id existed which indicated a successful deletion, false otherwise.
-     */
-    private boolean removeDrawable(Integer id){
-        if(drawables.containsKey(id)){
-            drawables.remove(id);
-            return true;
-        }
-        return false;
-    }
-
-    /*!
-     * \brief removeDrawable Removes all Drawablse which id were given. they wont be rendered anymore.
-     * \param ids A vector containing all the unique identifiers.
-     * \return True if all ids existed which indicated a successful deletion, false otherwise.
-     */
-    private  boolean removeDrawable(Vector<Integer> ids){
-        boolean all_good = true;
-        for(int i=0; i < ids.size(); i++){
-            all_good &= removeMovable(ids.get(i));
-        }
-        return all_good;
-    }
-
-    /*!
      * \brief addMovable Adds a Movable to the intern vector and returns the unique Id for later deletion.
-     * All Drawables of the given Movable will be added as well, see this->Integer addDrawable(Drawable drawable).
-     * Those will be rendered henceforth until the Movable gets deleted by this->removeMovable(int id).
+     * It will be rendered henceforth until the Movable gets deleted by this->removeMovable(int id).
      * \param movable The Movable to add.
      * \return The unique Key for deletion later.
      */
     public int addMovable(Movable movable){
         movables.put(movables_id_counter, movable);
         int new_id = movables_id_counter;
-
-        // Add all drawables and map all new ids to the movable id.
-        Vector<Integer> drawable_ids = addDrawable(movable.getAllDrawable());
-        map_movable_2_drawable.put(movables_id_counter, drawable_ids);
-
         movables_id_counter++;
         return new_id;
     }
 
     /*!
      * \brief removeMovable Removes the Movable which id was given.
-     * This also deletes all Drawables associated with the to be deleted movable.
-     * If there was a problem deleting those (aka. I wrote buggy code) an exception will be thrown.
      * \param id The unique identifier for the to be removed Movable.
      * \return True if the given id existed indicating a successful deletion, false otherwise.
      */
     public boolean removeMovable(int id){
         if(movables.containsKey(id)){
             movables.remove(id);
-            // remove all corresponding drawables
-            if(map_movable_2_drawable.containsKey(id)){
-                boolean deleted_all_drawables = removeDrawable(map_movable_2_drawable.get(id));
-                if(!deleted_all_drawables){
-                    throw new IllegalArgumentException( "There were some drawable IDs which did not exist." );
-                }
-            }else{
-                throw new IllegalArgumentException( "There is a Movable but no corresponding Drawables." );
-            }
             return true;
         }
         return false;
@@ -276,18 +216,16 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     private Integer movables_id_counter = 0;
     private Map<Integer, Movable> movables = new HashMap<Integer, Movable>();
 
-    private Integer drawables_id_counter = 0;
-    private Map<Integer, Drawable> drawables = new HashMap<Integer, Drawable>();
-
-    // movables contain drawables, on adding movables, drawables will be added automatically.
-    private Map<Integer, Vector<Integer>> map_movable_2_drawable = new HashMap<Integer, Vector<Integer>>();
-
     // this should scale everything
     final private float zoom = -4;
 
     // contains the id of the last moved movable for a first guess.
-    int movable_guess = -1;
+    final static int INVALID_KEY = -1;
+    int movable_guess = INVALID_KEY;
 
     float screen_height_px;
     float screen_width_px;
+
+
+    DrawableArrow [] arrows = new DrawableArrow[4];
 }

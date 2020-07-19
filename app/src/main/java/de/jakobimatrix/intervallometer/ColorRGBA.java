@@ -55,6 +55,5 @@ public class ColorRGBA {
         }
     }
 
-
     // todo if api level 24 use Color class?
 }

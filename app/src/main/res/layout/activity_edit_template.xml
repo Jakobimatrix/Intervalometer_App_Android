@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+    android:theme="@style/Theme.AppCompat.NoActionBar"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
@@ -10,21 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true" />
-
-    <SeekBar
-        android:id="@+id/x_mover"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    <SeekBar
-        android:id="@+id/y_mover"
-        android:layout_below="@id/x_mover"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    <SeekBar
-        android:id="@+id/z_mover"
-        android:layout_below="@id/y_mover"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 
     <TextView
         android:id="@+id/seeker_x"
@@ -40,5 +26,35 @@
         android:layout_height="1px"
         android:background="#FFFFFF"
         android:text="" />
+
+    <LinearLayout
+        android:layout_below="@id/openGlView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/min_neg_clickable_button_size">
+
+        <Space style="@style/spacerBottomButtons"/>
+        <Button
+            style="@style/clickableButtonBot"
+            android:id="@+id/button_save"
+            android:background="@drawable/ic_outline_save_24"/>
+        <Space style="@style/spacerBottomButtons"/>
+        <Button
+            style="@style/clickableButtonBot"
+            android:id="@+id/button_placeholder_1"
+            android:background="@color/transparent" />
+        <Space style="@style/spacerBottomButtons"/>
+        <Button
+            style="@style/clickableButtonBot"
+            android:id="@+id/button_placeholder_2"
+            android:background="@color/transparent"/>
+        <Space style="@style/spacerBottomButtons"/>
+        <Button
+            style="@style/clickableButtonBot"
+            android:id="@+id/button_placeholder_3"
+            android:background="@color/transparent"/>
+        <Space style="@style/spacerBottomButtons"/>
+    </LinearLayout>
 
 </RelativeLayout>

@@ -169,5 +169,22 @@ public class Pos3d {
         return dif.norm();
     }
 
+    /*!
+     * \brief rotateZ Rotates the point around the z axis around the origin.
+     * \param rad the rotation in rad
+     */
+    public void rotateZ(double rad){
+        final double x_ = x;
+        final double y_ = y;
+        x = Math.cos(rad)*x_ - Math.sin(rad)*y_;
+        y = Math.sin(rad)*x_ + Math.cos(rad)*y_;
+    }
 
+    static public Pos3d Zero(){
+        return new Pos3d(0,0,0);
+    }
+
+    public String toString(){
+        return "x:" + x + " y:" + y + " z:" + z;
+    }
 }

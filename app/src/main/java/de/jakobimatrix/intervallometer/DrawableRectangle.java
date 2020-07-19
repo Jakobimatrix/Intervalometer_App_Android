@@ -1,14 +1,16 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Vector;
 
 public class DrawableRectangle extends Drawable {
-    public DrawableRectangle(Context context_, Pos3d position_, float width, float height) {
+    public DrawableRectangle(Context context_, Pos3d position_, float width_, float height_) {
         super(context_, position_);
+        width = width_;
+        height = height_;
     }
 
     @Override
@@ -20,20 +22,21 @@ public class DrawableRectangle extends Drawable {
         float [] vertices = new float[num_vertices];
 
         // top-left
-        corner[0] = position;
+        corner[0] = new Pos3d(position);
         corner[0].add(new Pos3d(width/2.0 , height /2.0, 0));
         // bot-left
-        corner[1] = position;
-        corner[1].add(new Pos3d(width/2.0 , -height /2.0, 0));
+        corner[1] = new Pos3d(position);
+        corner[1].add(new Pos3d(-width/2.0 , height /2.0, 0));
         // bot-right
-        corner[2] = position;
+        corner[2] = new Pos3d(position);
         corner[2].add(new Pos3d(-width/2.0 , -height /2.0, 0));
         // top-right
-        corner[3] = position;
-        corner[3].add(new Pos3d(-width/2.0 , height /2.0, 0));
+        corner[3] = new Pos3d(position);
+        corner[3].add(new Pos3d(width/2.0 , -height /2.0, 0));
 
         int counter = 0;
         for(int i = 0; i < NUM_CORNERS; i++){
+            corner[3].add(new Pos3d(translation_x, translation_y, 0));
             for(int v = 0; v < COORDS_PER_VERTEX; v++){
                 vertices[counter++] = (float) corner[i].get(v);
             }
@@ -73,9 +76,40 @@ public class DrawableRectangle extends Drawable {
         return false;
     }
 
+    public void setCenterORIGEN(){
+        translation_x = 0;
+        translation_y = 0;
+        needs_rendering = true;
+    }
+
+    public void setTopLeftORIGEN(){
+        translation_x = width/2f;
+        translation_y = -height/2f;
+        needs_rendering = true;
+    }
+
+    public void setTopRightORIGEN(){
+        translation_x = -width/2f;
+        translation_y = -height/2f;
+        needs_rendering = true;
+    }
+
+    public void setBotLeftORIGEN(){
+        translation_x = width/2f;
+        translation_y = height/2f;
+        needs_rendering = true;
+    }
+
+    public void setBotRightORIGEN(){
+        translation_x = -width/2f;
+        translation_y = height/2f;
+    }
+
+    float translation_x = 0;
+    float translation_y = 0;
+
     float width;
     float height;
-    Pos3d rotation = new Pos3d(0,0,0);
     final static int NUM_CORNERS = 4;
     Pos3d [] corner = new Pos3d [NUM_CORNERS];
 }

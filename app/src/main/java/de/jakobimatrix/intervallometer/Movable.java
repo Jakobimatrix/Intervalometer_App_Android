@@ -1,7 +1,5 @@
 package de.jakobimatrix.intervallometer;
 
-import java.util.Vector;
-
 import javax.microedition.khronos.opengles.GL10;
 
 // implements the basic features of a movable and drawable object.
@@ -22,14 +20,16 @@ public abstract class Movable {
     /*!
      * \brief draw shall call the parent and his children to draw them.
      */
-    abstract public void draw(GL10 gl);
+    public void draw(GL10 gl){
+        parent.draw(gl);
+    }
 
     /*!
      * \brief isHold checks of the touch position is withing its limits if it is movable.
      * return true if movable And touched.
      */
     public boolean isHold(Pos3d touch_pos){
-        return !is_locked && isHold(touch_pos);
+        return !is_locked && isWithin(touch_pos);
     }
 
     /*!
@@ -63,29 +63,6 @@ public abstract class Movable {
      */
     public boolean isLocked(){
         return is_locked;
-    }
-
-    /*!
-     * \brief getAllDrawable Collects all drawables (parent and children, grandchildren, ...)
-     * \return A vector of all drawables which paint this Movable.
-     */
-    public  Vector<Drawable> getAllDrawable(){
-        Vector<Drawable> v = getAllDrawableChildren(parent);
-        v.add(parent);
-        return v;
-    }
-
-    /*!
-     * \brief getAllDrawableChildren Collects all drawable children, grandchildren,... from a given parent
-     * \return A vector of all drawable children.
-     */
-    private Vector<Drawable> getAllDrawableChildren(Drawable parent){
-        Vector<Drawable> children = parent.getChildren();
-        for(int i = 0; i < children.size(); i++){
-            Vector<Drawable> grand_children = getAllDrawableChildren(children.get(i));
-            children.addAll(grand_children);
-        }
-        return children;
     }
 
     Drawable parent;

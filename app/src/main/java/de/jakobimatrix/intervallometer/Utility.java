@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class Utility {
@@ -76,4 +77,22 @@ public class Utility {
         }
         return a;
     }
+
+    final protected short[] ArrayList2ArrayShort(final ArrayList<Short> v){
+        short a[] = new short[v.size()];
+        for (int i = 0; i < v.size(); i++) {
+            a[i] = v.get(i);
+        }
+        return a;
+    }
+
+    final protected float[] ArrayList2ArrayFloat(final ArrayList<Float> v){
+        float a[] = new float[v.size()];
+        for (int i = 0; i < v.size(); i++) {
+            a[i] = v.get(i);
+        }
+        return a;
+    }
+
+    final static public float GOLDEN_RATIO = 1.6180339887f;
 }

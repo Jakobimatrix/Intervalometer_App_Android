@@ -1,10 +1,11 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class DrawableCircle extends Drawable {
@@ -15,12 +16,11 @@ public class DrawableCircle extends Drawable {
 
     @Override
     protected void Render() {
-        Vector<Short> vertices_ids_v = new Vector<>();
-        Vector<Float> vertices_v = new Vector<Float>();
-
         final int num_vertices = (NUM_POINTS+1)*COORDS_PER_VERTEX; // + center
         final int num_vertices_ids = (NUM_POINTS)*3;// triangle
 
+        Vector<Short> vertices_ids_v = new Vector<>();
+        Vector<Float> vertices_v = new Vector<Float>();
         vertices_ids_v.setSize(num_vertices_ids);
         vertices_v.setSize(num_vertices);
 
@@ -49,8 +49,8 @@ public class DrawableCircle extends Drawable {
         vertices_ids_v.set( --g , (short) 1);
 
         // convert to arrays
-        final short vertices_ids_a[] = Vector2ArrayShort(vertices_ids_v);
-        final float vertices_a[] = Vector2ArrayFloat(vertices_v);
+        final short vertices_ids_a[] = Utility.Vector2ArrayShort(vertices_ids_v);
+        final float vertices_a[] = Utility.Vector2ArrayFloat(vertices_v);
 
         // set the buffer and the size variables
         index_buffer_size = vertices_ids_v.size();

@@ -2,26 +2,19 @@ package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
 
-import javax.microedition.khronos.opengles.GL10;
-
 public class MovableDot extends Movable{
 
     public MovableDot(Context context_, Pos3d position_, float diameter_) {
         super(new DrawableCircle(context_, position_, diameter_));
-        final float golden_ratio = 1.6180339887f;
-        inner_circle = new DrawableCircle(context_, position_, diameter_/golden_ratio);
-        unlock();
+
+        inner_circle = new DrawableCircle(context_, position_, diameter_/Utility.GOLDEN_RATIO);
         parent.adChild(inner_circle);
+        unlock();
     }
 
     @Override
     public boolean isWithin(Pos3d p) {
         return parent.isWithin(p);
-    }
-
-    @Override
-    public void draw(GL10 gl) {
-        parent.draw(gl);
     }
 
     public void lock(){
