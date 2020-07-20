@@ -26,31 +26,25 @@ public class DrawableArrow extends Drawable {
 
         Pos3d [] vertices_3d = new Pos3d[NUM_VERTICES];
         // bot-left
-        vertices_3d[0] = new Pos3d(position);
-        vertices_3d[0].add(new Pos3d(-body_width/2.0 , 0, 0));
+        vertices_3d[0] = new Pos3d(-body_width/2.0 , 0, 0);
         // bot-right
-        vertices_3d[1] = new Pos3d(position);
-        vertices_3d[1].add(new Pos3d(+body_width/2.0 , 0, 0));
+        vertices_3d[1] = new Pos3d(+body_width/2.0 , 0, 0);
         // top-right
-        vertices_3d[2] = new Pos3d(position);
-        vertices_3d[2].add(new Pos3d(+body_width/2.0 , height-tip_length, 0));
+        vertices_3d[2] = new Pos3d(+body_width/2.0 , height-tip_length, 0);
         // top-right
-        vertices_3d[3] = new Pos3d(position);
-        vertices_3d[3].add(new Pos3d(-body_width/2.0 , height-tip_length, 0));
+        vertices_3d[3] = new Pos3d(-body_width/2.0 , height-tip_length, 0);
 
         // tip top
-        vertices_3d[4] = new Pos3d(position);
-        vertices_3d[4].add(new Pos3d(0 , height, 0));
+        vertices_3d[4] = new Pos3d(0 , height, 0);
         // tip left
-        vertices_3d[5] = new Pos3d(position);
-        vertices_3d[5].add(new Pos3d(-tip_width/2.0 , height-tip_length, 0));
+        vertices_3d[5] = new Pos3d(-tip_width/2.0 , height-tip_length, 0);
         // tip right
-        vertices_3d[6] = new Pos3d(position);
-        vertices_3d[6].add(new Pos3d(tip_width/2.0 , height-tip_length, 0));
+        vertices_3d[6] = new Pos3d(tip_width/2.0 , height-tip_length, 0);
 
         int counter = 0;
         for(int i = 0; i < NUM_VERTICES; i++){
             vertices_3d[i].rotateZ(rotation_rad);
+            vertices_3d[i].add(position);
             for(int v = 0; v < COORDS_PER_VERTEX; v++){
                 vertices[counter++] = (float) vertices_3d[i].get(v);
             }
@@ -83,13 +77,6 @@ public class DrawableArrow extends Drawable {
         index_buffer = ibb.asShortBuffer();
         index_buffer.put(vertices_ids);
         index_buffer.position(0);
-
-        for(int i = 0; i < NUM_VERTICES; i++) {
-            Log.d("vertices_3d [" + i + "]", vertices_3d[i].toString());
-        }
-
-        Log.d("index_buffer", " " + index_buffer);
-        Log.d("vertex_buffer", " " + vertex_buffer);
     }
 
     public void setRotationUP(){
@@ -103,12 +90,12 @@ public class DrawableArrow extends Drawable {
     }
 
     public void setRotationLEFT(){
-        rotation_rad = -Math.PI/2;
+        rotation_rad = Math.PI/2;
         needs_rendering = true;
     }
 
     public void setRotationRIGHT(){
-        rotation_rad = Math.PI/2;
+        rotation_rad = -Math.PI/2;
         needs_rendering = true;
     }
 

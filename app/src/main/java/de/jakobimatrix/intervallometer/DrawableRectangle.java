@@ -1,7 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -36,7 +35,7 @@ public class DrawableRectangle extends Drawable {
 
         int counter = 0;
         for(int i = 0; i < NUM_CORNERS; i++){
-            corner[3].add(new Pos3d(translation_x, translation_y, 0));
+            corner[i].add(new Pos3d(translation_x, translation_y, 0));
             for(int v = 0; v < COORDS_PER_VERTEX; v++){
                 vertices[counter++] = (float) corner[i].get(v);
             }

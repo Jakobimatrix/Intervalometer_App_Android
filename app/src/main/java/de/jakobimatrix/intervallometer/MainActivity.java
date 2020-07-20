@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
         connectWithGUI();
         setButtonFunctions();
         loadSettings();
-        setUpBluetooth();
+        //setUpBluetooth();
 
         //PrintInfoMsg("Hallo WELT", MSG.DISMISS, do_nothing);
         //PrintInfoMsg("Hallo WELT1", MSG.FIX, restart_bluetooth);

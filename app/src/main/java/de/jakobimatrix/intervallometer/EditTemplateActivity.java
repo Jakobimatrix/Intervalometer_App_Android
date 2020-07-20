@@ -40,9 +40,13 @@ public class EditTemplateActivity extends Activity {
      * Sett find all Gui elements by id and connect them to the corresponding variable.
      */
     private void connectWithGUI(){
+        Display screen_size = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        screen_size.getSize(size);
+
         gl_view = (GLSurfaceView)findViewById(R.id.openGlView);
         gl_view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        renderer = new OpenGLRenderer(this);
+        renderer = new OpenGLRenderer(this, size.x, size.y);
         gl_view.setRenderer(renderer);
 
         button_save = (Button) findViewById(R.id.button_save);
@@ -50,6 +54,16 @@ public class EditTemplateActivity extends Activity {
         // DEBUG
         seeker_y = (TextView) findViewById(R.id.seeker_y);
         seeker_x = (TextView) findViewById(R.id.seeker_x);
+
+
+        Pos3d complete_left_down_screen = new Pos3d(0, size.y/2f, 0);
+        Pos3d complete_top_right_screen = new Pos3d(size.x, 0, 0);
+        Pos3d complete_top_right_open_gl = renderer.screen2openGl(complete_top_right_screen);
+        Pos3d complete_left_down_open_gl = renderer.screen2openGl(complete_left_down_screen);
+        float width = (float) (complete_top_right_open_gl.x - complete_left_down_open_gl.x);
+        float height = (float) (complete_top_right_open_gl.y - complete_left_down_open_gl.y);
+        complete = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
+        renderer.addMovable(complete);
     }
 
     /*!
@@ -174,6 +188,11 @@ public class EditTemplateActivity extends Activity {
 
     private Button button_save;
     boolean is_new_template;
+
+    MovableCoordinateSystem complete;
+
+    Homography2d open_gl_2_system;
+    Homography2d system_2_open_gl;
 
     // DEBUG
     private TextView seeker_y;

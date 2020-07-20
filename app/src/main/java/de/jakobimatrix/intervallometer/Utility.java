@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 public class Utility {
+
     private Utility(){}
 
     // Part of isWithinTriangle()
@@ -95,4 +96,39 @@ public class Utility {
     }
 
     final static public float GOLDEN_RATIO = 1.6180339887f;
+
+    final static public Homography2d calculateHomography2DNoRotation(Pos3d p1, Pos3d p1_, Pos3d p2, Pos3d p2_){
+        /*
+        *|x_|   |f1 0 tx|   |x|
+        *|y_| = |0 f2 ty| * |y|
+        *|1 |   |0 0  1|    |1|
+        *
+        * // 4 points given
+        * x1_ = f1*x1 + tx (I)
+        * y1_ = f2*y1 + tx (II)
+        * x2_ = f1*x2 + tx (III)
+        * y2_ = f2*y2 + tx (IV)
+        *
+        * (I) - (III)
+        * x1_ - x2_ = f1*x1 - f1*x2
+        * x1_ - x2_ = f1*(x1 - x2)
+        * -> f1 = (x1_ - x2_) / (x1 - x2) (V)
+        * (II) - (IV)
+        * -> f2 = (y1_ - y2_) / (y1 - y2) (VI)
+        *
+        * (V)->(I)
+        * -> tx = x1_ - f1*x1
+        * ->
+        * f2 = y1_/y1 - ty = y2_/y2 - ty
+        *
+        */
+
+        Homography2d h = new Homography2d();
+        h.setIdentity();
+        h.h[0] = (p1_.x - p2_.x) / (p1.x - p2.x);
+        h.h[4] = (p1_.y - p2_.y) / (p1.y - p2.y);
+        h.h[2] = p1_.x - h.h[0]*p1.x;
+        h.h[5] = p1_.y - h.h[4]*p1.y;
+        return h;
+    }
 }

@@ -15,12 +15,11 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    public OpenGLRenderer(Context c){
+    public OpenGLRenderer(Context c, int screen_width_px, int screen_height_px){
         context = c;
         // will be set onSurfaceChanged which also will be called once
-        screen_width_px = 1;
-        screen_height_px = 1;
-
+        this.screen_width_px = screen_width_px;
+        this.screen_height_px = screen_height_px;
     }
 
     @Override
@@ -34,16 +33,17 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
 
-        arrows[0] = new DrawableArrow(context, Pos3d.Zero(), 1,0.1f);
+        Pos3d n = new Pos3d(1,1,0);
+        arrows[0] = new DrawableArrow(context, n, 1,0.1f);
         arrows[0].color = new ColorRGBA(1,0,0,1);
         arrows[0].setRotationUP();
-        arrows[1] = new DrawableArrow(context, Pos3d.Zero(), 1,0.2f);
+        arrows[1] = new DrawableArrow(context, n, 1,0.2f);
         arrows[1].color = new ColorRGBA(1,1,0,1);
         arrows[1].setRotationLEFT();
-        arrows[2] = new DrawableArrow(context, Pos3d.Zero(), 1,0.3f);
+        arrows[2] = new DrawableArrow(context, n, 1,0.3f);
         arrows[2].color = new ColorRGBA(1,0,1,1);
         arrows[2].setRotationDOWN();
-        arrows[3] = new DrawableArrow(context, Pos3d.Zero(), 1,0.4f);
+        arrows[3] = new DrawableArrow(context, n, 1,0.4f);
         arrows[3].color = new ColorRGBA(0,1,1,1);
         arrows[3].setRotationRIGHT();
     }
