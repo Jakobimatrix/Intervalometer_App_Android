@@ -63,7 +63,7 @@ public abstract class Drawable {
     /*!
      * \brief getPosition Returns the current Position of the Drawable in openGL-view coordinates
      */
-    public Pos3d getPosition() {
+    public final Pos3d getPosition() {
         return position;
     }
 
@@ -120,13 +120,6 @@ public abstract class Drawable {
     abstract public boolean isWithin(Pos3d p);
 
     /*!
-     * \brief isRootParent returns true if this drawable has no further parents.
-     */
-    public boolean isRootParent(){
-        return parent == null;
-    }
-
-    /*!
      * \brief hasChildren returns true if this drawable has child-drawables which are defined relative to this drawable
      * \return true if this drawable has at least 1 child.
      */
@@ -152,7 +145,6 @@ public abstract class Drawable {
             throw new IllegalArgumentException( "Drawable::adChild: Parent cant be his own child!");
         }
         child.setRelativePositionToParent(relative_translation_2_parent);
-        child.parent = this;
         children.add(child);
     }
 
@@ -182,7 +174,7 @@ public abstract class Drawable {
     protected boolean needs_rendering = true;
 
     ArrayList<Drawable> children = new ArrayList<>();
-    Drawable parent = null;
+
     Pos3d translation_2_parent = new Pos3d(0,0,0);
 
     int triangle_coloring = GL10.GL_TRIANGLE_STRIP;

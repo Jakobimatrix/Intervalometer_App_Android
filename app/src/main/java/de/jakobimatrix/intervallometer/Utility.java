@@ -42,7 +42,7 @@ public class Utility {
      * \param pos_screen the to be transformed pose in screen coordinates.
      * \return The position in openGL coordinates.
      */
-    public static  final Pos3d screen2OpenGL(double[] homography, Pos3d pos_screen){
+    public static final Pos3d screen2OpenGL(double[] homography, Pos3d pos_screen){
         double [] pos_screen_vector = {pos_screen.x, pos_screen.y, pos_screen.z, 1};
         double [] pos_gl_vector = {0,0,0,0};
         for(int y = 0; y < 4; y++){
@@ -58,7 +58,7 @@ public class Utility {
      * \param v The vector
      * \return an array with the elements of v
      */
-    final static short[] Vector2ArrayShort(final Vector<Short> v){
+    final static public short[] Vector2ArrayShort(final Vector<Short> v){
         short a[] = new short[v.size()];
         for (int i = 0; i < v.size(); i++) {
             a[i] = v.get(i);
@@ -71,7 +71,7 @@ public class Utility {
      * \param v The vector
      * \return an array with the elements of v
      */
-    final static float[] Vector2ArrayFloat(final Vector<Float> v){
+    final static public float[] Vector2ArrayFloat(final Vector<Float> v){
         float a[] = new float[v.size()];
         for (int i = 0; i < v.size(); i++) {
             a[i] = v.get(i);
@@ -79,7 +79,7 @@ public class Utility {
         return a;
     }
 
-    final protected short[] ArrayList2ArrayShort(final ArrayList<Short> v){
+    final static public short[] ArrayList2ArrayShort(final ArrayList<Short> v){
         short a[] = new short[v.size()];
         for (int i = 0; i < v.size(); i++) {
             a[i] = v.get(i);
@@ -87,7 +87,7 @@ public class Utility {
         return a;
     }
 
-    final protected float[] ArrayList2ArrayFloat(final ArrayList<Float> v){
+    final static public float[] ArrayList2ArrayFloat(final ArrayList<Float> v){
         float a[] = new float[v.size()];
         for (int i = 0; i < v.size(); i++) {
             a[i] = v.get(i);

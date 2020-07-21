@@ -32,20 +32,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
-
-        Pos3d n = new Pos3d(1,1,0);
-        arrows[0] = new DrawableArrow(context, n, 1,0.1f);
-        arrows[0].color = new ColorRGBA(1,0,0,1);
-        arrows[0].setRotationUP();
-        arrows[1] = new DrawableArrow(context, n, 1,0.2f);
-        arrows[1].color = new ColorRGBA(1,1,0,1);
-        arrows[1].setRotationLEFT();
-        arrows[2] = new DrawableArrow(context, n, 1,0.3f);
-        arrows[2].color = new ColorRGBA(1,0,1,1);
-        arrows[2].setRotationDOWN();
-        arrows[3] = new DrawableArrow(context, n, 1,0.4f);
-        arrows[3].color = new ColorRGBA(0,1,1,1);
-        arrows[3].setRotationRIGHT();
     }
 
     @Override
@@ -77,9 +63,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         for (Movable movable : movables.values()) {
             movable.draw(gl10);
-        }
-        for(int i = 0; i < 4; i++) {
-            arrows[i].draw(gl10);
         }
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
@@ -225,7 +208,4 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     float screen_height_px;
     float screen_width_px;
-
-
-    DrawableArrow [] arrows = new DrawableArrow[4];
 }

@@ -1,8 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
-import androidx.annotation.Dimension;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -10,15 +8,14 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class EditTemplateActivity extends Activity {
 
@@ -55,15 +52,41 @@ public class EditTemplateActivity extends Activity {
         seeker_y = (TextView) findViewById(R.id.seeker_y);
         seeker_x = (TextView) findViewById(R.id.seeker_x);
 
+        double width_100p_in_px = size.x;
+        double height_100p_in_px = size.y;
+        double margin_px = 40;
 
-        Pos3d complete_left_down_screen = new Pos3d(0, size.y/2f, 0);
-        Pos3d complete_top_right_screen = new Pos3d(size.x, 0, 0);
+        Pos3d complete_left_down_screen = new Pos3d(margin_px, size.y/2f-2*margin_px, 0);
+        Pos3d complete_top_right_screen = new Pos3d(size.x - 2*margin_px, margin_px, 0);
         Pos3d complete_top_right_open_gl = renderer.screen2openGl(complete_top_right_screen);
         Pos3d complete_left_down_open_gl = renderer.screen2openGl(complete_left_down_screen);
         float width = (float) (complete_top_right_open_gl.x - complete_left_down_open_gl.x);
         float height = (float) (complete_top_right_open_gl.y - complete_left_down_open_gl.y);
-        complete = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
-        renderer.addMovable(complete);
+        coord_overview = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
+
+        ArrayList<Double> poly = new ArrayList<>(2);
+        poly.add(2.);
+        poly.add(4.);
+        Function f = new Function(poly);
+        coord_overview.addFunction(0, f, 0, 4, false);
+        renderer.addMovable(coord_overview);
+
+        double margin_px2 = 200;
+        Pos3d complete_left_down_screen2 = new Pos3d(margin_px2, size.y-2*margin_px2, 0);
+        Pos3d complete_top_right_screen2 = new Pos3d(size.x - 2*margin_px2, size.y/2., 0);
+        Pos3d complete_top_right_open_gl2 = renderer.screen2openGl(complete_top_right_screen2);
+        Pos3d complete_left_down_open_gl2 = renderer.screen2openGl(complete_left_down_screen2);
+        float width2 = (float) (complete_top_right_open_gl2.x - complete_left_down_open_gl2.x);
+        float height2 = (float) (complete_top_right_open_gl2.y - complete_left_down_open_gl2.y);
+        coord_overview2 = new MovableCoordinateSystem(this, complete_left_down_open_gl2, width2, height2 );
+
+        ArrayList<Double> poly2 = new ArrayList<>(2);
+        poly2.add(2.);
+        poly2.add(4.);
+        poly2.add(1.);
+        Function f2 = new Function(poly2);
+        coord_overview2.addFunction(0, f2, 0, 4, false);
+        renderer.addMovable(coord_overview2);
     }
 
     /*!
@@ -166,6 +189,7 @@ public class EditTemplateActivity extends Activity {
                 .setNegativeButton(getString(R.string.no), dialogClickListener).show();
     }
 
+
     /*!
      * \brief loadTemplate
      * \TODO
@@ -189,10 +213,8 @@ public class EditTemplateActivity extends Activity {
     private Button button_save;
     boolean is_new_template;
 
-    MovableCoordinateSystem complete;
-
-    Homography2d open_gl_2_system;
-    Homography2d system_2_open_gl;
+    MovableCoordinateSystem coord_overview;
+    MovableCoordinateSystem coord_overview2;
 
     // DEBUG
     private TextView seeker_y;

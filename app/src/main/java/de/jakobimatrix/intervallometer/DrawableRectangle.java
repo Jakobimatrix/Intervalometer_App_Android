@@ -87,9 +87,21 @@ public class DrawableRectangle extends Drawable {
         needs_rendering = true;
     }
 
+    public void setTopCenterORIGEN(){
+        translation_x = 0;
+        translation_y = -height/2f;
+        needs_rendering = true;
+    }
+
     public void setTopRightORIGEN(){
         translation_x = -width/2f;
         translation_y = -height/2f;
+        needs_rendering = true;
+    }
+
+    public void setLeftCenterORIGEN(){
+        translation_x = width/2f;
+        translation_y = 0;
         needs_rendering = true;
     }
 
@@ -99,9 +111,21 @@ public class DrawableRectangle extends Drawable {
         needs_rendering = true;
     }
 
+    public void setBotCenterORIGEN(){
+        translation_x = 0;
+        translation_y = height/2f;
+        needs_rendering = true;
+    }
+
     public void setBotRightORIGEN(){
         translation_x = -width/2f;
         translation_y = height/2f;
+    }
+
+    public void setRightCenterORIGEN(){
+        translation_x = -width/2f;
+        translation_y = 0;
+        needs_rendering = true;
     }
 
     float translation_x = 0;

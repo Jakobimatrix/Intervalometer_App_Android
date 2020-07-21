@@ -43,6 +43,9 @@ public class MainActivity extends Activity {
 
         PrintInfoMsg("Try Sample", MSG.DISMISS, send_sample);
         PrintInfoMsg("Read", MSG.DISMISS, read);
+
+
+        startEditTemplateActivity(true);
     }
 
     /*!

@@ -117,4 +117,8 @@ public class Homography2d {
         inv.h[5] = -1.0/X;
         return inv;
     }
+
+    public String toString(){
+        return new String(h.toString());
+    }
 }

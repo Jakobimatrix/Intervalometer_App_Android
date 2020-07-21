@@ -36,6 +36,26 @@ public class ColorRGBA {
         setFromHex(hex);
     }
 
+    public final static ColorRGBA red(){
+        return new ColorRGBA(1,0,0,1);
+    }
+
+    public final static ColorRGBA green(){
+        return new ColorRGBA(0,1,0,1);
+    }
+
+    public final static ColorRGBA blue(){
+        return new ColorRGBA(0,0,1,1);
+    }
+
+    public final static ColorRGBA black(){
+        return new ColorRGBA(0,0,0,1);
+    }
+
+    public final static ColorRGBA white(){
+        return new ColorRGBA(1,1,1,1);
+    }
+
     void setFromHex(String hex){
         final int length = hex.length();
         if(length == 7 || length == 9){
