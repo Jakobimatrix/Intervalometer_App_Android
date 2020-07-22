@@ -52,11 +52,6 @@ public class MovableCoordinateSystem extends Movable {
         this.grid_color = grid_color;
         x_axis.setColor(grid_color);
         y_axis.setColor(grid_color);
-
-        for(int i = 0; i < 4 ; i++) {
-            debug_circle[i] = new DrawableCircle(context_, new Pos3d(position_), 0.1f);
-            parent.adChild(debug_circle[i]);
-        }
     }
 
     @Override
@@ -151,7 +146,7 @@ public class MovableCoordinateSystem extends Movable {
 
                 pos_iterator.add(d_pos_iterator);
                 if(inside){
-                    grid_line.setColor(grid_color);
+                    grid_line.setColor(ColorRGBA.TRANSPARENT);
                 }else{
                     grid_line.setColor(ColorRGBA.TRANSPARENT);
                 }
@@ -190,12 +185,6 @@ public class MovableCoordinateSystem extends Movable {
         system_2_open_gl.calculateHomography2DNoRotation(system_viewport.min, openGL_viewport.min, system_viewport.max, openGL_viewport.max);
 
         adjustGrid();
-
-        debug_circle[0].setRelativePositionToParent(absolutePos2relativePos(openGL_viewport.min));
-        debug_circle[1].setRelativePositionToParent(absolutePos2relativePos(openGL_viewport.max));
-
-        debug_circle[2].setRelativePositionToParent(absolutePos2relativePos(system_2_open_gl.transform(system_viewport.min)));
-        debug_circle[3].setRelativePositionToParent(absolutePos2relativePos(system_2_open_gl.transform(system_viewport.max)));
     }
 
     private double getAllFunctionsMaxX(){
@@ -305,6 +294,4 @@ public class MovableCoordinateSystem extends Movable {
     ColorRGBA grid_color = BG_DEFAULT_GRID_COLOR;
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0,0,0,1);
-
-    DrawableCircle [] debug_circle = new DrawableCircle [4];
 }

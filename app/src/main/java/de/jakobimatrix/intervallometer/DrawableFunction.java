@@ -58,21 +58,22 @@ public class DrawableFunction extends Drawable {
         double eq_step = (max_x-min_x) / num_samples;
         short vertex_id = 0;
         for(int i = 0; i < num_samples; i++){
+            double grad = df.f(x);
             double y = f.f(x);
-            double g = -1./df.f(x);
+            double g = -1./grad;
             double dx = d/Math.sqrt(g*g + 1.);
             double dy = dx*g;
-            if(df.f(x) < 0.000001){
+            if(Math.abs(grad) < 0.00000001){
                 dx = 0.;
                 dy = d;
             }
+            double vz = (grad > 0)?1:-1;
 
-            Pos3d func_pos_over = new Pos3d(x + dx, y + dy, GRID_ELEVATION_Z);
-            Pos3d func_pos_under = new Pos3d(x - dx, y - dy, GRID_ELEVATION_Z);
-            Pos3d draw_pos_over = f2openGL.transform(func_pos_over);
-            //draw_pos_over.add(position);
-            Pos3d draw_pos_under = f2openGL.transform(func_pos_under);
-            //draw_pos_under.add(position);
+            Pos3d func = new Pos3d(x, y, GRID_ELEVATION_Z);
+            Pos3d draw_func = f2openGL.transform(func);
+            Pos3d draw_thick = new Pos3d(vz*dx,vz*dy,0);
+            Pos3d draw_pos_over = Pos3d.add(draw_func, draw_thick);
+            Pos3d draw_pos_under = Pos3d.sub(draw_func, draw_thick);
 
             vertices_v.add((float) draw_pos_over.x);
             vertices_v.add((float) draw_pos_over.y);
@@ -82,13 +83,13 @@ public class DrawableFunction extends Drawable {
             vertices_v.add((float) draw_pos_under.z);
 
             if(i < num_samples-1) { // not the last two pints
-                vertices_ids_v.add(vertex_id); // over
+                vertices_ids_v.add((short) (vertex_id + 2)); // // next over
+                vertices_ids_v.add((short) (vertex_id)); // over
                 vertices_ids_v.add((short) (vertex_id + 1)); // under
-                vertices_ids_v.add((short) (vertex_id + 2)); // next over
 
-                vertices_ids_v.add((short) (vertex_id + 1)); //  under
-                vertices_ids_v.add((short) (vertex_id + 3)); // next under
                 vertices_ids_v.add((short) (vertex_id + 2)); // next over
+                vertices_ids_v.add((short) (vertex_id + 1)); // under
+                vertices_ids_v.add((short) (vertex_id + 3)); // next under
             }
             vertex_id += 2;
             // This is not really equidistant for changing gradients but it is not as if someone will notice this on that small screen anyway...
@@ -114,6 +115,8 @@ public class DrawableFunction extends Drawable {
         index_buffer = ibb.asShortBuffer();
         index_buffer.put(vertices_ids_a);
         index_buffer.position(0);
+
+        //setColoringMethodLines();
     }
 
     @Override
@@ -152,6 +155,6 @@ public class DrawableFunction extends Drawable {
     Homography2d openGL2F;
 
     final static int DEFAULT_NUM_SAMPLES = 30;
-    final static float DEFAULT_LINE_THICKNESS = 0.075f;
+    final static float DEFAULT_LINE_THICKNESS = 0.175f;
     final static double GRID_ELEVATION_Z = 0.01;
 }

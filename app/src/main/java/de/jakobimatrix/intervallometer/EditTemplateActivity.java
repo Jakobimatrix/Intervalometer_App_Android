@@ -65,8 +65,8 @@ public class EditTemplateActivity extends Activity {
         coord_overview = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
 
         ArrayList<Double> poly = new ArrayList<>(2);
-        poly.add(2.);
-        poly.add(4.);
+        poly.add(2.5);
+        poly.add(1.);
         Function f = new Function(poly);
         coord_overview.addFunction(0, f, 0, 4, false);
         renderer.addMovable(coord_overview);
@@ -82,10 +82,10 @@ public class EditTemplateActivity extends Activity {
 
         ArrayList<Double> poly2 = new ArrayList<>(2);
         poly2.add(2.);
-        poly2.add(4.);
+        poly2.add(0.);
         poly2.add(1.);
         Function f2 = new Function(poly2);
-        coord_overview2.addFunction(0, f2, 0, 4, false);
+        coord_overview2.addFunction(0, f2, -4.0, 4, false);
         renderer.addMovable(coord_overview2);
     }
 

@@ -49,7 +49,7 @@ public class Pos3d {
         z = (double) z_;
     }
 
-    public Pos3d(Pos3d p){
+    public Pos3d(final Pos3d p){
         x = p.x;
         y = p.y;
         z = p.z;
@@ -59,7 +59,7 @@ public class Pos3d {
      * \brief add Add a pose to this->Pos3d
      * \param p The pose to be added.
      */
-    public void add(Pos3d p){
+    public void add(final Pos3d p){
         x += p.x;
         y += p.y;
         z += p.z;
@@ -69,7 +69,7 @@ public class Pos3d {
      * \brief sub Subtract a pose from this->Pos3d
      * \param p The pose to be subtracted.
      */
-    public void sub(Pos3d p){
+    public void sub(final Pos3d p){
         x -= p.x;
         y -= p.y;
         z -= p.z;
@@ -99,7 +99,7 @@ public class Pos3d {
      * \param p2 The second pose.
      * \return p1 + p2;
      */
-    public static Pos3d add(Pos3d p1, Pos3d p2){
+    public static Pos3d add(final Pos3d p1, final Pos3d p2){
         Pos3d res = new Pos3d(p1);
         res.add(p2);
         return res;
@@ -111,7 +111,7 @@ public class Pos3d {
      * \param p2 The second pose.
      * \return p1 - p2;
      */
-    public static Pos3d sub(Pos3d p1, Pos3d p2){
+    public static Pos3d sub(final Pos3d p1, final Pos3d p2){
         Pos3d res = new Pos3d(p1);
         res.sub(p2);
         return res;
@@ -123,7 +123,7 @@ public class Pos3d {
      * \param m The scale factor.
      * \return p1*m;
      */
-    public static Pos3d mul(Pos3d p1, double m){
+    public static Pos3d mul(final Pos3d p1, double m){
         Pos3d res = new Pos3d(p1);
         res.mul(m);
         return res;
@@ -135,7 +135,7 @@ public class Pos3d {
      * \param d The scale factor.
      * \return p1/d;
      */
-    public static Pos3d div(Pos3d p1, double d){
+    public static Pos3d div(final Pos3d p1, double d){
         Pos3d res = new Pos3d(p1);
         res.div(d);
         return res;
