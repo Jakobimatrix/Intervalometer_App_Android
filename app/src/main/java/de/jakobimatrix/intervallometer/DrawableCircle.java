@@ -75,6 +75,11 @@ public class DrawableCircle extends Drawable {
         return norm < R;
     }
 
+    public void setRadius(float R){
+        this.R = R;
+        needs_rendering = true;
+    }
+
     private float R;
     final static int NUM_POINTS = 30;
 }

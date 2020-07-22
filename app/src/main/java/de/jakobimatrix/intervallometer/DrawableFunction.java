@@ -14,6 +14,12 @@ public class DrawableFunction extends Drawable {
         this.max_x = max_x;
         this.min_x = min_x;
         this.f2openGL = system_2_open_gl;
+
+        begin = new DrawableCircle(context_, position_, (float) (line_thickness/2.));
+        end = new DrawableCircle(context_, position_, (float) (line_thickness/2.));
+
+        adChild(begin);
+        adChild(end);
     }
 
     @Override
@@ -55,7 +61,7 @@ public class DrawableFunction extends Drawable {
         double d = line_thickness/2.;
 
         double x = min_x;
-        double eq_step = (max_x-min_x) / num_samples;
+        double eq_step = (max_x-min_x) / (num_samples-1);
         short vertex_id = 0;
         for(int i = 0; i < num_samples; i++){
             double grad = df.f(x);
@@ -117,6 +123,15 @@ public class DrawableFunction extends Drawable {
         index_buffer.position(0);
 
         //setColoringMethodLines();
+
+        Pos3d begin_pos_f = new Pos3d(min_x, f.f(min_x), GRID_ELEVATION_Z);
+        Pos3d end_pos_f = new Pos3d(max_x, f.f(max_x), GRID_ELEVATION_Z);
+        Pos3d draw_begin_pos = f2openGL.transform(begin_pos_f);
+        Pos3d draw_end_pos = f2openGL.transform(end_pos_f);
+        Pos3d rel_pos_begin = Pos3d.sub(draw_begin_pos, getPosition());
+        Pos3d rel_pos_end = Pos3d.sub(draw_end_pos, getPosition());
+        begin.setRelativePositionToParent(rel_pos_begin);
+        end.setRelativePositionToParent(rel_pos_end);
     }
 
     @Override
@@ -139,9 +154,17 @@ public class DrawableFunction extends Drawable {
         needs_rendering = true;
     }
 
+    public void setThickness(float thickness){
+        line_thickness = thickness;
+        begin.setRadius(thickness/2f);
+        end.setRadius(thickness/2f);
+    }
+
     public Function getFunction(){
         return f;
     }
+
+
 
     Function f;
     // function coordinates
@@ -154,7 +177,10 @@ public class DrawableFunction extends Drawable {
     Homography2d f2openGL;
     Homography2d openGL2F;
 
+    DrawableCircle begin;
+    DrawableCircle end;
+
     final static int DEFAULT_NUM_SAMPLES = 30;
-    final static float DEFAULT_LINE_THICKNESS = 0.175f;
+    final static float DEFAULT_LINE_THICKNESS = 0.045f;
     final static double GRID_ELEVATION_Z = 0.01;
 }

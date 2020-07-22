@@ -21,11 +21,10 @@ public class MovableCoordinateSystem extends Movable {
         static_axis_offset[1] = new Pos3d(AXIS_WIDTH/2f, 0, 0);
         static_axis_offset[2] = new Pos3d(AXIS_WIDTH/2f, AXIS_WIDTH/2f, 0);
 
-        Pos3d view_port_top_right = new Pos3d(position_);
-        view_port_top_right.add(new Pos3d(width, height, 0));
-        Pos3d view_port_left_bot = new Pos3d(position_);
-        view_port_left_bot.add(static_axis_offset[2]);
-        openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
+        Log.d("position_",position_.toString());
+        Log.d("width",width + "");
+        Log.d("height",height + "");
+        setViewPortOpenGL();
 
         // this will be changed according to the functions added later.
         system_viewport = new ViewPort(Pos3d.Zero(), new Pos3d(0,0,GRID_ELEVATION_Z));
@@ -46,10 +45,12 @@ public class MovableCoordinateSystem extends Movable {
             x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH/2f));
             y_grid.get(i).setLeftCenterORIGEN();
             x_grid.get(i).setBotCenterORIGEN();
+           // x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
+            //y_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
             parent.adChild(y_grid.get(i));
             parent.adChild(x_grid.get(i));
         }
-        this.grid_color = grid_color;
+
         x_axis.setColor(grid_color);
         y_axis.setColor(grid_color);
     }
@@ -146,7 +147,7 @@ public class MovableCoordinateSystem extends Movable {
 
                 pos_iterator.add(d_pos_iterator);
                 if(inside){
-                    grid_line.setColor(ColorRGBA.TRANSPARENT);
+                    grid_line.setColor(grid_color);
                 }else{
                     grid_line.setColor(ColorRGBA.TRANSPARENT);
                 }
@@ -172,14 +173,30 @@ public class MovableCoordinateSystem extends Movable {
         adjustGrid();
     }
 
+    private void setViewPortOpenGL(){
+        Pos3d position_ = getPosition();
+        float width = getWidth();
+        float height = getHeight();
+        Log.d("position_",position_.toString());
+        Log.d("width",width + "");
+        Log.d("height",height + "");
+        Pos3d view_port_top_right = new Pos3d(position_);
+        view_port_top_right.add(new Pos3d(width, height, 0));
+        Pos3d view_port_left_bot = new Pos3d(position_);
+        view_port_left_bot.add(static_axis_offset[2]);
+        openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
+    }
+
     private void scale(){
         system_viewport.min.x = getAllFunctionsMinX();
         system_viewport.min.y = getAllFunctionsMinY();
         system_viewport.max.x = getAllFunctionsMaxX();
         system_viewport.max.y = getAllFunctionsMaxY();
 
-        Log.d("scale", "system_viewport: " + system_viewport.toString());
-        Log.d("scale", "openGL_viewport: " + openGL_viewport.toString());
+        setViewPortOpenGL();
+
+        //Log.d("scale", "system_viewport: " + system_viewport.toString());
+        //Log.d("scale", "openGL_viewport: " + openGL_viewport.toString());
 
         open_gl_2_system.calculateHomography2DNoRotation(openGL_viewport.min, system_viewport.min, openGL_viewport.max, system_viewport.max);
         system_2_open_gl.calculateHomography2DNoRotation(system_viewport.min, openGL_viewport.min, system_viewport.max, openGL_viewport.max);
@@ -265,6 +282,28 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    public float getWidth(){
+        DrawableRectangle rect = (DrawableRectangle)parent;
+        return rect.getWidth();
+    }
+
+    public float getHeight(){
+        DrawableRectangle rect = (DrawableRectangle)parent;
+        return rect.getHeight();
+    }
+
+    public void setHeight(float height){
+        DrawableRectangle rect = (DrawableRectangle)parent;
+        rect.setHeight(height);
+        scale();
+    }
+
+    public void setWidth(float width){
+        DrawableRectangle rect = (DrawableRectangle)parent;
+        rect.setWidth(width);
+        scale();
+    }
+
     int active_function = -1;
     Vector<MovableFunction> functions = new Vector<>();
 
@@ -291,7 +330,7 @@ public class MovableCoordinateSystem extends Movable {
     final static float GRID_WIDTH = 0.02f;
     final static double GRID_ELEVATION_Z = 0.001;
 
-    ColorRGBA grid_color = BG_DEFAULT_GRID_COLOR;
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0,0,0,1);
+    ColorRGBA grid_color = BG_DEFAULT_GRID_COLOR;
 }

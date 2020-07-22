@@ -128,6 +128,24 @@ public class DrawableRectangle extends Drawable {
         needs_rendering = true;
     }
 
+    public float getWidth(){
+        return width;
+    }
+
+    public  float getHeight(){
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+        needs_rendering = true;
+    }
+
+    public void setWidth(float width){
+        this.width = width;
+        needs_rendering = true;
+    }
+
     float translation_x = 0;
     float translation_y = 0;
 
