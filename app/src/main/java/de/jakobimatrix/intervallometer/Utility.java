@@ -131,4 +131,16 @@ public class Utility {
         h.h[5] = p1_.y - h.h[4]*p1.y;
         return h;
     }
+
+    /*!
+     * \brief roundAT Rounds a number mathematically incorrect at rounding_point instead of 0.5
+     * \param number The number to be rounded.
+     * \param rounding_point The point at which to round up (should be in the range (0, 1)
+     * \return The rounded number.
+     */
+    public final static double roundAT(double number, double rounding_point){
+        double number_int = Math.floor(number);
+        double number_decimals = number - number_int;
+        return (number_decimals < rounding_point)?number_int:number_int + 1.0;
+    }
 }

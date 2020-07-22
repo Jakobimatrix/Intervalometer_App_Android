@@ -21,9 +21,6 @@ public class MovableCoordinateSystem extends Movable {
         static_axis_offset[1] = new Pos3d(AXIS_WIDTH/2f, 0, 0);
         static_axis_offset[2] = new Pos3d(AXIS_WIDTH/2f, AXIS_WIDTH/2f, 0);
 
-        Log.d("position_",position_.toString());
-        Log.d("width",width + "");
-        Log.d("height",height + "");
         setViewPortOpenGL();
 
         // this will be changed according to the functions added later.
@@ -117,8 +114,12 @@ public class MovableCoordinateSystem extends Movable {
             double is_y_d = (i == 1)?1:0.0;
             boolean is_y = !is_x;
 
+            // choose the grid partition depending on the span = max - min
+            final double ROUNDING_POINT = 0.75;
+            // e.g a span of 4 -> log(4) = 0.6 ::> roundAT(0.6, 0.75) = 0 -> grid partition is 10^0 = 0.1
+            // e.g a span of 8 -> log(8) = 0.9 ::> roundAT(0.9, 0.75) = 1 -> grid partition is 10^1 = 1
             double span = system_viewport.width()*is_x_d + system_viewport.height()*is_y_d;
-            double log_span = Math.log10(span);
+            double log_span = Utility.roundAT(Math.log10(span),ROUNDING_POINT);
             double grid_power = Math.pow(10,(int) log_span - 1);
             ArrayList <DrawableRectangle> grid = getGrid(i);
 
@@ -128,8 +129,11 @@ public class MovableCoordinateSystem extends Movable {
             // start = 123.4 + 0.1
             */
             double start = system_viewport.min.x*is_x_d + system_viewport.min.y*is_y_d;
-            start = (double) Math.ceil(start * grid_power) / grid_power;
+            Log.d("start f",  start + "");
+            start = (double) Math.ceil(start / grid_power) * grid_power;
             // build the grid, starting at start, adding d_pos every iteration
+
+            Log.d("start ",  start + "");
 
             Pos3d pos_iterator = new Pos3d(start*is_x_d,start*is_y_d, 0);
             // add the offset of the direction we don't iterate through.
@@ -177,9 +181,7 @@ public class MovableCoordinateSystem extends Movable {
         Pos3d position_ = getPosition();
         float width = getWidth();
         float height = getHeight();
-        Log.d("position_",position_.toString());
-        Log.d("width",width + "");
-        Log.d("height",height + "");
+
         Pos3d view_port_top_right = new Pos3d(position_);
         view_port_top_right.add(new Pos3d(width, height, 0));
         Pos3d view_port_left_bot = new Pos3d(position_);
