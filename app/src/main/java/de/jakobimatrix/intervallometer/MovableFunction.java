@@ -45,6 +45,7 @@ public class MovableFunction extends Movable {
         DrawableFunction df = (DrawableFunction) parent;
         return df.max_x;
     }
+
     public double getFunctionMinX(){
         DrawableFunction df = (DrawableFunction) parent;
         return df.min_x;

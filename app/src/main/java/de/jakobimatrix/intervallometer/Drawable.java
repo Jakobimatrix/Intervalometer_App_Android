@@ -27,17 +27,20 @@ public abstract class Drawable {
      * itself or its children gain.
      */
     public void draw(GL10 gl){
-        if(needs_rendering){
-            Render();
-            needs_rendering = false;
-        }
+
         for (Drawable child : children) {
             if(child == this){
                 throw new IllegalArgumentException( "NEIN FUCK" );
             }
             child.draw(gl);
         }
-
+        if(color == ColorRGBA.TRANSPARENT){
+            return;
+        }
+        if(needs_rendering){
+            Render();
+            needs_rendering = false;
+        }
         gl.glVertexPointer(COORDS_PER_VERTEX, GL10.GL_FLOAT, vertex_stride, vertex_buffer);
         gl.glColor4f(color.r, color.g, color.b, color.a);
        /*
@@ -72,11 +75,13 @@ public abstract class Drawable {
      * p The new pose in openGL-view coordinates
      */
     public void setPosition(final Pos3d p){
+        Pos3d old = getPosition();
         position = new Pos3d(p);
+        Pos3d dp = Pos3d.sub(p,old);
         position.add(translation_2_parent);
         needs_rendering = true;
         for (Drawable child : children) {
-            child.setPosition(position);
+            child.move(dp);
         }
     }
 
@@ -98,7 +103,7 @@ public abstract class Drawable {
         position.add(dp);
         needs_rendering = true;
         for (Drawable child : children) {
-            child.setPosition(position);
+            child.move(dp);
         }
     }
 
@@ -144,6 +149,10 @@ public abstract class Drawable {
         if(this == child){
             throw new IllegalArgumentException( "Drawable::adChild: Parent cant be his own child!");
         }
+        // set child to parents position
+        child.setRelativePositionToParent(Pos3d.Zero());
+        child.setPosition(getPosition());
+        // now add the child's offset
         child.setRelativePositionToParent(relative_translation_2_parent);
         children.add(child);
     }

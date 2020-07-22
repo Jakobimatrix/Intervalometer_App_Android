@@ -12,14 +12,14 @@ public class Homography2d {
 
     public double [] h = new double[9];
 
-    public Pos3d transform(Pos3d p){
+    public Pos3d transform(final Pos3d p){
         Pos3d p_ = new Pos3d(p);
         p_.x = h[0]*p.x + h[1] * p.y + h[2];
         p_.y = h[3]*p.x + h[4] * p.y + h[5];
         return p_;
     }
 
-    public void calculateHomography2DNoRotation(Pos3d p1, Pos3d p1_, Pos3d p2, Pos3d p2_){
+    public void calculateHomography2DNoRotation(final Pos3d p1, final Pos3d p1_, final Pos3d p2, final Pos3d p2_){
         /*
          *|x_|   |f1 0 tx|   |x|
          *|y_| = |0 f2 ty| * |y|

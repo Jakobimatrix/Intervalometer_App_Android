@@ -14,19 +14,26 @@ public class MovableCoordinateSystem extends Movable {
         DrawableRectangle bg = (DrawableRectangle) parent;
         bg.setBotLeftORIGEN();
         bg.setColor(BG_DEFAULT_COLOR);
+
+        // Move everything such that the axis (arrows) are inside the bg (rectangle).
+        // Otherwise the arrows would be half off the bg.
+        static_axis_offset[0] = new Pos3d(0, AXIS_WIDTH/2f, 0);
+        static_axis_offset[1] = new Pos3d(AXIS_WIDTH/2f, 0, 0);
+        static_axis_offset[2] = new Pos3d(AXIS_WIDTH/2f, AXIS_WIDTH/2f, 0);
+
         Pos3d view_port_top_right = new Pos3d(position_);
         view_port_top_right.add(new Pos3d(width, height, 0));
-        openGL_viewport = new ViewPort(new Pos3d(position_), view_port_top_right);
+        Pos3d view_port_left_bot = new Pos3d(position_);
+        view_port_left_bot.add(static_axis_offset[2]);
+        openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
+
+        // this will be changed according to the functions added later.
         system_viewport = new ViewPort(Pos3d.Zero(), new Pos3d(0,0,GRID_ELEVATION_Z));
 
         x_axis = new DrawableArrow(context_,new Pos3d(position_), width, AXIS_WIDTH);
         x_axis.setRotationRIGHT();
         y_axis = new DrawableArrow(context_,new Pos3d(position_), height, AXIS_WIDTH);
         y_axis.setRotationUP();
-
-        static_axis_offset[0] = new Pos3d(0, AXIS_WIDTH/2f, GRID_ELEVATION_Z);
-        static_axis_offset[1] = new Pos3d(AXIS_WIDTH/2f, 0, GRID_ELEVATION_Z);
-        static_axis_offset[2] = new Pos3d(AXIS_WIDTH/2f, AXIS_WIDTH/2f, 0);
 
         parent.adChild(x_axis, static_axis_offset[0]);
         parent.adChild(y_axis, static_axis_offset[1]);
@@ -35,10 +42,10 @@ public class MovableCoordinateSystem extends Movable {
         y_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ==
 
         for(int i = 0; i < NUM_GRID_STRIPES; i++){
-            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width, GRID_WIDTH));
-            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height));
-            //y_grid.get(i).setLeftCenterORIGEN();
-            //x_grid.get(i).setBotCenterORIGEN();
+            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width-AXIS_WIDTH/2f, GRID_WIDTH));
+            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH/2f));
+            y_grid.get(i).setLeftCenterORIGEN();
+            x_grid.get(i).setBotCenterORIGEN();
             parent.adChild(y_grid.get(i));
             parent.adChild(x_grid.get(i));
         }
@@ -101,48 +108,52 @@ public class MovableCoordinateSystem extends Movable {
         parent.setColor(color);
     }
 
+    private Pos3d absolutePos2relativePos(final Pos3d abs){
+        Pos3d parent_pos = parent.getPosition();
+        return Pos3d.sub(abs, parent_pos);
+    }
+
     private void adjustGrid(){
-        Pos3d diag = system_viewport.diag();
         for(int i = 0; i < 2; i++){
-            double span = diag.get(i);
+            // to avoid if else
+            double is_x_d = (i == 0)?1:0.0;
+            boolean is_x = (i == 0)?true:false;
+            double is_y_d = (i == 1)?1:0.0;
+            boolean is_y = !is_x;
+
+            double span = system_viewport.width()*is_x_d + system_viewport.height()*is_y_d;
             double log_span = Math.log10(span);
-            grid_power[i] = Math.pow(10,(int) log_span - 1);
+            double grid_power = Math.pow(10,(int) log_span - 1);
             ArrayList <DrawableRectangle> grid = getGrid(i);
 
-            double is_x = (i == 0)?1:0;
-            double is_y = (i == 1)?1:0;
-
-            // truncates e.g.
+            /* truncates e.g.
             // min = 123.456
             // power = 0.1
             // start = 123.4 + 0.1
-            double start = (double) Math.ceil(system_viewport.min.get(i) * grid_power[i]) / grid_power[i];
-            // bulid the grid, starting at start, adding d_pos every iteration, adding the transition since the rectangles natural center is mid.
-            Pos3d pos_iterator = new Pos3d(start*is_x,start*is_y, 0);
-            Pos3d d_pos_iterator = new Pos3d(grid_power[0]*is_x, grid_power[1]*is_y, 0);
+            */
+            double start = system_viewport.min.x*is_x_d + system_viewport.min.y*is_y_d;
+            start = (double) Math.ceil(start * grid_power) / grid_power;
+            // build the grid, starting at start, adding d_pos every iteration
+
+            Pos3d pos_iterator = new Pos3d(start*is_x_d,start*is_y_d, 0);
+            // add the offset of the direction we don't iterate through.
+            pos_iterator.add(new Pos3d(system_viewport.min.x*is_y_d,system_viewport.min.y*is_x_d, 0));
+            Pos3d d_pos_iterator = new Pos3d(grid_power*is_x_d, grid_power*is_y_d, 0);
 
             for(DrawableRectangle grid_line : grid){
-                Log.d("pos_iterator", pos_iterator.toString());
-                boolean inside = (!(pos_iterator.x > system_viewport.max.x) || is_x != 1) &&
-                        (!(pos_iterator.y > system_viewport.max.y) || is_y != 1);
+                boolean inside = (!(pos_iterator.x > system_viewport.max.x) || is_y) &&
+                        (!(pos_iterator.y > system_viewport.max.y) || is_x);
                 Pos3d translation_openGL = system_2_open_gl.transform(pos_iterator);
-                Log.d("translation_openGL", translation_openGL.toString());
-                Log.d("grid_line tx", grid_line.translation_x + "");
-                Log.d("grid_line ty", grid_line.translation_y + "");
-                Log.d("grid_line pos", grid_line.getPosition() + "");
-                //translation_openGL.mul(-1.);
-                grid_line.setRelativePositionToParent(translation_openGL);
-
-                Log.d("grid_line tx", grid_line.translation_x + "");
-                Log.d("grid_line ty", grid_line.translation_y + "");
-                Log.d("grid_line pos", grid_line.getPosition() + "");
+                // translation_openGL is now absolute position
+                Pos3d rel_translation_openGL = absolutePos2relativePos(translation_openGL);
+                rel_translation_openGL.z += GRID_ELEVATION_Z; // to be sure that grid is above bg.
+                grid_line.setRelativePositionToParent(rel_translation_openGL);
 
                 pos_iterator.add(d_pos_iterator);
                 if(inside){
                     grid_line.setColor(grid_color);
                 }else{
-                    // TODO It is not very efficient to calculate in Renderer() the transparent grid parts
-                    grid_line.setColor(new ColorRGBA(1,1,1,1));
+                    grid_line.setColor(ColorRGBA.TRANSPARENT);
                 }
             }
         }
@@ -179,6 +190,12 @@ public class MovableCoordinateSystem extends Movable {
         system_2_open_gl.calculateHomography2DNoRotation(system_viewport.min, openGL_viewport.min, system_viewport.max, openGL_viewport.max);
 
         adjustGrid();
+
+        debug_circle[0].setRelativePositionToParent(absolutePos2relativePos(openGL_viewport.min));
+        debug_circle[1].setRelativePositionToParent(absolutePos2relativePos(openGL_viewport.max));
+
+        debug_circle[2].setRelativePositionToParent(absolutePos2relativePos(system_2_open_gl.transform(system_viewport.min)));
+        debug_circle[3].setRelativePositionToParent(absolutePos2relativePos(system_2_open_gl.transform(system_viewport.max)));
     }
 
     private double getAllFunctionsMaxX(){
@@ -214,8 +231,6 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     public void addFunction(int index, Function f, double min, double max, boolean replace){
-        double mf_width = openGL_viewport.width() - AXIS_WIDTH/2f;
-        double mf_height= openGL_viewport.height() - AXIS_WIDTH/2f;
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
 
@@ -270,8 +285,6 @@ public class MovableCoordinateSystem extends Movable {
     // values on axis
     ViewPort system_viewport;
 
-    double [] grid_power = {1,1};
-
     DrawableArrow x_axis;
     DrawableArrow y_axis;
 
@@ -284,13 +297,12 @@ public class MovableCoordinateSystem extends Movable {
     Pos3d [] static_grid_offset_openGL = new Pos3d[2];
     Pos3d [] static_axis_offset = new Pos3d[3];
 
-    final static int NUM_GRID_STRIPES = 30;
+    final static int NUM_GRID_STRIPES = 50;
     final static float AXIS_WIDTH = 0.2f;
     final static float GRID_WIDTH = 0.02f;
     final static double GRID_ELEVATION_Z = 0.001;
 
     ColorRGBA grid_color = BG_DEFAULT_GRID_COLOR;
-    final static ColorRGBA TRANSPARENT = new ColorRGBA(0,0,0,0.0);
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0,0,0,1);
 

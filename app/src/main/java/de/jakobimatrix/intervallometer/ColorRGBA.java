@@ -75,5 +75,6 @@ public class ColorRGBA {
         }
     }
 
+    public final static ColorRGBA TRANSPARENT = new ColorRGBA(0,0,0,0);
     // todo if api level 24 use Color class?
 }

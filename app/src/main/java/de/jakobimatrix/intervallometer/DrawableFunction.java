@@ -70,9 +70,9 @@ public class DrawableFunction extends Drawable {
             Pos3d func_pos_over = new Pos3d(x + dx, y + dy, GRID_ELEVATION_Z);
             Pos3d func_pos_under = new Pos3d(x - dx, y - dy, GRID_ELEVATION_Z);
             Pos3d draw_pos_over = f2openGL.transform(func_pos_over);
-            draw_pos_over.add(position);
+            //draw_pos_over.add(position);
             Pos3d draw_pos_under = f2openGL.transform(func_pos_under);
-            draw_pos_under.add(position);
+            //draw_pos_under.add(position);
 
             vertices_v.add((float) draw_pos_over.x);
             vertices_v.add((float) draw_pos_over.y);
