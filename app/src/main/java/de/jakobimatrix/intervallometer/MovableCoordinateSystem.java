@@ -57,7 +57,8 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public boolean isWithin(Pos3d position_) {
-        if(parent.isWithin(position_)) {
+        // Todo we have to deal with Manipulators going over the edge
+        if(true || parent.isWithin(position_)) {
             for (int i = 0; i < functions.size(); i++) {
                 if (functions.get(i).isWithin(position_)) {
                     active_function = i;
@@ -65,23 +66,30 @@ public class MovableCoordinateSystem extends Movable {
                 }
             }
         }
-        active_function = -1;
+        active_function = INVALID_FUNCTION;
         return false;
     }
 
     @Override
     public void setPosition(Pos3d position_){
-        if(active_function > -1){
+        if(isValidFUnctionId(active_function)){
             functions.get(active_function).setPosition(position_);
-            //scale();
+            scale(); // TODO we could check if scaling in necessary
         }
     }
 
     @Override
     public void move(Pos3d dp){
-        if(active_function > -1){
+        if(isValidFUnctionId(active_function)){
             functions.get(active_function).move(dp);
-            //scale();
+            scale(); // TODO we could check if scaling in necessary
+        }
+    }
+
+    @Override
+    public void endTouch() {
+        for(MovableFunction df: functions){
+            df.endTouch();
         }
     }
 
@@ -104,9 +112,9 @@ public class MovableCoordinateSystem extends Movable {
 
     private void adjustGrid(){
         for(int i = 0; i < 2; i++){
-            // to avoid if else
+            // to avoid if else later
             double is_x_d = (i == 0)?1:0.0;
-            boolean is_x = (i == 0)?true:false;
+            boolean is_x = i == 0;
             double is_y_d = (i == 1)?1:0.0;
             boolean is_y = !is_x;
 
@@ -118,18 +126,14 @@ public class MovableCoordinateSystem extends Movable {
             double log_span = Utility.roundAT(Math.log10(span),ROUNDING_POINT);
             double grid_power = Math.pow(10,(int) log_span - 1);
             ArrayList <DrawableRectangle> grid = getGrid(i);
-
             /* truncates e.g.
             // min = 123.456
             // power = 0.1
             // start = 123.4 + 0.1
             */
             double start = system_viewport.min.x*is_x_d + system_viewport.min.y*is_y_d;
-            Log.d("start f",  start + "");
             start = (double) Math.ceil(start / grid_power) * grid_power;
             // build the grid, starting at start, adding d_pos every iteration
-
-            Log.d("start ",  start + "");
 
             Pos3d pos_iterator = new Pos3d(start*is_x_d,start*is_y_d, 0);
             // add the offset of the direction we don't iterate through.
@@ -153,7 +157,6 @@ public class MovableCoordinateSystem extends Movable {
                 }
             }
         }
-
     }
 
     private ArrayList <DrawableRectangle> getGrid(int i){
@@ -170,7 +173,25 @@ public class MovableCoordinateSystem extends Movable {
         this.grid_color = grid_color;
         x_axis.setColor(grid_color);
         y_axis.setColor(grid_color);
-        adjustGrid();
+        for(int i = 0; i < NUM_GRID_STRIPES; i++) {
+            x_grid.get(i).setColor(grid_color);
+            y_grid.get(i).setColor(grid_color);
+        }
+    }
+
+    private void setViewportSystem(){
+        system_viewport.min.x = getAllFunctionsMinX();
+        system_viewport.min.y = getAllFunctionsMinY();
+        system_viewport.max.x = getAllFunctionsMaxX();
+        system_viewport.max.y = getAllFunctionsMaxY();
+        // double dif_x = system_viewport.max.x - system_viewport.min.x;
+        double dif_y = system_viewport.max.y - system_viewport.min.y;
+        // avoid no height if function is a constant
+        if(dif_y < MIN_HEIGHT){
+            double center = system_viewport.min.y + dif_y/2.0;
+            system_viewport.min.y = center - MIN_HEIGHT/2.0;
+            system_viewport.max.y = center + MIN_HEIGHT/2.0;
+        }
     }
 
     private void setViewPortOpenGL(){
@@ -187,11 +208,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private void scale(){
-        system_viewport.min.x = getAllFunctionsMinX();
-        system_viewport.min.y = getAllFunctionsMinY();
-        system_viewport.max.x = getAllFunctionsMaxX();
-        system_viewport.max.y = getAllFunctionsMaxY();
-
+        setViewportSystem();
         setViewPortOpenGL();
 
         //Log.d("scale", "system_viewport: " + system_viewport.toString());
@@ -304,7 +321,15 @@ public class MovableCoordinateSystem extends Movable {
         throw new IllegalArgumentException( "MovableCoordinateSystem::setLocked: Don't use this function. Lock individual functions with setFunctionLocked().");
     }
 
-    int active_function = -1;
+    private boolean isValidFUnctionId(int id){
+        if(id < functions.size() && id > INVALID_FUNCTION){
+            return true;
+        }
+        return false;
+    }
+
+    final static int INVALID_FUNCTION = -1;
+    int active_function = INVALID_FUNCTION;
     Vector<MovableFunction> functions = new Vector<>();
 
     // visual
@@ -325,9 +350,12 @@ public class MovableCoordinateSystem extends Movable {
     Pos3d [] static_grid_offset_openGL = new Pos3d[2];
     Pos3d [] static_axis_offset = new Pos3d[3];
 
-    final static int NUM_GRID_STRIPES = 50;
+    final static int NUM_GRID_STRIPES = 65;
     final static float AXIS_WIDTH = 0.2f;
     final static float GRID_WIDTH = 0.02f;
+
+    final static float MIN_WIDTH = 1.f;
+    final static float MIN_HEIGHT= 10.f;
 
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0,0,0,1);

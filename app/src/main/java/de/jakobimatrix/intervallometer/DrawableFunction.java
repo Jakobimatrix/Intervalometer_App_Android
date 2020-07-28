@@ -150,7 +150,7 @@ public class DrawableFunction extends Drawable {
     }
 
     public void setHomography(Homography2d system_2_open_gl){
-        this.f2openGL = system_2_open_gl;
+        f2openGL = system_2_open_gl;
         needs_rendering = true;
     }
 
@@ -175,7 +175,6 @@ public class DrawableFunction extends Drawable {
     float line_thickness = DEFAULT_LINE_THICKNESS;
 
     Homography2d f2openGL;
-    Homography2d openGL2F;
 
     DrawableCircle begin;
     DrawableCircle end;

@@ -22,6 +22,18 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         this.screen_height_px = screen_height_px;
     }
 
+    // fucking no destructors in java, so you call this manually.
+    public void close(){
+        if(touch_action_thread != null) {
+            try {
+                touch_action_thread.join();
+                touch_action_thread = null;
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void onSurfaceCreated(GL10 gl10, EGLConfig egl_config){
         // TODO this is called every time the app loads the activity (wanted)
@@ -97,40 +109,94 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      * \brief onTouchEvent Is called through the EditTemplateActivity whenever the user dares to touch his screen.
      */
     public boolean onTouchEvent(MotionEvent e) {
+        // Log.d("EVENT", e + "");
+        // TODO multi finger touch:
+        // int num_fingers = e.getPointerCount();
+        // for(int i = 0; i < num_fingers; i++){
+        //     e...
+        // }
+
         float x = e.getX();
         float y = e.getY();
-        Pos3d pos_screen = new Pos3d(x,y,0);
-        Pos3d pos_openGL = screen2openGl(pos_screen);
+        last_pos_screen = new Pos3d(x, y,0);
+        last_pos_openGL = screen2openGl(last_pos_screen);
 
-        final Pos3d dp_screen = Pos3d.sub(last_pos_screen, pos_screen);
-        final Pos3d dp_openGL = Pos3d.sub(pos_openGL, last_pos_openGL);
         switch (e.getAction()) {
+            case MotionEvent.ACTION_UP:
+                action_hold_down = false;
+                try {
+                    touch_action_thread.join();
+                    touch_action_thread = null;
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                movable_release_callback.onFingerRelease();
+                movable_release_callback = new CallBackOnFingerReleaseNOP();
+                break;
+            case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
-                if(movables.containsKey(movable_guess)){
-                    Movable mv = movables.get(movable_guess);
-                    if(mv.isHold(pos_openGL)){
-                        mv.setPosition(pos_openGL);
-                    }else{
-                        movable_guess = INVALID_KEY;
-                    }
-                }
-                if(movable_guess == -1) {
-                    for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
-                        Movable mv = entry.getValue();
-                        if (mv.isHold(pos_openGL)) {
-                            mv.setPosition(pos_openGL);
-                            // there can only be one movable to be hold at a time;
-                            // set a guess for the next time
-                            movable_guess = entry.getKey();
-                            break;
-                        }
-                    }
-                }
+                action_hold_down = true;
                 break;
         }
-        last_pos_openGL = pos_openGL;
-        last_pos_screen = pos_screen;
+        if(touch_action_thread == null && action_hold_down) {
+            touch_action_thread = new Thread() {
+                @Override
+                public void run() {
+                    touchAction();
+                }
+            };
+            touch_action_thread.start();
+        }
         return true;
+    }
+
+    /*!
+     * \brief touchAction Shall be used in an own thread!
+     * If started it will handle all movables and the current touch point
+     * as long as action_hold_down == true.
+     * It will run loop every HOLD_DELAY_MS ms if possible.
+     */
+    private void touchAction(){
+        long start = System.currentTimeMillis();
+        if (movables.containsKey(movable_guess)) {
+            Movable mv = movables.get(movable_guess);
+            if (mv.isHold(last_pos_openGL)) {
+                mv.setPosition(last_pos_openGL);
+            } else {
+                movable_guess = INVALID_KEY;
+            }
+        }
+        if (movable_guess == -1) {
+            for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
+                Movable mv = entry.getValue();
+                if (mv.isHold(last_pos_openGL)) {
+                    mv.setPosition(last_pos_openGL);
+                    // there can only be one movable to be hold at a time;
+                    // set a guess for the next time
+                    movable_guess = entry.getKey();
+                    movable_release_callback = mv.on_finger_release_callback;
+                    break;
+                }
+            }
+        }
+
+        long stop = System.currentTimeMillis();
+        long delay = HOLD_DELAY_MS - (start - stop);
+        if(delay < 0){
+            Log.w("OpenGLRend::touchAction", "ist taking unexpectedly long: " + (start - stop) + "ms");
+            delay = HOLD_DELAY_MS;
+        }
+        if(action_hold_down){
+            new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        touchAction();
+                    }
+                },
+                delay
+            );
+        }
     }
 
     /*!
@@ -190,6 +256,15 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return openGL_coordinate;
     }
 
+    public interface CallBackOnFingerRelease{
+        void onFingerRelease();
+    }
+
+    class CallBackOnFingerReleaseNOP implements CallBackOnFingerRelease {          //class that implements the method to callback defined in the interface
+        public void onFingerRelease() { }
+    }
+
+
     Pos3d last_pos_screen = new Pos3d(0,0,0);
     Pos3d last_pos_openGL = new Pos3d(0,0,0);
 
@@ -203,7 +278,13 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     // contains the id of the last moved movable for a first guess.
     final static int INVALID_KEY = -1;
     int movable_guess = INVALID_KEY;
+    CallBackOnFingerRelease movable_release_callback = new CallBackOnFingerReleaseNOP();
 
     float screen_height_px;
     float screen_width_px;
+
+    boolean action_hold_down = false;
+    Thread touch_action_thread = null;
+
+    final static long HOLD_DELAY_MS = 100;
 }

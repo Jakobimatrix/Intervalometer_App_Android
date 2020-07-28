@@ -72,23 +72,42 @@ public class EditTemplateActivity extends Activity {
         coord_overview.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview);
 
-        double margin_px2 = 200;
-        Pos3d complete_left_down_screen2 = new Pos3d(margin_px2, size.y-2*margin_px2, 0);
-        Pos3d complete_top_right_screen2 = new Pos3d(size.x - 2*margin_px2, size.y/2., 0);
+        Pos3d complete_left_down_screen2 = new Pos3d(10, size.y-200, 0);
+        Pos3d complete_top_right_screen2 = new Pos3d(size.x/2-10, size.y/2+10., 0);
         Pos3d complete_top_right_open_gl2 = renderer.screen2openGl(complete_top_right_screen2);
         Pos3d complete_left_down_open_gl2 = renderer.screen2openGl(complete_left_down_screen2);
         float width2 = (float) (complete_top_right_open_gl2.x - complete_left_down_open_gl2.x);
         float height2 = (float) (complete_top_right_open_gl2.y - complete_left_down_open_gl2.y);
         coord_overview2 = new MovableCoordinateSystem(this, complete_left_down_open_gl2, width2, height2 );
 
-        ArrayList<Double> poly2 = new ArrayList<>(2);
+        ArrayList<Double> poly2 = new ArrayList<>(3);
         poly2.add(2.);
         poly2.add(0.);
         poly2.add(1.);
         Function f2 = new Function(poly2);
-        index = coord_overview2.addFunction(f2, -4.0, 4);
+        ArrayList<Double> poly3 = new ArrayList<>(1);
+        poly3.add(3.);
+        Function f3 = new Function(poly3);
+        index = coord_overview2.addFunction(f2, 0.0, 4);
+        coord_overview2.setFunctionLocked(false, index);
+        index = coord_overview2.addFunction(f3, -4.0, 0);
         coord_overview2.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview2);
+
+        Pos3d complete_left_down_screen3 = new Pos3d(size.x/2 + 10, size.y-200, 0);
+        Pos3d complete_top_right_screen3 = new Pos3d(size.x-10, size.y/2+10., 0);
+        Pos3d complete_top_right_open_gl3 = renderer.screen2openGl(complete_top_right_screen3);
+        Pos3d complete_left_down_open_gl3 = renderer.screen2openGl(complete_left_down_screen3);
+        float width3 = (float) (complete_top_right_open_gl3.x - complete_left_down_open_gl3.x);
+        float height3 = (float) (complete_top_right_open_gl3.y - complete_left_down_open_gl3.y);
+        coord_overview3 = new MovableCoordinateSystem(this, complete_left_down_open_gl3, width3, height3 );
+
+        ArrayList<Double> poly4 = new ArrayList<>(1);
+        poly4.add(2.);
+        Function f4 = new Function(poly4);
+        index = coord_overview3.addFunction(f4, -4.0, 4);
+        coord_overview3.setFunctionLocked(false, index);
+        renderer.addMovable(coord_overview3);
     }
 
     /*!
@@ -170,6 +189,7 @@ public class EditTemplateActivity extends Activity {
     }
 
     private void exit(){
+        renderer.close();
         this.finish();
     }
 
@@ -217,6 +237,7 @@ public class EditTemplateActivity extends Activity {
 
     MovableCoordinateSystem coord_overview;
     MovableCoordinateSystem coord_overview2;
+    MovableCoordinateSystem coord_overview3;
 
     // DEBUG
     private TextView seeker_y;

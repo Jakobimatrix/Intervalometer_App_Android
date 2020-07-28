@@ -10,6 +10,9 @@ public class DrawableRectangle extends Drawable {
         super(context_, position_);
         width = width_;
         height = height_;
+        if(width_ < 0 || height_ < 0){
+            throw new IllegalArgumentException( "DrawableRectangle: given height,width must be positive! Use the SetXXXOrigen methods for changing perspective.");
+        }
     }
 
     @Override

@@ -113,6 +113,9 @@ public abstract class Drawable {
      * \param p The relative pose translation.
      */
     public void setRelativePositionToParent(Pos3d p){
+        // first we need to reset the position otherwise multiple calls of ths function will result in an accumulated translation.
+        position.sub(translation_2_parent);
+        // now we can overwrite translation_2_parent
         translation_2_parent = new Pos3d(p);
         // set the new position which will than add the translation to the parent
         // as well as the new position for all other children.

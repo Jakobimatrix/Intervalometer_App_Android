@@ -56,6 +56,22 @@ public abstract class Movable {
         parent.move(dp);
     }
 
+    /*
+    * \brief Callback class - function java shit.
+    * //https://stackoverflow.com/questions/18279302/how-do-i-perform-a-java-callback-between-classes
+    * This function shall be called back after touch (finger stopped touching device)
+    * */
+    class CallBackOnFingerRelease implements OpenGLRenderer.CallBackOnFingerRelease {
+        public void onFingerRelease() {
+            endTouch();
+        }
+    }
+
+    /*!
+     * \brief endTouch Abstract method to be implemented py child. It will be called if the user stops touching the device if this.movable was touched last.
+     */
+    public abstract void endTouch();
+
     /*!
      * \brief isLocked returns if the movable shall be able to be moved or not.
      * There is no real prevention for moving if Movable is locked but this->move() or this->setPosition() is called.
@@ -77,4 +93,6 @@ public abstract class Movable {
 
     Drawable parent;
     boolean is_locked = true;
+
+    public CallBackOnFingerRelease on_finger_release_callback = new CallBackOnFingerRelease();
 }
