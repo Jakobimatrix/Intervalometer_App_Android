@@ -65,6 +65,16 @@ public abstract class Movable {
         return is_locked;
     }
 
+    public void setLocked(boolean lock){
+        is_locked = lock;
+    }
+
+
+    protected Pos3d absolutePos2relativePos(final Pos3d abs){
+        Pos3d parent_pos = parent.getPosition();
+        return Pos3d.sub(abs, parent_pos);
+    }
+
     Drawable parent;
     boolean is_locked = true;
 }

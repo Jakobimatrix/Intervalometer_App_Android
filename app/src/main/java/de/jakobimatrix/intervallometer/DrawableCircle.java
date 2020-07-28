@@ -1,11 +1,9 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.Vector;
 
 public class DrawableCircle extends Drawable {

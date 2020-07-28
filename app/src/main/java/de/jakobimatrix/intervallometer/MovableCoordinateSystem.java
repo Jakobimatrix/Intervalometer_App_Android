@@ -24,7 +24,7 @@ public class MovableCoordinateSystem extends Movable {
         setViewPortOpenGL();
 
         // this will be changed according to the functions added later.
-        system_viewport = new ViewPort(Pos3d.Zero(), new Pos3d(0,0,GRID_ELEVATION_Z));
+        system_viewport = new ViewPort(Pos3d.Zero(), new Pos3d(0,0, Globals.FUNCTION_Z_ELEVATION));
 
         x_axis = new DrawableArrow(context_,new Pos3d(position_), width, AXIS_WIDTH);
         x_axis.setRotationRIGHT();
@@ -38,26 +38,31 @@ public class MovableCoordinateSystem extends Movable {
         y_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ==
 
         for(int i = 0; i < NUM_GRID_STRIPES; i++){
-            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width-AXIS_WIDTH/2f, GRID_WIDTH));
-            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH/2f));
+            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width-AXIS_WIDTH, GRID_WIDTH));
+            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH));
             y_grid.get(i).setLeftCenterORIGEN();
             x_grid.get(i).setBotCenterORIGEN();
-           // x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
-            //y_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
+            x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
+            y_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
             parent.adChild(y_grid.get(i));
             parent.adChild(x_grid.get(i));
         }
 
         x_axis.setColor(grid_color);
         y_axis.setColor(grid_color);
+
+        // we lock the functions individually
+        is_locked = false;
     }
 
     @Override
     public boolean isWithin(Pos3d position_) {
-        for(int i = 0; i < functions.size(); i++){
-            if(functions.get(i).isWithin(position_)){
-                active_function = i;
-                return true;
+        if(parent.isWithin(position_)) {
+            for (int i = 0; i < functions.size(); i++) {
+                if (functions.get(i).isWithin(position_)) {
+                    active_function = i;
+                    return true;
+                }
             }
         }
         active_function = -1;
@@ -66,22 +71,18 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public void setPosition(Pos3d position_){
-        if(active_function > 0){
+        if(active_function > -1){
             functions.get(active_function).setPosition(position_);
-        }else{
-            parent.setPosition(position_);
+            //scale();
         }
-        scale();
     }
 
     @Override
     public void move(Pos3d dp){
-        if(active_function > 0){
+        if(active_function > -1){
             functions.get(active_function).move(dp);
-        }else{
-            parent.move(dp);
+            //scale();
         }
-        scale();
     }
 
     public void setGridPosition(Pos3d position_){
@@ -99,11 +100,6 @@ public class MovableCoordinateSystem extends Movable {
 
     public void setBackgroundColor(ColorRGBA color){
         parent.setColor(color);
-    }
-
-    private Pos3d absolutePos2relativePos(final Pos3d abs){
-        Pos3d parent_pos = parent.getPosition();
-        return Pos3d.sub(abs, parent_pos);
     }
 
     private void adjustGrid(){
@@ -146,7 +142,7 @@ public class MovableCoordinateSystem extends Movable {
                 Pos3d translation_openGL = system_2_open_gl.transform(pos_iterator);
                 // translation_openGL is now absolute position
                 Pos3d rel_translation_openGL = absolutePos2relativePos(translation_openGL);
-                rel_translation_openGL.z += GRID_ELEVATION_Z; // to be sure that grid is above bg.
+                rel_translation_openGL.z += Globals.GRID_Z_ELEVATION; // to be sure that grid is above bg.
                 grid_line.setRelativePositionToParent(rel_translation_openGL);
 
                 pos_iterator.add(d_pos_iterator);
@@ -184,6 +180,7 @@ public class MovableCoordinateSystem extends Movable {
 
         Pos3d view_port_top_right = new Pos3d(position_);
         view_port_top_right.add(new Pos3d(width, height, 0));
+        view_port_top_right.sub(static_axis_offset[2]);
         Pos3d view_port_left_bot = new Pos3d(position_);
         view_port_left_bot.add(static_axis_offset[2]);
         openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
@@ -204,6 +201,7 @@ public class MovableCoordinateSystem extends Movable {
         system_2_open_gl.calculateHomography2DNoRotation(system_viewport.min, openGL_viewport.min, system_viewport.max, openGL_viewport.max);
 
         adjustGrid();
+        rescaleAllFunctions();
     }
 
     private double getAllFunctionsMaxX(){
@@ -238,44 +236,28 @@ public class MovableCoordinateSystem extends Movable {
         return min;
     }
 
-    public void addFunction(int index, Function f, double min, double max, boolean replace){
+    public int addFunction(Function f, double min, double max){
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
-
-        //check if we need to rescale
-        boolean need_rescale = false;
-        // if we swap a function, we look if that old function was responsible for a maximum
-        if(replace){
-            MovableFunction old_func = functions.get(index);
-            ViewPort old_function_view = old_func.getFunctionViewport();
-            if(!system_viewport.isWithin(old_function_view)) {
-                need_rescale = true;
-            }
-        }
-        //
-        double new_func_max = f.getMax(min, max);
-        double new_func_min = f.getMin(min, max);
-        ViewPort new_function_view = new ViewPort(new Pos3d(min, new_func_min, 0), new Pos3d(max, new_func_max, 0));
-        if(!system_viewport.isWithin(new_function_view)){
-            need_rescale = true;
-            Log.d("NEED RESCALE", "TRUE");
-        }
-
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
-        if(index < functions.size()){
-            if(replace){
-                functions.set(index, mf);
-            }else{
-                functions.insertElementAt(mf, index);
-            }
-        }else{
-            functions.add(mf);
-        }
-        if(need_rescale){
-            scale();
-            rescaleAllFunctions();
-        }
+        mf.setLocked(true);
+        functions.add(mf);
 
+        scale();
+        rescaleAllFunctions();
+        return functions.size()-1;
+    }
+
+    public void replaceFunction(int index, Function f, double min, double max){
+        Pos3d relative_position = new Pos3d(parent.getPosition());
+        relative_position.add(static_axis_offset[2]);
+        getMovableFunction(index); // throw if index is out of bounds
+        MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
+        mf.setLocked(true);
+        functions.set(index, mf);
+
+        scale();
+        rescaleAllFunctions();
     }
 
     private void rescaleAllFunctions(){
@@ -306,6 +288,22 @@ public class MovableCoordinateSystem extends Movable {
         scale();
     }
 
+    private MovableFunction getMovableFunction(int index){
+        if(functions.size() > index){
+            return functions.get(index);
+        }
+        throw new IllegalArgumentException( "MovableCoordinateSystem::getMovableFunction: given index is not a function set prior");
+    }
+
+    public void setFunctionLocked(boolean l, int function_index){
+        getMovableFunction(function_index).setLocked(l);
+    }
+
+    @Override
+    public void setLocked(boolean l){
+        throw new IllegalArgumentException( "MovableCoordinateSystem::setLocked: Don't use this function. Lock individual functions with setFunctionLocked().");
+    }
+
     int active_function = -1;
     Vector<MovableFunction> functions = new Vector<>();
 
@@ -330,7 +328,6 @@ public class MovableCoordinateSystem extends Movable {
     final static int NUM_GRID_STRIPES = 50;
     final static float AXIS_WIDTH = 0.2f;
     final static float GRID_WIDTH = 0.02f;
-    final static double GRID_ELEVATION_Z = 0.001;
 
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0,0,0,1);

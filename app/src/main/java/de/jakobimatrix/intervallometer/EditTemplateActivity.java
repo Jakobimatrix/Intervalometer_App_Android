@@ -68,7 +68,8 @@ public class EditTemplateActivity extends Activity {
         poly.add(2.5);
         poly.add(1.);
         Function f = new Function(poly);
-        coord_overview.addFunction(0, f, 0, 4, false);
+        int index = coord_overview.addFunction(f, 0, 4);
+        coord_overview.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview);
 
         double margin_px2 = 200;
@@ -85,7 +86,8 @@ public class EditTemplateActivity extends Activity {
         poly2.add(0.);
         poly2.add(1.);
         Function f2 = new Function(poly2);
-        coord_overview2.addFunction(0, f2, -4.0, 4, false);
+        index = coord_overview2.addFunction(f2, -4.0, 4);
+        coord_overview2.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview2);
     }
 

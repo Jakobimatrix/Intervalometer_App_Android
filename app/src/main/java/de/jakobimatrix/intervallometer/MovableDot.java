@@ -29,6 +29,15 @@ public class MovableDot extends Movable{
         inner_circle.setColor(MOVABLE_INNER_CIRCLE);
     }
 
+    @Override
+    public void setLocked(boolean l){
+        if (l){
+            lock();
+        }else{
+            unlock();
+        }
+    }
+
     DrawableCircle inner_circle;
 
     final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0.8,0.8,0.8,1.0);

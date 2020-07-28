@@ -75,7 +75,7 @@ public class DrawableFunction extends Drawable {
             }
             double vz = (grad > 0)?1:-1;
 
-            Pos3d func = new Pos3d(x, y, GRID_ELEVATION_Z);
+            Pos3d func = new Pos3d(x, y, Globals.FUNCTION_Z_ELEVATION);
             Pos3d draw_func = f2openGL.transform(func);
             Pos3d draw_thick = new Pos3d(vz*dx,vz*dy,0);
             Pos3d draw_pos_over = Pos3d.add(draw_func, draw_thick);
@@ -124,8 +124,8 @@ public class DrawableFunction extends Drawable {
 
         //setColoringMethodLines();
 
-        Pos3d begin_pos_f = new Pos3d(min_x, f.f(min_x), GRID_ELEVATION_Z);
-        Pos3d end_pos_f = new Pos3d(max_x, f.f(max_x), GRID_ELEVATION_Z);
+        Pos3d begin_pos_f = new Pos3d(min_x, f.f(min_x), Globals.FUNCTION_Z_ELEVATION);
+        Pos3d end_pos_f = new Pos3d(max_x, f.f(max_x), Globals.FUNCTION_Z_ELEVATION);
         Pos3d draw_begin_pos = f2openGL.transform(begin_pos_f);
         Pos3d draw_end_pos = f2openGL.transform(end_pos_f);
         Pos3d rel_pos_begin = Pos3d.sub(draw_begin_pos, getPosition());
@@ -182,5 +182,4 @@ public class DrawableFunction extends Drawable {
 
     final static int DEFAULT_NUM_SAMPLES = 30;
     final static float DEFAULT_LINE_THICKNESS = 0.045f;
-    final static double GRID_ELEVATION_Z = 0.01;
 }

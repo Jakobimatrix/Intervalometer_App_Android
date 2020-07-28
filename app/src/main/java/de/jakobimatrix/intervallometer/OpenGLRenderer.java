@@ -108,7 +108,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
             case MotionEvent.ACTION_MOVE:
                 if(movables.containsKey(movable_guess)){
                     Movable mv = movables.get(movable_guess);
-                    if(!mv.isLocked() && mv.isHold(pos_openGL)){
+                    if(mv.isHold(pos_openGL)){
                         mv.setPosition(pos_openGL);
                     }else{
                         movable_guess = INVALID_KEY;
@@ -117,14 +117,12 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                 if(movable_guess == -1) {
                     for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
                         Movable mv = entry.getValue();
-                        if (!mv.isLocked()) {
-                            if (mv.isHold(pos_openGL)) {
-                                mv.setPosition(pos_openGL);
-                                // there can only be one movable to be hold at a time;
-                                // set a guess for the next time
-                                movable_guess = entry.getKey();
-                                break;
-                            }
+                        if (mv.isHold(pos_openGL)) {
+                            mv.setPosition(pos_openGL);
+                            // there can only be one movable to be hold at a time;
+                            // set a guess for the next time
+                            movable_guess = entry.getKey();
+                            break;
                         }
                     }
                 }
