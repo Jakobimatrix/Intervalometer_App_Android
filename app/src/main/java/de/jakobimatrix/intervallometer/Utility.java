@@ -36,24 +36,6 @@ public class Utility {
     }
 
     /*!
-     * \brief screen2OpenGL Using homography to transform from screen coordinates to OpenGL coordinates
-     * THERE IS NO CHECK IF GIVEN ARRAy HAS ENOUGH ELEMENTS!
-     * \param homography A 4*4 homography matrix in row mayor.
-     * \param pos_screen the to be transformed pose in screen coordinates.
-     * \return The position in openGL coordinates.
-     */
-    public static final Pos3d screen2OpenGL(double[] homography, Pos3d pos_screen){
-        double [] pos_screen_vector = {pos_screen.x, pos_screen.y, pos_screen.z, 1};
-        double [] pos_gl_vector = {0,0,0,0};
-        for(int y = 0; y < 4; y++){
-            for(int x = 0; x < 4; x++){
-                pos_gl_vector[y] += homography[y*4 + x]*pos_screen_vector[x];
-            }
-        }
-        return new Pos3d(pos_gl_vector[0], pos_gl_vector[1], pos_gl_vector[2]);
-    }
-
-    /*!
      * \brief Vector2ArrayShort transforms a given Vector<Short> into an array
      * \param v The vector
      * \return an array with the elements of v
@@ -97,41 +79,6 @@ public class Utility {
 
     final static public float GOLDEN_RATIO = 1.6180339887f;
 
-    final static public Homography2d calculateHomography2DNoRotation(Pos3d p1, Pos3d p1_, Pos3d p2, Pos3d p2_){
-        /*
-        *|x_|   |f1 0 tx|   |x|
-        *|y_| = |0 f2 ty| * |y|
-        *|1 |   |0 0  1|    |1|
-        *
-        * // 4 points given
-        * x1_ = f1*x1 + tx (I)
-        * y1_ = f2*y1 + tx (II)
-        * x2_ = f1*x2 + tx (III)
-        * y2_ = f2*y2 + tx (IV)
-        *
-        * (I) - (III)
-        * x1_ - x2_ = f1*x1 - f1*x2
-        * x1_ - x2_ = f1*(x1 - x2)
-        * -> f1 = (x1_ - x2_) / (x1 - x2) (V)
-        * (II) - (IV)
-        * -> f2 = (y1_ - y2_) / (y1 - y2) (VI)
-        *
-        * (V)->(I)
-        * -> tx = x1_ - f1*x1
-        * ->
-        * f2 = y1_/y1 - ty = y2_/y2 - ty
-        *
-        */
-
-        Homography2d h = new Homography2d();
-        h.setIdentity();
-        h.h[0] = (p1_.x - p2_.x) / (p1.x - p2.x);
-        h.h[4] = (p1_.y - p2_.y) / (p1.y - p2.y);
-        h.h[2] = p1_.x - h.h[0]*p1.x;
-        h.h[5] = p1_.y - h.h[4]*p1.y;
-        return h;
-    }
-
     /*!
      * \brief roundAT Rounds a number mathematically incorrect at rounding_point instead of 0.5
      * \param number The number to be rounded.
@@ -142,5 +89,36 @@ public class Utility {
         double number_int = Math.floor(number);
         double number_decimals = number - number_int;
         return (number_decimals < rounding_point)?number_int:number_int + 1.0;
+    }
+
+    /*!
+     * \brief roundAtDecimal Rounds a number at a given power.
+     * E.g.:
+     * roundAtDecimal(123.456, 100) -> 100
+     * roundAtDecimal(123.456, 10) -> 120
+     * roundAtDecimal(123.456, 0.1) -> 123.46
+     * \param number The number to be rounded.
+     * \param power The power at which to round
+     * \return The rounded number.
+     */
+    public final static double roundAtDecimal(double number, double power){
+        return (double) Math.round(number / power) * power;
+    }
+
+
+
+    /*!
+     * \brief cutAtDecimal Cuts a number at a given power.
+     * E.g.:
+     * cutAtDecimal(123.456, 100) -> 100
+     * cutAtDecimal(123.456, 10) -> 120
+     * cutAtDecimal(123.456, 0.1) -> 123.4
+     * cutAtDecimal(123.456, 0.01) -> 123.45
+     * \param number The number to be cut.
+     * \param power The power at which to round
+     * \return The rounded number.
+     */
+    public final static double cutAtDecimal(double number, double power){
+        return (double) Math.ceil(number / power) * power;
     }
 }

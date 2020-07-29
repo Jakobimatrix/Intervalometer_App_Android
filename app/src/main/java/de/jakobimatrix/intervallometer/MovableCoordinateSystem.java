@@ -132,12 +132,13 @@ public class MovableCoordinateSystem extends Movable {
             // start = 123.4 + 0.1
             */
             double start = system_viewport.min.x*is_x_d + system_viewport.min.y*is_y_d;
-            start = (double) Math.ceil(start / grid_power) * grid_power;
+            start = Utility.cutAtDecimal(start, grid_power);
             // build the grid, starting at start, adding d_pos every iteration
 
             Pos3d pos_iterator = new Pos3d(start*is_x_d,start*is_y_d, 0);
             // add the offset of the direction we don't iterate through.
             pos_iterator.add(new Pos3d(system_viewport.min.x*is_y_d,system_viewport.min.y*is_x_d, 0));
+
             Pos3d d_pos_iterator = new Pos3d(grid_power*is_x_d, grid_power*is_y_d, 0);
 
             for(DrawableRectangle grid_line : grid){
@@ -184,13 +185,21 @@ public class MovableCoordinateSystem extends Movable {
         system_viewport.min.y = getAllFunctionsMinY();
         system_viewport.max.x = getAllFunctionsMaxX();
         system_viewport.max.y = getAllFunctionsMaxY();
-        // double dif_x = system_viewport.max.x - system_viewport.min.x;
+        double dif_x = system_viewport.max.x - system_viewport.min.x;
         double dif_y = system_viewport.max.y - system_viewport.min.y;
         // avoid no height if function is a constant
         if(dif_y < MIN_HEIGHT){
             double center = system_viewport.min.y + dif_y/2.0;
             system_viewport.min.y = center - MIN_HEIGHT/2.0;
             system_viewport.max.y = center + MIN_HEIGHT/2.0;
+        }
+
+        // avoid no width if function is very small
+        final double SMOOL_NUMBER = 0.0000001;
+        if(dif_x < SMOOL_NUMBER){
+            double center = system_viewport.min.x + dif_x/2.0;
+            system_viewport.min.x = center - SMOOL_NUMBER/2.0;
+            system_viewport.max.x = center + SMOOL_NUMBER/2.0;
         }
     }
 
@@ -254,9 +263,14 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     public int addFunction(Function f, double min, double max){
+        return addFunction(f,min,max,0.0);
+    }
+
+    public int addFunction(Function f, double min, double max, double min_step_width){
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
+        mf.setMinStepWidth(min_step_width);
         mf.setLocked(true);
         functions.add(mf);
 

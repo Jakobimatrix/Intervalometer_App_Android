@@ -13,6 +13,7 @@ public class DrawableFunction extends Drawable {
         this.f = f;
         this.max_x = max_x;
         this.min_x = min_x;
+        swapIf();
         this.f2openGL = system_2_open_gl;
 
         begin = new DrawableCircle(context_, position_, (float) (line_thickness/2.));
@@ -20,6 +21,10 @@ public class DrawableFunction extends Drawable {
 
         adChild(begin);
         adChild(end);
+
+        if(max_x < min_x){
+            throw new IllegalArgumentException( "DrawableFunction: Given min > given max");
+        }
     }
 
     @Override
@@ -141,12 +146,23 @@ public class DrawableFunction extends Drawable {
 
     public void setMax(double max_x) {
         this.max_x = max_x;
+        swapIf();
         needs_rendering = true;
     }
 
     public void setMin(double min_x) {
         this.min_x = min_x;
+        swapIf();
         needs_rendering = true;
+    }
+
+    private void swapIf(){
+        // std::swap anyone? Oh that's right fucking Java can not make a double a reference.
+        if(this.min_x > this.max_x){
+            double temp = min_x;
+            this.min_x = this.max_x;
+            this.max_x = temp;
+        }
     }
 
     public void setHomography(Homography2d system_2_open_gl){
@@ -163,8 +179,6 @@ public class DrawableFunction extends Drawable {
     public Function getFunction(){
         return f;
     }
-
-
 
     Function f;
     // function coordinates

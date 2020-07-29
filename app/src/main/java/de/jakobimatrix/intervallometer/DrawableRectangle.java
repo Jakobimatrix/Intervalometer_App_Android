@@ -142,11 +142,17 @@ public class DrawableRectangle extends Drawable {
     public void setHeight(float height) {
         this.height = height;
         needs_rendering = true;
+        if(height < 0){
+            throw new IllegalArgumentException( "DrawableRectangle::setHeight given height must be positive! Use the SetXXXOrigen methods for changing perspective.");
+        }
     }
 
     public void setWidth(float width){
         this.width = width;
         needs_rendering = true;
+        if(width < 0){
+            throw new IllegalArgumentException( "DrawableRectangle::setWidth given width must be positive! Use the SetXXXOrigen methods for changing perspective.");
+        }
     }
 
     float translation_x = 0;

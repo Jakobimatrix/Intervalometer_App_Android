@@ -134,30 +134,75 @@ public class MovableFunction extends Movable {
         return false;
     }
 
+    /*!
+     * \brief adjustDx Maces sure given dx will always be at least of the size of the minimal step length.
+     * \param dx the step length to be adjusted.
+     * \return A number smaller than -min_step_width or bigger than min_step_width.
+     */
+    private double adjustDx(double dx){
+        if(dx > 0){
+            return Math.max(dx, min_step_width);
+        }
+        return Math.min(dx, -min_step_width);
+    }
+
     private void scaleFunctionMinX(double dx){
+        dx = adjustDx(dx);
         DrawableFunction df = getDrawableFunction();
         df.setMin(df.min_x + dx);
+        checkMinStepWidth();
     }
 
     private void scaleFunctionMaxX(double dx){
+        dx = adjustDx(dx);
         DrawableFunction df = getDrawableFunction();
         df.setMax(df.max_x + dx);
+        checkMinStepWidth();
     }
 
     private void scaleFunctionLeft(double dy){
         //TODO
+        checkMinStepWidth();
     }
 
-    private void scaleFunctionRight(double dy){
+    private void scaleFunctionRight(double dy)
+    {
         //TODO
+        checkMinStepWidth();
     }
 
     private void scaleFunctionGradient(double dy){
         //TODO
+        checkMinStepWidth();
     }
 
-    private void scaleFunctionOffset(double dy){
+    private void scaleFunctionOffset(double dy)
+    {
         //TODO
+        checkMinStepWidth();
+    }
+
+    public void setMinStepWidth(double min_step_width){
+        if(min_step_width < 0){
+            this.min_step_width = 0;
+            return;
+        }
+        this.min_step_width = min_step_width;
+        checkMinStepWidth();
+    }
+
+    private void checkMinStepWidth(){
+        if(min_step_width <= 0){
+            return;
+        }
+        DrawableFunction df = getDrawableFunction();
+        double log_min_step_width = Math.round(Math.log10(min_step_width));
+        double step_power = Math.pow(10,(int) log_min_step_width);
+        df.setMax(Utility.roundAtDecimal(df.max_x, step_power));
+        df.setMin(Utility.roundAtDecimal(df.min_x, step_power));
+        if(df.min_x == df.max_x){
+            df.setMax(df.max_x + min_step_width);
+        }
     }
 
     Pos3d getLeftManipulatorGLpos(){
@@ -252,4 +297,7 @@ public class MovableFunction extends Movable {
     final static float DEFAULT_MANIPULATOR_RADIUS = 0.25f;
 
     public boolean lock_manipulation;
+
+    final static double DEFAULT_MIN_STEP_WIDTH = 0;
+    double min_step_width = DEFAULT_MIN_STEP_WIDTH;
 }

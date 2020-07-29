@@ -10,6 +10,10 @@ public class DrawableCircle extends Drawable {
     public DrawableCircle(Context context_, Pos3d position_, float radius) {
         super(context_, position_);
         R = radius;
+
+        if(radius < 0){
+            throw new IllegalArgumentException( "DrawableCircle: given Radius is smaller than 0" );
+        }
     }
 
     @Override
@@ -76,6 +80,9 @@ public class DrawableCircle extends Drawable {
     public void setRadius(float R){
         this.R = R;
         needs_rendering = true;
+        if(R < 0){
+            throw new IllegalArgumentException( "DrawableCircle::setRadius: given Radius is smaller than 0" );
+        }
     }
 
     private float R;

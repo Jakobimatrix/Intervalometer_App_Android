@@ -7,13 +7,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class DrawableArrow extends Drawable {
-    public DrawableArrow(Context context_, Pos3d position_, float height_, float width) {
+    public DrawableArrow(Context context_, Pos3d position_, float height, float width) {
         super(context_, position_);
 
-        height = height_;
+        this.height = height;
         tip_length = width*Utility.GOLDEN_RATIO;
         tip_width = width;
         body_width = 0.5f*width/Utility.GOLDEN_RATIO;
+
+        if(width < 0 || height < 0){
+            throw new IllegalArgumentException( "DrawableArrow: given height,width must be positive! Use the SetRotation methods for changing perspective.");
+        }
     }
 
     @Override
