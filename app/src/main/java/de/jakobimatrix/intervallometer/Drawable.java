@@ -67,7 +67,7 @@ public abstract class Drawable {
      * \brief getPosition Returns the current Position of the Drawable in openGL-view coordinates
      */
     public final Pos3d getPosition() {
-        return position;
+        return new Pos3d(position); // make sure no body messes with the pose
     }
 
     /*!
@@ -75,9 +75,8 @@ public abstract class Drawable {
      * p The new pose in openGL-view coordinates
      */
     public void setPosition(final Pos3d p){
-        Pos3d old = getPosition();
+        Pos3d dp = Pos3d.sub(p,position);
         position = new Pos3d(p);
-        Pos3d dp = Pos3d.sub(p,old);
         position.add(translation_2_parent);
         needs_rendering = true;
         for (Drawable child : children) {
@@ -190,4 +189,5 @@ public abstract class Drawable {
     Pos3d translation_2_parent = new Pos3d(0,0,0);
 
     int triangle_coloring = GL10.GL_TRIANGLE_STRIP;
+
 }

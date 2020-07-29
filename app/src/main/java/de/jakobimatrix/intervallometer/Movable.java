@@ -44,7 +44,7 @@ public abstract class Movable {
      * \brief getPosition Return the current position of this drawable.
      * \return current position.
      */
-    public Pos3d getPosition(){
+    public final Pos3d getPosition(){
         return parent.getPosition();
     }
 

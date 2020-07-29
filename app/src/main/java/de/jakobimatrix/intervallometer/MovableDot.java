@@ -15,7 +15,11 @@ public class MovableDot extends Movable{
 
     @Override
     public boolean isWithin(Pos3d p) {
-        return parent.isWithin(p);
+        // use twice the radius
+        DrawableCircle dc = (DrawableCircle) parent;
+        double r = Math.max(MIN_TOUCH_RADIUS, dc.getR());
+        double dist = Pos3d.distance(p,getPosition());
+        return dist < r;
     }
 
     @Override
@@ -61,10 +65,14 @@ public class MovableDot extends Movable{
 
     DrawableCircle inner_circle;
 
-    final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0.8,0.8,0.8,1.0);
-    final static ColorRGBA LOCKED_INNER_CIRCLE = new ColorRGBA(0.5,0.5,0.0,1.0);
-    final static ColorRGBA MOVABLE_OUTER_CIRCLE = new ColorRGBA(0.7,0.7,0.7,1.0);
-    final static ColorRGBA MOVABLE_INNER_CIRCLE = new ColorRGBA(0,0.8,0,1.0);
+    final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0,0,0,0.0);
+    final static ColorRGBA LOCKED_INNER_CIRCLE = new ColorRGBA(0.8,0,0,1.0);
+    final static ColorRGBA MOVABLE_OUTER_CIRCLE = new ColorRGBA(0.0,0.8,0.0,1.0);
+    // Since both circles are at same height, the renderer wont draw the circle "behind", since it is too close.
+    // Now if I make the smaller circle transparent, it looks like the larger outer circle has a hole.
+    final static ColorRGBA MOVABLE_INNER_CIRCLE = new ColorRGBA(0,0,0,0.0);
+
+    final static double MIN_TOUCH_RADIUS = 0.35;
 
     public enum QUADRANT{RIGHT,TOP,LEFT,BOT};
 

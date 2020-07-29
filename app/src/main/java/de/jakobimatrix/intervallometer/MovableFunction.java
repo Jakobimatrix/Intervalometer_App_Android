@@ -1,7 +1,8 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.util.Log;
+
+import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -22,7 +23,6 @@ public class MovableFunction extends Movable {
             for (int i = 0; i < NUM_MANIPULATORS; i++) {
                 if (manipulator[i].isHold(position_)) {
                     active_manipulator = i;
-                    active_quadrant = manipulator[i].getQuadrant(position_);
                     is_within = true;
                     break;
                 }
@@ -38,11 +38,14 @@ public class MovableFunction extends Movable {
         // than we use the first input he gave as long as he touches that position.
 
         if(isValidManipulatorId(active_manipulator)){
-            double distance = p.distance(pos_command_system);
+            double distance = p.distance(pos_command_openGL);
             if(distance < manipulator_radius/4.){
                 return true;
             }
         }
+        // In case we did not get the signal for some raising conditions.
+        // ... I'd rather cheat here a little than finding the real problem.
+        endTouch();
         return false;
     }
 
@@ -53,17 +56,39 @@ public class MovableFunction extends Movable {
         }
         last_active_manipulator = active_manipulator;
 
+        for(int i = 0; i < NUM_MANIPULATORS; i++){
+            manipulator[i].setLocked(i!=last_active_manipulator);
+        }
+
         if(active_manipulator == INVALID_MANIPULATOR_ID){
-            dpos_command_system = Pos3d.Zero();
+            endTouch();
             return;
         }
 
-        DrawableFunction df = getDrawableFunction();
-        Pos3d p_system_new = df.f2openGL.invTransform(input_open_gl);
-        Pos3d p_system_old = df.f2openGL.invTransform(manipulator[active_manipulator].getPosition());
-        dpos_command_system = Pos3d.sub(p_system_new, p_system_old);
-        pos_command_system = input_open_gl;
-        pos_command_system.z = 0;
+        active_quadrant = manipulator[active_manipulator].getQuadrant(input_open_gl);
+
+        // todo fast scrolling?
+        //double dx = getFunctionViewport().width()/10.;
+        //double dy = getFunctionViewport().height()/10.;
+        double dx = 2*min_step_width;
+        double dy = 2*min_step_width;
+        switch (active_quadrant){
+            case BOT:
+                dpos_command_system = new Pos3d(0, -dy, 0);
+                break;
+            case TOP:
+                dpos_command_system = new Pos3d(0, dy, 0);
+                break;
+            case LEFT:
+                dpos_command_system = new Pos3d(adjustDx(-dx), 0, 0);
+                break;
+            case RIGHT:
+                dpos_command_system = new Pos3d(adjustDx(dx), 0, 0);
+                break;
+        }
+
+        pos_command_openGL = input_open_gl;
+        pos_command_openGL.z = 0;
     }
 
     @Override
@@ -88,10 +113,11 @@ public class MovableFunction extends Movable {
         last_active_manipulator = INVALID_MANIPULATOR_ID;
         active_manipulator = INVALID_MANIPULATOR_ID;
         dpos_command_system = Pos3d.Zero();
-        pos_command_system = Pos3d.Zero();
+        pos_command_openGL = Pos3d.Zero();
         active_quadrant = null;
         for(int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].endTouch();
+            manipulator[i].setLocked(false);
         }
     }
 
@@ -105,26 +131,38 @@ public class MovableFunction extends Movable {
         switch (active_manipulator){
             case 0:
                 if(top_dow_direction){
-                    // set function given 3 points
+                    Pos3d posLeft =  new Pos3d(manipulator[0].getPosition());
+                    posLeft.y += dpos_command_system.y;
+                    manipulator[0].setPosition(posLeft);
+                    setFunctionGivenManipulators();
                 }else {
                     scaleFunctionMinX(dpos_command_system.x);
                 }
                 break;
             case 1:
                 if(top_dow_direction){
-                    // move offset
-                }else {
-                    // change steepness
+                    scaleFunctionOffset(dpos_command_system.y);
+                }else{
+                    // TODO not wanted
+                    moveFunctionOffset(dpos_command_system.x);
                 }
                 break;
             case 2:
                 if(top_dow_direction){
-                    // set function given 3 points
+                    Pos3d posRight =  manipulator[2].getPosition();
+                    posRight.y += dpos_command_system.y;
+                    manipulator[2].setPosition(posRight);
+                    setFunctionGivenManipulators();
                 }else {
                     scaleFunctionMaxX(dpos_command_system.x);
                 }
                 break;
         }
+    }
+
+    private void moveFunctionOffset(double dx) {
+        getDrawableFunction().moveX(dx);
+        setManipulatorsBasedOnFunction();
     }
 
     private boolean isValidManipulatorId(int id){
@@ -147,39 +185,46 @@ public class MovableFunction extends Movable {
     }
 
     private void scaleFunctionMinX(double dx){
-        dx = adjustDx(dx);
         DrawableFunction df = getDrawableFunction();
         df.setMin(df.min_x + dx);
         checkMinStepWidth();
     }
 
     private void scaleFunctionMaxX(double dx){
-        dx = adjustDx(dx);
         DrawableFunction df = getDrawableFunction();
         df.setMax(df.max_x + dx);
         checkMinStepWidth();
     }
 
-    private void scaleFunctionLeft(double dy){
-        //TODO
-        checkMinStepWidth();
+    private void setFunctionGivenManipulators(){
+        Function f = getFunction();
+        DrawableFunction df = (DrawableFunction) parent;
+        ArrayList<Pos3d> poses = new ArrayList<>();
+        switch(f.getOrder()){
+            case 1:
+                poses.add(df.f2openGL.invTransform(manipulator[1].getPosition()));
+                break;
+            case 2:
+                poses.add(df.f2openGL.invTransform(manipulator[0].getPosition()));
+                poses.add(df.f2openGL.invTransform(manipulator[2].getPosition()));
+                break;
+            case 3:
+                poses.add(df.f2openGL.invTransform(manipulator[0].getPosition()));
+                poses.add(df.f2openGL.invTransform(manipulator[1].getPosition()));
+                poses.add(df.f2openGL.invTransform(manipulator[2].getPosition()));
+                break;
+            default:
+                throw new IllegalArgumentException( "MovableFunction::setFunctionGivenManipulators: I only support Functions of order 1, 2 or 3." );
+        }
+        f.setFunctionGivenPoints(poses);
+        df.setFunction(f);
+
+        setManipulatorsBasedOnFunction();
     }
 
-    private void scaleFunctionRight(double dy)
-    {
-        //TODO
-        checkMinStepWidth();
-    }
-
-    private void scaleFunctionGradient(double dy){
-        //TODO
-        checkMinStepWidth();
-    }
-
-    private void scaleFunctionOffset(double dy)
-    {
-        //TODO
-        checkMinStepWidth();
+    private void scaleFunctionOffset(double dy){
+        getDrawableFunction().moveY(dy);
+        setManipulatorsBasedOnFunction();
     }
 
     public void setMinStepWidth(double min_step_width){
@@ -290,7 +335,7 @@ public class MovableFunction extends Movable {
     int last_active_manipulator = INVALID_MANIPULATOR_ID;
 
     Pos3d dpos_command_system = Pos3d.Zero();
-    Pos3d pos_command_system = Pos3d.Zero();
+    Pos3d pos_command_openGL = Pos3d.Zero();
     MovableDot.QUADRANT active_quadrant;
 
     float manipulator_radius = DEFAULT_MANIPULATOR_RADIUS;

@@ -150,6 +150,18 @@ public class DrawableFunction extends Drawable {
         needs_rendering = true;
     }
 
+    public void moveY(double dy){
+        getFunction().moveOffsetY(dy);
+        needs_rendering = true;
+    }
+
+    public void moveX(double dx){
+        getFunction().moveOffsetX(dx);
+        max_x += dx;
+        min_x += dx;
+        needs_rendering = true;
+    }
+
     public void setMin(double min_x) {
         this.min_x = min_x;
         swapIf();
@@ -178,6 +190,11 @@ public class DrawableFunction extends Drawable {
 
     public Function getFunction(){
         return f;
+    }
+
+    public void setFunction(final Function f){
+        this.f = f;
+        needs_rendering = true;
     }
 
     Function f;

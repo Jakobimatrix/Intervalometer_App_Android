@@ -96,5 +96,85 @@ public class Function {
         return s;
     }
 
+    public int getOrder(){
+        return polynomial.size();
+    }
+
+    public void setFunctionGivenPoints(ArrayList<Pos3d> p){
+        polynomial.clear();
+        switch (p.size()){
+            case 1: // constant y = c
+                polynomial.add(p.get(0).y);
+                break;
+            case 2:  // linear y = bx + c
+                // y1 = b*x1 + c
+                // y2 = b*x2 + c
+                // y1 - y2 = b*(x1 - x2)
+                // b = (y1 - y2)/(x1 - x2)
+                // c = y1 - b*x1
+            {
+                double x1 = p.get(0).x;
+                double y1 = p.get(0).y;
+                double x2 = p.get(1).x;
+                double y2 = p.get(1).y;
+                double b = (y1 - y2) / (x1 - x2);
+                double c = y1 - b * x1;
+                polynomial.add(c);
+                polynomial.add(b);
+            }
+                break;
+            case 3: //quadratic y = ax^2 bx + c
+                // https://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
+                // Todo maybe use lin algebra? http://ejml.org/wiki/index.php?title=Main_Page
+                // or https://commons.apache.org/proper/commons-math/
+            {
+                double x1 = p.get(0).x;
+                double y1 = p.get(0).y;
+                double x2 = p.get(1).x;
+                double y2 = p.get(1).y;
+                double x3 = p.get(2).x;
+                double y3 = p.get(2).y;
+                double denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
+                double a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
+                double b = (x3 * x3 * (y1 - y2) + x2 * x2 * (y3 - y1) + x1 * x1 * (y2 - y3)) / denom;
+                double c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+                polynomial.add(c);
+                polynomial.add(b);
+                polynomial.add(a);
+            }
+                break;
+            default:
+                throw new IllegalArgumentException( "Function::setFunctionGivenPoints: I only support 1,2 or 3 Points.");
+        }
+    }
+
+    public void moveOffsetY(double dy){
+        polynomial.set(0, polynomial.get(0)+dy);
+    }
+
+    // f(x) = poly[0] + poly[1]*x + poly[2]*x^^2 + ...
     public ArrayList<Double> polynomial = new ArrayList<>();
+
+    public void moveOffsetX(double dx) {
+        switch (getOrder()){
+            case 1: // y = c do nothing
+                return;
+            case 2: // y = bx + c
+                //dy = b*dx
+                polynomial.set(0, polynomial.get(0) + polynomial.get(1)*dx);
+            case 3: // quadratic
+                // just make 3 points, shift them and calculate new quadratic
+                Pos3d p1 = new Pos3d(-100 + dx, f(-100),0);
+                Pos3d p2 = new Pos3d(0 + dx, f(0),0);
+                Pos3d p3 = new Pos3d(100 + dx, f(100),0);
+                ArrayList<Pos3d> points = new ArrayList<>(3);
+                points.add(p1);
+                points.add(p2);
+                points.add(p3);
+                setFunctionGivenPoints(points);
+                break;
+            default:
+                throw new IllegalArgumentException( "Function::moveOffsetX: I only support 1,2 or 3 Points.");
+        }
+    }
 }

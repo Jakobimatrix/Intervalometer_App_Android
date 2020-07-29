@@ -85,6 +85,10 @@ public class DrawableCircle extends Drawable {
         }
     }
 
+    public double getR(){
+        return R;
+    }
+
     private float R;
     final static int NUM_POINTS = 30;
 }
