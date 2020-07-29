@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="6.svg"
+   id="svg863"
+   version="1.1"
+   viewBox="0 0 2.0214166 7.6834998"
+   height="7.6834998mm"
+   width="2.0214167mm">
+  <defs
+     id="defs857" />
+  <sodipodi:namedview
+     inkscape:document-rotation="0"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:window-maximized="1"
+     inkscape:window-y="22"
+     inkscape:window-x="-8"
+     inkscape:window-height="716"
+     inkscape:window-width="1366"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="19.486855"
+     inkscape:cx="5.4762636"
+     inkscape:zoom="31.678384"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base" />
+  <metadata
+     id="metadata860">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-58.285039,-136.70785)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Ebene 1">
+    <g
+       id="text829"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       aria-label="6">
+      <path
+         sodipodi:nodetypes="cscscsccscscsccsssscscccczcczc"
+         id="path1441"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Corporate;-inkscape-font-specification:Corporate;stroke-width:0.264583"
+         d="m 58.306205,143.71402 v -6.39234 c 0,-0.23283 0.07761,-0.40569 0.232834,-0.51858 0.155222,-0.11289 0.409222,-0.16933 0.762,-0.16933 0.388055,0 0.649111,0.0494 0.783166,0.14816 0.134055,0.0988 0.201083,0.2787 0.201083,0.53975 v 1.93675 h -0.793749 v -1.651 c 0,-0.0635 -0.02117,-0.11638 -0.0635,-0.15875 -0.03528,-0.0423 -0.08114,-0.0635 -0.137584,-0.0635 -0.04233,0 -0.08467,0.0212 -0.127,0.0635 -0.03528,0.0423 -0.05292,0.0988 -0.05292,0.16934 v 2.52941 c 0.05645,-0.18344 0.151697,-0.2928 0.28575,-0.32808 0.134055,-0.0423 0.243416,-0.0635 0.328083,-0.0635 0.176389,0 0.313972,0.0635 0.41275,0.1905 0.09878,0.127 0.148166,0.30692 0.148166,0.53975 v 3.22792 c 0,0.39511 -0.204611,0.61736 -0.613833,0.66675 -0.162277,0.0211 -0.306916,0.0317 -0.433916,0.0317 -0.620889,0 -0.931334,-0.23283 -0.931334,-0.6985 z m 1.185334,-0.34925 v -2.44475 c 0,0 -0.04189,-0.2596 -0.211667,-0.254 -0.169777,0.006 -0.169333,0.23283 -0.169333,0.23283 v 2.49767 c 0,0 -0.04108,0.254 0.169333,0.254 0.210413,0 0.211667,-0.28575 0.211667,-0.28575 z" />
+    </g>
+  </g>
+</svg>

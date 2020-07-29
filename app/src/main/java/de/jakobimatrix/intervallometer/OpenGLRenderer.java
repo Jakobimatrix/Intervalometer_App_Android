@@ -15,6 +15,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
+    private Texture texture;
+
     public OpenGLRenderer(Context c, int screen_width_px, int screen_height_px){
         context = c;
         // will be set onSurfaceChanged which also will be called once
@@ -41,9 +43,15 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO thus all vectors and lists must be emptied or every entity must be checked if it is already existing/initiated
         // TODO THIS IS CALLED too WHEN ROTATEING THE PHONE so lock rotation!
 
+        gl10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping
+        gl10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
+
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
+
+        texture = new Texture();
+        texture.loadGLTexture(gl10, this.context, 100,100);
     }
 
     @Override
@@ -73,8 +81,10 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO it would be faster to collect all vertices and ids and copy that to the gpu at once.
         // TODO if this gets slow implement the thing one line above.
 
+        texture.draw(gl10);
+
         for (Movable movable : movables.values()) {
-            movable.draw(gl10);
+            //////////////////////////////movable.draw(gl10);
         }
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
