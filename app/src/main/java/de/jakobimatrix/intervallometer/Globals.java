@@ -3,8 +3,6 @@ package de.jakobimatrix.intervallometer;
 public class Globals {
     private static Globals mInstance= null;
 
-    public int someValueIWantToKeep;
-
     protected Globals(){}
 
     public static synchronized Globals getInstance() {

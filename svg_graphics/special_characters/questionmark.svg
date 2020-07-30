@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="questionmark.svg"
+   id="svg863"
+   version="1.1"
+   viewBox="0 0 1.9049938 7.7046424"
+   height="7.7046423mm"
+   width="1.9049939mm">
+  <defs
+     id="defs857">
+    <inkscape:path-effect
+       hide_knots="false"
+       only_selected="true"
+       apply_with_radius="true"
+       apply_no_radius="true"
+       use_knot_distance="true"
+       flexible="false"
+       chamfer_steps="1"
+       radius="1"
+       mode="F"
+       method="auto"
+       unit="px"
+       satellites_param="F,0,1,1,0,0.26458333,0,1 @ F,0,1,1,0,0.26458333,0,1 @ F,0,1,1,0,0.26458333,0,1 @ F,0,1,1,0,0.26458333,0,1 | F,0,1,1,0,0.26458333,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,0.26458333,0,1 @ F,0,1,1,0,0.26458333,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,0.26458333,0,1"
+       lpeversion="1"
+       is_visible="true"
+       id="path-effect840"
+       effect="fillet_chamfer" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect835"
+       is_visible="true"
+       lpeversion="1"
+       satellites_param="F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="1"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:document-rotation="0"
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:window-maximized="1"
+     inkscape:window-y="22"
+     inkscape:window-x="-8"
+     inkscape:window-height="716"
+     inkscape:window-width="1366"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="22.516783"
+     inkscape:cx="7.9641992"
+     inkscape:zoom="11.2"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base" />
+  <metadata
+     id="metadata860">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-61.715834,-132.73702)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Ebene 1">
+    <g
+       style="font-size:10.5833px;line-height:1.25;font-family:Corporate;-inkscape-font-specification:Corporate;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       id="text835"
+       aria-label="?">
+      <path
+         inkscape:original-d="m 62.319082,140.44167 v -1.143 h 0.761998 v 1.143 z m -0.603248,-5.07999 v -1.92616 q 0,-0.5715 0.582082,-0.66675 0.275166,-0.0317 0.476248,-0.0317 0.476249,0 0.656165,0.20109 0.190499,0.1905 0.190499,0.64558 v 1.60866 q 0,0.34925 -0.02117,0.52916 -0.02117,0.17992 -0.07408,0.33867 l -0.296333,0.89958 q -0.105833,0.3175 -0.126999,0.45508 -0.02117,0.127 -0.02117,0.508 v 0.61383 h -0.761998 v -0.62441 -0.48683 q 0.01058,-0.15875 0.04233,-0.254 0.03175,-0.0952 0.04233,-0.14817 l 0.402165,-1.23825 q 0.05292,-0.15875 0.05292,-0.40216 v -0.42333 -1.27 q 0,-0.0952 -0.0635,-0.14817 -0.05292,-0.0635 -0.127,-0.0635 -0.08467,0 -0.137583,0.0741 -0.05292,0.0635 -0.05292,0.13758 v 1.67216 z"
+         inkscape:path-effect="#path-effect840"
+         id="path837"
+         style="stroke-width:0.264583"
+         d="m 62.319082,140.17709 v -0.61384 a 0.26458333,0.26458333 135 0 1 0.264583,-0.26458 h 0.232832 a 0.26458333,0.26458333 45 0 1 0.264583,0.26458 v 0.61384 a 0.26458333,0.26458333 135 0 1 -0.264583,0.26458 h -0.232832 a 0.26458333,0.26458333 45 0 1 -0.264583,-0.26458 z m -0.603248,-5.07999 v -1.66158 c 0,-0.381 0.194027,-0.60325 0.582082,-0.66675 0.183444,-0.0211 0.342193,-0.0317 0.476248,-0.0317 0.317499,0 0.536221,0.067 0.656165,0.20109 0.126999,0.127 0.190499,0.34219 0.190499,0.64558 v 1.60866 c 0,0.23283 -0.0071,0.40922 -0.02117,0.52916 -0.01411,0.11995 -0.03881,0.23284 -0.07408,0.33867 l -0.296333,0.89958 c -0.07055,0.21167 -0.112888,0.36336 -0.126999,0.45508 -0.01411,0.0847 -0.02117,0.254 -0.02117,0.508 v 0.34925 a 0.26458333,0.26458333 135 0 1 -0.264583,0.26458 h -0.232832 a 0.26458333,0.26458333 45 0 1 -0.264583,-0.26458 v -0.35983 -0.48683 c 0.0071,-0.10583 0.02116,-0.1905 0.04233,-0.254 0.02117,-0.0635 0.03528,-0.11286 0.04233,-0.14817 l 0.402165,-1.23825 c 0.03528,-0.10583 0.05292,-0.23989 0.05292,-0.40216 v -0.42333 -1.27 c 0,-0.0635 -0.02117,-0.11286 -0.0635,-0.14817 -0.03528,-0.0423 -0.07761,-0.0635 -0.127,-0.0635 -0.05645,0 -0.102308,0.0247 -0.137583,0.0741 -0.03528,0.0423 -0.05292,0.0882 -0.05292,0.13758 v 1.40758 a 0.2645625,0.2645625 135.00226 0 1 -0.264583,0.26456 l -0.23282,-2e-5 a 0.26460416,0.26460416 45.002256 0 1 -0.264583,-0.2646 z" />
+    </g>
+  </g>
+</svg>
