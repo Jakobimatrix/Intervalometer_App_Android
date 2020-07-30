@@ -23,6 +23,7 @@ public class EditTemplateActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        charToBitmapConverter.init(getBaseContext());
 
         setContentView(R.layout.activity_edit_template);
 
@@ -238,6 +239,8 @@ public class EditTemplateActivity extends Activity {
     MovableCoordinateSystem coord_overview;
     MovableCoordinateSystem coord_overview2;
     MovableCoordinateSystem coord_overview3;
+
+    AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
 
     // DEBUG
     private TextView seeker_y;

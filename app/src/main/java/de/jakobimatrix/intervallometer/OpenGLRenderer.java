@@ -5,6 +5,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,13 +16,17 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    private Texture texture;
+    private ArrayList<DrawableChar> chars = new ArrayList<>(3);
 
     public OpenGLRenderer(Context c, int screen_width_px, int screen_height_px){
         context = c;
         // will be set onSurfaceChanged which also will be called once
         this.screen_width_px = screen_width_px;
         this.screen_height_px = screen_height_px;
+
+        for(Integer i = 0; i < 3; i++){
+            chars.add(new DrawableChar(c, new Pos3d(1*i-1,1*i-1,0.1), 0.3f, i.toString().charAt(0), 50));
+        }
     }
 
     // fucking no destructors in java, so you call this manually.
@@ -33,6 +38,10 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+        }
+
+        for (Movable movable : movables.values()) {
+            movable.clean();
         }
     }
 
@@ -49,9 +58,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
-
-        texture = new Texture();
-        texture.loadGLTexture(gl10, this.context, 100,100);
     }
 
     @Override
@@ -81,10 +87,12 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO it would be faster to collect all vertices and ids and copy that to the gpu at once.
         // TODO if this gets slow implement the thing one line above.
 
-        texture.draw(gl10);
+        for(Integer i = 0; i < 3; i++){
+            chars.get(i).draw(gl10);
+        }
 
         for (Movable movable : movables.values()) {
-            //////////////////////////////movable.draw(gl10);
+            //////movable.draw(gl10);
         }
         gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
@@ -229,6 +237,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      */
     public boolean removeMovable(int id){
         if(movables.containsKey(id)){
+            movables.get(id).clean();
             movables.remove(id);
             return true;
         }

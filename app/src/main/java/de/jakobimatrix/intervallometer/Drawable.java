@@ -17,6 +17,15 @@ public abstract class Drawable {
     }
 
     /*!
+     * \brief clean Clean up before deleting.
+     */
+    public void clean(){
+        for (Drawable child : children) {
+            child.clean();
+        }
+    }
+
+    /*!
      * \brief Render Gets called if the object needs new rendering.
      * It writes into vertex_buffer, vertex_count, index_buffer
      */
@@ -41,9 +50,14 @@ public abstract class Drawable {
             Render();
             needs_rendering = false;
         }
+        drawForRealNow(gl);
+    }
+
+    protected void drawForRealNow(GL10 gl){
+        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glVertexPointer(COORDS_PER_VERTEX, GL10.GL_FLOAT, vertex_stride, vertex_buffer);
         gl.glColor4f(color.r, color.g, color.b, color.a);
-       /*
+        /*
         gl.glDrawRangeElements(
                 GLenum mode,
                 GLuint start,
@@ -52,7 +66,8 @@ public abstract class Drawable {
                 GLenum type,
   	            const void * indices);
         */
-       gl.glDrawElements(triangle_coloring, index_buffer_size, GL10.GL_UNSIGNED_SHORT, index_buffer);
+        gl.glDrawElements(triangle_coloring, index_buffer_size, GL10.GL_UNSIGNED_SHORT, index_buffer);
+        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
     }
 
     /*!

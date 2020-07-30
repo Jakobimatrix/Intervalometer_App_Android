@@ -85,10 +85,16 @@ public abstract class Movable {
         is_locked = lock;
     }
 
-
     protected Pos3d absolutePos2relativePos(final Pos3d abs){
         Pos3d parent_pos = parent.getPosition();
         return Pos3d.sub(abs, parent_pos);
+    }
+
+    /*!
+     * \brief clean calls Drawable (parent) close method for clean up.
+     */
+    public void clean(){
+        parent.clean();
     }
 
     Drawable parent;

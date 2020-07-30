@@ -2,10 +2,6 @@ package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.opengl.GLUtils;
 
 import java.nio.ByteBuffer;
@@ -14,62 +10,33 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-// https://examples.javacodegeeks.com/android/games/opengl-es/opengl-es-texture-mapping/
-public class Texture {
-    private FloatBuffer vertexBuffer;	// buffer holding the vertices
-    private float vertices[] = {
-            -1.0f, -1.0f,  0.0f,		// V1 - bottom left
-            -1.0f,  1.0f,  0.0f,		// V2 - top left
-            1.0f, -1.0f,  0.0f,		// V3 - bottom right
-            1.0f,  1.0f,  0.0f			// V4 - top right
-    };
+public class Texture extends Drawable {
 
-    private FloatBuffer textureBuffer;	// buffer holding the texture coordinates
-    private float texture[] = {
-            // Mapping coordinates for the vertices
-            0.0f, 1.0f,		// top left		(V2)
-            0.0f, 0.0f,		// bottom left	(V1)
-            1.0f, 1.0f,		// top right	(V4)
-            1.0f, 0.0f		// bottom right	(V3)
-    };
-
-    /** The texture pointer */
-    private int[] textures = new int[1];
-
-    public Texture() {
-        // a float has 4 bytes so we allocate for each coordinate 4 bytes
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(vertices.length * 4);
-        byteBuffer.order(ByteOrder.nativeOrder());
-
-        // allocates the memory from the byte buffer
-        vertexBuffer = byteBuffer.asFloatBuffer();
-
-        // fill the vertexBuffer with the vertices
-        vertexBuffer.put(vertices);
-
-        // set the cursor position to the beginning of the buffer
-        vertexBuffer.position(0);
-
-        byteBuffer = ByteBuffer.allocateDirect(texture.length * 4);
-        byteBuffer.order(ByteOrder.nativeOrder());
-        textureBuffer = byteBuffer.asFloatBuffer();
-        textureBuffer.put(texture);
-        textureBuffer.position(0);
+    public Texture(Context context_, Pos3d position_,float width, float height, int width_px, int height_px) {
+        super(context_, position_);
+        this.height_px = height_px;
+        this.width_px = width_px;
+        this.width = width;
+        this.height = height;
     }
 
-    /**
-     * Load the texture for the square
-     * @param gl
-     * @param context
-     */
-    public void loadGLTexture(GL10 gl, Context context, int res_pix_x, int res_pix_y) {
-        // loading texture
-        android.graphics.drawable.Drawable d = context.getResources().getDrawable(R.drawable.ic_0 );
+    @Override
+    public void clean(){
+        if(bitmap != null){
+            bitmap.recycle();
+        }
+        super.clean();
+    }
 
-        Bitmap bitmap = drawableToBitmap(d,res_pix_x, res_pix_y);
+    public void setBitmap(Bitmap bitmap){
+        if(this.bitmap != null){
+            this.bitmap.recycle();
+        }
+        this.bitmap = bitmap;
+        need_texture_reload = true;
+    }
 
-
-
+    public void loadGLTexture(GL10 gl) {
         // generate one texture pointer
         gl.glGenTextures(1, textures, 0);
         // ...and bind it to our array
@@ -85,32 +52,43 @@ public class Texture {
 
         // Use Android GLUtils to specify a two-dimensional texture image from our bitmap
         GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-
-        // Clean up
-        bitmap.recycle();
+        need_texture_reload = false;
     }
 
-    // https://stackoverflow.com/questions/24389043/bitmapfactory-decoderesource-returns-null-for-shape-defined-in-xml-drawable
-    public static Bitmap drawableToBitmap (android.graphics.drawable.Drawable drawable, int res_pix_x, int res_pix_y) {
+    @Override
+    protected void Render() {
+        float vertices[] = {
+                (float) position.x, (float) position.y, (float) position.z,		// V1 - bottom left
+                (float) position.x,  height,  (float) position.z,		// V2 - top left
+                width, (float) position.y,  (float) position.z,		// V3 - bottom right
+                width,  height,  (float) position.z			// V4 - top right
+        };
+        float texture[] = {
+                // Mapping coordinates for the vertices
+                0.0f, 1.0f,		// top left		(V2)
+                0.0f, 0.0f,		// bottom left	(V1)
+                1.0f, 1.0f,		// top right	(V4)
+                1.0f, 0.0f		// bottom right	(V3)
+        };
 
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable)drawable).getBitmap();
+        ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * SIZE_OF_FLOAT);
+        vbb.order(ByteOrder.nativeOrder());
+        vertex_buffer = vbb.asFloatBuffer();
+        vertex_buffer.put(vertices);
+        vertex_buffer.position(0);
+
+        ByteBuffer tbb = ByteBuffer.allocateDirect(texture.length * SIZE_OF_FLOAT);
+        tbb.order(ByteOrder.nativeOrder());
+        texture_buffer = tbb.asFloatBuffer();
+        texture_buffer.put(texture);
+        texture_buffer.position(0);
+    }
+
+    @Override
+    protected void drawForRealNow(GL10 gl){
+        if(need_texture_reload){
+            loadGLTexture(gl);
         }
-
-        // todo Bitmap.Config.ARGB_8888 this is color 32 bit
-        Bitmap bitmap = Bitmap.createBitmap(res_pix_x, res_pix_y, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        double c =  canvas.getWidth();
-        double d = canvas.getHeight();
-
-        return bitmap;
-    }
-
-    /** The draw method for the square with the GL context */
-    public void draw(GL10 gl) {
         // bind the previously generated texture
         gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
@@ -122,14 +100,30 @@ public class Texture {
         gl.glFrontFace(GL10.GL_CW);
 
         // Point to our vertex buffer
-        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer);
-        gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, textureBuffer);
+        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertex_buffer);
+        gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texture_buffer);
 
         // Draw the vertices as triangle strip
-        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, vertices.length / 3);
+        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, NUM_VERTICES);
 
         //Disable the client state before leaving
         gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
     }
+
+    @Override
+    public boolean isWithin(Pos3d p) {
+        return false;
+    }
+
+    AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
+    private final static int NUM_VERTICES = 4;
+    private FloatBuffer texture_buffer;
+    int height_px; // resolution y
+    int width_px;  // resolution x
+    float height; // openGL y
+    float width;  // openGL x
+    private Bitmap bitmap = null;
+    private int[] textures = new int[1];
+    private boolean need_texture_reload = true;
 }
