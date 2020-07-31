@@ -3,21 +3,22 @@ package de.jakobimatrix.intervallometer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class Texture extends Drawable {
+public class Texture extends DrawableRectangle {
 
-    public Texture(Context context_, Pos3d position_,float width, float height, int width_px, int height_px) {
-        super(context_, position_);
+    public Texture(Context context, Pos3d position, float width, float height, int width_px, int height_px) {
+        super(context, position, width, height);
         this.height_px = height_px;
         this.width_px = width_px;
-        this.width = width;
-        this.height = height;
     }
 
     @Override
@@ -55,14 +56,26 @@ public class Texture extends Drawable {
         need_texture_reload = false;
     }
 
+
     @Override
     protected void Render() {
-        float vertices[] = {
-                (float) position.x, (float) position.y, (float) position.z,		// V1 - bottom left
-                (float) position.x,  height,  (float) position.z,		// V2 - top left
-                width, (float) position.y,  (float) position.z,		// V3 - bottom right
-                width,  height,  (float) position.z			// V4 - top right
-        };
+        final int num_vertices = (NUM_CORNERS)*COORDS_PER_VERTEX;
+
+        float [] vertices = new float[num_vertices];
+
+        calculateCornerPositions();
+        int counter = 0;
+
+        Integer corner_order[] = {2,1,3,0}; // Don't ask, just go with it.
+        //Integer corner_order[] = {3,0,2,1}; // This would mirror vertically
+        //Integer corner_order[] = {1,0,2,3}; // <-
+        //Integer corner_order[] = {0,1,3,2}; // ->
+        for(int i = 0; i < NUM_CORNERS; i++){
+            for(int v = 0; v < COORDS_PER_VERTEX; v++){
+                vertices[counter++] = (float) corner[corner_order[i]].get(v);
+            }
+        }
+
         float texture[] = {
                 // Mapping coordinates for the vertices
                 0.0f, 1.0f,		// top left		(V2)
@@ -89,15 +102,13 @@ public class Texture extends Drawable {
         if(need_texture_reload){
             loadGLTexture(gl);
         }
-        // bind the previously generated texture
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
         // Point to our buffers
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 
-        // Set the face rotation
-        gl.glFrontFace(GL10.GL_CW);
+        // Bind the generated texture using the pointer generated in loadGLTexture.
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
         // Point to our vertex buffer
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertex_buffer);
@@ -121,8 +132,6 @@ public class Texture extends Drawable {
     private FloatBuffer texture_buffer;
     int height_px; // resolution y
     int width_px;  // resolution x
-    float height; // openGL y
-    float width;  // openGL x
     private Bitmap bitmap = null;
     private int[] textures = new int[1];
     private boolean need_texture_reload = true;

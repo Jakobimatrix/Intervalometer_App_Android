@@ -3,8 +3,8 @@ package de.jakobimatrix.intervallometer;
 import android.content.Context;
 
 public class DrawableChar extends Texture {
-    public DrawableChar(Context context_, Pos3d position_, float height_ ,Character c,  int height_pix) {
-        super(context_, position_, 0, height_, 0, height_pix);
+    public DrawableChar(Context context, Pos3d position, float height , Character c,  int height_pix) {
+        super(context, position, 0, height, 0, height_pix);
         setWidth();
         setChar(c, height_px);
     }

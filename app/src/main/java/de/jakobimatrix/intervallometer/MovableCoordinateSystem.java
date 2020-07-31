@@ -1,7 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -12,7 +11,7 @@ public class MovableCoordinateSystem extends Movable {
     public MovableCoordinateSystem(Context context_, Pos3d position_, float width, float height) {
         super(new DrawableRectangle(context_, new Pos3d(position_), width, height));
         DrawableRectangle bg = (DrawableRectangle) parent;
-        bg.setBotLeftORIGEN();
+        bg.setBotLeftOrigin();
         bg.setColor(BG_DEFAULT_COLOR);
 
         // Move everything such that the axis (arrows) are inside the bg (rectangle).
@@ -40,8 +39,8 @@ public class MovableCoordinateSystem extends Movable {
         for(int i = 0; i < NUM_GRID_STRIPES; i++){
             y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width-AXIS_WIDTH, GRID_WIDTH));
             x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH));
-            y_grid.get(i).setLeftCenterORIGEN();
-            x_grid.get(i).setBotCenterORIGEN();
+            y_grid.get(i).setLeftCenterOrigin();
+            x_grid.get(i).setBotCenterOrigin();
             x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
             y_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
             parent.adChild(y_grid.get(i));

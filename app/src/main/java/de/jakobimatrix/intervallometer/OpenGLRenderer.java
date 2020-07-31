@@ -16,7 +16,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    private ArrayList<DrawableChar> chars = new ArrayList<>(3);
+    private ArrayList<DrawableChar> chars = new ArrayList<>(10);
 
     public OpenGLRenderer(Context c, int screen_width_px, int screen_height_px){
         context = c;
@@ -24,8 +24,8 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         this.screen_width_px = screen_width_px;
         this.screen_height_px = screen_height_px;
 
-        for(Integer i = 0; i < 3; i++){
-            chars.add(new DrawableChar(c, new Pos3d(1*i-1,1*i-1,0.1), 0.3f, i.toString().charAt(0), 50));
+        for(Integer i = 0; i < 10; i++){
+            chars.add(new DrawableChar(c, new Pos3d(0.3*i-1,0,0.1), 0.3f, i.toString().charAt(0), 500));
         }
     }
 
@@ -81,21 +81,17 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl10){
-        gl10.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        //gl10.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+
         prepareFrame(gl10);
         // TODO it would be faster to collect all vertices and ids and copy that to the gpu at once.
         // TODO if this gets slow implement the thing one line above.
 
-        for(Integer i = 0; i < 3; i++){
+        for (Movable movable : movables.values()) {
+            movable.draw(gl10);
+        }
+        for(Integer i = 0; i < 10; i++){
             chars.get(i).draw(gl10);
         }
-
-        for (Movable movable : movables.values()) {
-            //////movable.draw(gl10);
-        }
-        gl10.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-        //gl10.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
     }
 
     /*!
@@ -279,10 +275,9 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         void onFingerRelease();
     }
 
-    class CallBackOnFingerReleaseNOP implements CallBackOnFingerRelease {          //class that implements the method to callback defined in the interface
+    class CallBackOnFingerReleaseNOP implements CallBackOnFingerRelease {
         public void onFingerRelease() { }
     }
-
 
     Pos3d last_pos_screen = new Pos3d(0,0,0);
     Pos3d last_pos_openGL = new Pos3d(0,0,0);

@@ -3,6 +3,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -91,6 +92,7 @@ public class AlphabetDatabase {
             double width = drawables.get(i).getIntrinsicWidth();
             double height = drawables.get(i).getIntrinsicHeight();
             double ratio = width/height;
+            Log.d("ratio", ratio + "");
             char_ratio.add(ratio);
         }
     }

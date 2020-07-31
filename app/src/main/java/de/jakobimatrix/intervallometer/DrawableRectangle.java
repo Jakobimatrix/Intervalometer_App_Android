@@ -11,7 +11,24 @@ public class DrawableRectangle extends Drawable {
         width = width_;
         height = height_;
         if(width_ < 0 || height_ < 0){
-            throw new IllegalArgumentException( "DrawableRectangle: given height,width must be positive! Use the SetXXXOrigen methods for changing perspective.");
+            throw new IllegalArgumentException( "DrawableRectangle: given height,width must be positive! Use the SetXXXOrigin methods for changing perspective.");
+        }
+    }
+
+    protected void calculateCornerPositions(){
+        // top-left
+        corner[0] = new Pos3d(width/2.0 , height /2.0, 0);
+        // bot-left
+        corner[1] = new Pos3d(-width/2.0 , height /2.0, 0);
+        // bot-right
+        corner[2] = new Pos3d(-width/2.0 , -height /2.0, 0);
+        // top-right
+        corner[3] = new Pos3d(width/2.0 , -height /2.0, 0);
+
+        for(int i = 0; i < NUM_CORNERS; i++){
+            corner[i].add(translation);
+            corner[i].rotateZ(rotation);
+            corner[i].add(position);
         }
     }
 
@@ -23,22 +40,10 @@ public class DrawableRectangle extends Drawable {
         short [] vertices_ids = new short[num_vertices_ids];
         float [] vertices = new float[num_vertices];
 
-        // top-left
-        corner[0] = new Pos3d(position);
-        corner[0].add(new Pos3d(width/2.0 , height /2.0, 0));
-        // bot-left
-        corner[1] = new Pos3d(position);
-        corner[1].add(new Pos3d(-width/2.0 , height /2.0, 0));
-        // bot-right
-        corner[2] = new Pos3d(position);
-        corner[2].add(new Pos3d(-width/2.0 , -height /2.0, 0));
-        // top-right
-        corner[3] = new Pos3d(position);
-        corner[3].add(new Pos3d(width/2.0 , -height /2.0, 0));
+        calculateCornerPositions();
 
         int counter = 0;
         for(int i = 0; i < NUM_CORNERS; i++){
-            corner[i].add(new Pos3d(translation_x, translation_y, 0));
             for(int v = 0; v < COORDS_PER_VERTEX; v++){
                 vertices[counter++] = (float) corner[i].get(v);
             }
@@ -78,57 +83,116 @@ public class DrawableRectangle extends Drawable {
         return false;
     }
 
-    public void setCenterORIGEN(){
-        translation_x = 0;
-        translation_y = 0;
-        needs_rendering = true;
+    public interface CallBackOnSetOrigin{
+        void setOrigin();
     }
 
-    public void setTopLeftORIGEN(){
-        translation_x = width/2f;
-        translation_y = -height/2f;
-        needs_rendering = true;
+    class setCenterOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setCenterOrigin();
+        }
     }
 
-    public void setTopCenterORIGEN(){
-        translation_x = 0;
-        translation_y = -height/2f;
+    public void setCenterOrigin(){
+        translation = Pos3d.Zero();
         needs_rendering = true;
+        set_origin_cb = new setCenterOrigin();
     }
 
-    public void setTopRightORIGEN(){
-        translation_x = -width/2f;
-        translation_y = -height/2f;
-        needs_rendering = true;
+    class setTopLeftOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setTopLeftOrigin();
+        }
     }
 
-    public void setLeftCenterORIGEN(){
-        translation_x = width/2f;
-        translation_y = 0;
+    public void setTopLeftOrigin(){
+        translation = new Pos3d(width/2f, -height/2f, 0);
         needs_rendering = true;
+        set_origin_cb = new setTopLeftOrigin();
     }
 
-    public void setBotLeftORIGEN(){
-        translation_x = width/2f;
-        translation_y = height/2f;
-        needs_rendering = true;
+    class setTopCenterOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setTopCenterOrigin();
+        }
     }
 
-    public void setBotCenterORIGEN(){
-        translation_x = 0;
-        translation_y = height/2f;
+    public void setTopCenterOrigin(){
+        translation = new Pos3d(0, -height/2f, 0);
         needs_rendering = true;
+        set_origin_cb = new setTopCenterOrigin();
     }
 
-    public void setBotRightORIGEN(){
-        translation_x = -width/2f;
-        translation_y = height/2f;
+    class setTopRightOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setTopRightOrigin();
+        }
     }
 
-    public void setRightCenterORIGEN(){
-        translation_x = -width/2f;
-        translation_y = 0;
+    public void setTopRightOrigin(){
+        translation = new Pos3d(-width/2f, -height/2f, 0);
         needs_rendering = true;
+        set_origin_cb = new setTopRightOrigin();
+    }
+
+    class setLeftCenterOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setLeftCenterOrigin();
+        }
+    }
+
+    public void setLeftCenterOrigin(){
+        translation = new Pos3d(width/2f, 0, 0);
+        needs_rendering = true;
+        set_origin_cb = new setLeftCenterOrigin();
+    }
+
+    class setBotLeftOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setBotLeftOrigin();
+        }
+    }
+
+    public void setBotLeftOrigin(){
+        translation = new Pos3d(width/2f, height/2f, 0);
+        needs_rendering = true;
+        set_origin_cb = new setBotLeftOrigin();
+    }
+
+    class setBotCenterOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setBotCenterOrigin();
+        }
+    }
+
+    public void setBotCenterOrigin(){
+        translation = new Pos3d(0, height/2f, 0);
+        needs_rendering = true;
+        set_origin_cb = new setBotCenterOrigin();
+    }
+
+    class setBotRightOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setBotRightOrigin();
+        }
+    }
+
+    public void setBotRightOrigin(){
+        translation = new Pos3d(-width/2f, height/2f, 0);
+        needs_rendering = true;
+        set_origin_cb = new setBotRightOrigin();
+    }
+
+    class setRightCenterOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setRightCenterOrigin();
+        }
+    }
+
+    public void setRightCenterOrigin(){
+        translation = new Pos3d(-width/2f, 0, 0);
+        needs_rendering = true;
+        set_origin_cb = new setRightCenterOrigin();
     }
 
     public float getWidth(){
@@ -141,7 +205,7 @@ public class DrawableRectangle extends Drawable {
 
     public void setHeight(float height) {
         this.height = height;
-        needs_rendering = true;
+        set_origin_cb.setOrigin();
         if(height < 0){
             throw new IllegalArgumentException( "DrawableRectangle::setHeight given height must be positive! Use the SetXXXOrigen methods for changing perspective.");
         }
@@ -149,14 +213,25 @@ public class DrawableRectangle extends Drawable {
 
     public void setWidth(float width){
         this.width = width;
-        needs_rendering = true;
+        set_origin_cb.setOrigin();
         if(width < 0){
             throw new IllegalArgumentException( "DrawableRectangle::setWidth given width must be positive! Use the SetXXXOrigen methods for changing perspective.");
         }
     }
 
-    float translation_x = 0;
-    float translation_y = 0;
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+        needs_rendering = true;
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    double rotation = 0;
+
+    Pos3d translation = Pos3d.Zero();
+    CallBackOnSetOrigin set_origin_cb = new setBotLeftOrigin();
 
     float width;
     float height;
