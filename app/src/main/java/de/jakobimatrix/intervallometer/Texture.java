@@ -56,6 +56,11 @@ public class Texture extends DrawableRectangle {
         need_texture_reload = false;
     }
 
+    @Override
+    public void forceReRender(){
+        super.forceReRender();
+        need_texture_reload = true;
+    }
 
     @Override
     protected void Render() {
@@ -103,6 +108,9 @@ public class Texture extends DrawableRectangle {
             loadGLTexture(gl);
         }
 
+        // enable texture
+        gl.glEnable(GL10.GL_TEXTURE_2D);
+
         // Point to our buffers
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
@@ -117,9 +125,10 @@ public class Texture extends DrawableRectangle {
         // Draw the vertices as triangle strip
         gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, NUM_VERTICES);
 
-        //Disable the client state before leaving
         gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+
+        gl.glDisable(GL10.GL_TEXTURE_2D);
     }
 
     @Override

@@ -182,6 +182,17 @@ public abstract class Drawable {
         triangle_coloring = GL10.GL_LINE_STRIP;
     }
 
+    /*!
+     * \brief forceReRender forces this drawable and all its child to re calculate
+     * vertices, positions, etc
+     */
+    void forceReRender(){
+        needs_rendering = true;
+        for (Drawable child : children) {
+            child.forceReRender();
+        }
+    }
+
     protected Context context;
 
     protected Pos3d position;

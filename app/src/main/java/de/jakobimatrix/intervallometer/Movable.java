@@ -97,6 +97,14 @@ public abstract class Movable {
         parent.clean();
     }
 
+    /*!
+     * \brief forceReRender forces the parent drawable and all its child to re calculate
+     * vertices, positions, etc
+     */
+    public void forceReRender(){
+        parent.forceReRender();
+    }
+
     Drawable parent;
     boolean is_locked = true;
 

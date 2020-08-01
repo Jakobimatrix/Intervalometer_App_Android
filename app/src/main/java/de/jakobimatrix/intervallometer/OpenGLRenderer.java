@@ -51,8 +51,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO but also when the app was in the background and is now put again into the foreground
         // TODO thus all vectors and lists must be emptied or every entity must be checked if it is already existing/initiated
         // TODO THIS IS CALLED too WHEN ROTATEING THE PHONE so lock rotation!
-
-        gl10.glEnable(GL10.GL_TEXTURE_2D); // Enable Texture Mapping
         gl10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
 
         gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
@@ -77,6 +75,13 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         float left = -ratio;
         float right = ratio;
         gl10.glFrustumf(left , right , bottom, top, near, far);
+
+        for (Movable movable : movables.values()) {
+            movable.forceReRender();
+        }
+        for(Integer i = 0; i < 10; i++){
+            chars.get(i).forceReRender();
+        }
     }
 
     @Override
@@ -115,7 +120,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glRotatef(yaw, 0, 0, 1);
         */
         gl10.glEnable(GL10.GL_BLEND);
-        gl10.glEnable(GL10.GL_TEXTURE_2D);
         gl10.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
     }
 
