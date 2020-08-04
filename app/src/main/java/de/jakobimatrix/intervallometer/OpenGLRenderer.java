@@ -26,7 +26,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         double i = 0;
         for(Character chara : AlphabetDatabase.getAllSupportedCharacters()){
-            chars.add(new DrawableChar(c, new Pos3d(0.2*i-2,0,0.3), 0.1f, chara, 50));
+            chars.add(new DrawableChar(c, new Pos3d(0.1*i-2,0,0.1), 0.3f, chara, 100));
             i++;
         }
     }
@@ -81,7 +81,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         for (Movable movable : movables.values()) {
             movable.forceReRender();
         }
-        for(Integer i = 0; i < 10; i++){
+        for(Integer i = 0; i < chars.size(); i++){
             chars.get(i).forceReRender();
         }
     }

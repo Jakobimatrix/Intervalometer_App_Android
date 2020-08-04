@@ -7,13 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="6.6248975mm"
-   height="6.6352329mm"
-   viewBox="0 0 6.6248973 6.635233"
-   version="1.1"
-   id="svg863"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
    sodipodi:docname="plus.svg"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
+   id="svg863"
+   version="1.1"
+   viewBox="0 0 2.0002429 2.0002501"
+   height="2.0002501mm"
+   width="2.0002429mm">
   <defs
      id="defs857">
     <inkscape:path-effect
@@ -28,35 +28,52 @@
        mode="F"
        method="auto"
        unit="px"
-       satellites_param="F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1"
+       satellites_param="F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1"
        lpeversion="1"
        is_visible="true"
-       id="path-effect835"
+       id="path-effect847"
        effect="fillet_chamfer" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect835"
+       is_visible="true"
+       lpeversion="1"
+       satellites_param="F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1 @ F,0,0,1,0,0.26458333,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="1"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
   </defs>
   <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="11.2"
-     inkscape:cx="14.826337"
-     inkscape:cy="14.767775"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="716"
-     inkscape:window-x="-8"
-     inkscape:window-y="22"
-     inkscape:window-maximized="1"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
+     inkscape:document-rotation="0"
      fit-margin-bottom="0"
-     inkscape:document-rotation="0" />
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:window-maximized="1"
+     inkscape:window-y="22"
+     inkscape:window-x="-8"
+     inkscape:window-height="716"
+     inkscape:window-width="1366"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="6.0478002"
+     inkscape:cx="6.195612"
+     inkscape:zoom="11.2"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base" />
   <metadata
      id="metadata860">
     <rdf:RDF>
@@ -70,21 +87,21 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Ebene 1"
-     inkscape:groupmode="layer"
+     transform="translate(-62.183773,-138.56747)"
      id="layer1"
-     transform="translate(-59.900227,-136.26031)">
-    <g
-       style="font-size:10.5833px;line-height:1.25;font-family:Corporate;-inkscape-font-specification:Corporate;letter-spacing:0px;word-spacing:0px;display:inline;stroke-width:0.264583"
-       id="text834-8"
-       transform="translate(58.306205,136.62318)"
-       aria-label="+">
-      <path
-         inkscape:original-d="M 5.3405518,-0.36287198 V 2.5154961 H 8.2189199 V 3.3939927 H 5.3405518 V 6.2723608 H 4.4723905 V 3.3939927 H 1.5940223 V 2.5154961 h 2.8783682 v -2.87836808 z"
-         inkscape:path-effect="#path-effect835"
-         id="path832"
-         style="stroke-width:0.264583"
-         d="M 5.3405518,-0.09828865 V 2.2509128 a 0.26458333,0.26458333 45 0 0 0.2645833,0.2645833 h 2.3492015 a 0.26458333,0.26458333 45 0 1 0.2645833,0.2645833 v 0.34933 A 0.26458333,0.26458333 135 0 1 7.9543366,3.3939927 H 5.6051351 A 0.26458333,0.26458333 135 0 0 5.3405518,3.658576 l 0,2.3492015 A 0.26458333,0.26458333 135 0 1 5.0759685,6.2723608 H 4.7369738 A 0.26458333,0.26458333 45 0 1 4.4723905,6.0077775 V 3.658576 A 0.26458333,0.26458333 45 0 0 4.2078072,3.3939927 H 1.8586056 A 0.26458333,0.26458333 45 0 1 1.5940223,3.1294094 v -0.34933 A 0.26458333,0.26458333 135 0 1 1.8586056,2.5154961 H 4.2078072 A 0.26458333,0.26458333 135 0 0 4.4723905,2.2509128 v -2.34920145 a 0.26458333,0.26458333 135 0 1 0.2645833,-0.26458333 h 0.3389947 a 0.26458333,0.26458333 45 0 1 0.2645833,0.26458333 z" />
-    </g>
+     inkscape:groupmode="layer"
+     inkscape:label="Ebene 1">
+    <path
+       inkscape:original-d="m 62.183773,139.94859 v -0.76199 h 2.000243 v 0.76199 z"
+       inkscape:path-effect="#path-effect835"
+       id="path832-5"
+       style="font-size:10.5833px;line-height:1.25;font-family:Corporate;-inkscape-font-specification:Corporate;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       d="m 62.183773,139.68401 v -0.23283 a 0.26458333,0.26458333 135 0 1 0.264583,-0.26458 h 1.471077 a 0.26458333,0.26458333 45 0 1 0.264583,0.26458 v 0.23283 a 0.26458333,0.26458333 135 0 1 -0.264583,0.26458 h -1.471077 a 0.26458333,0.26458333 45 0 1 -0.264583,-0.26458 z" />
+    <path
+       d="m 63.300306,140.56772 h -0.232824 a 0.26458333,0.26458333 45 0 1 -0.264583,-0.26458 l 0,-1.47109 a 0.26458333,0.26458333 135 0 1 0.264583,-0.26458 h 0.232824 a 0.26458333,0.26458333 45 0 1 0.264583,0.26458 l 0,1.47109 a 0.26458333,0.26458333 135 0 1 -0.264583,0.26458 z"
+       style="font-size:10.5833px;line-height:1.25;font-family:Corporate;-inkscape-font-specification:Corporate;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       id="path845"
+       inkscape:path-effect="#path-effect847"
+       inkscape:original-d="m 63.564889,140.56772 h -0.76199 v -2.00025 h 0.76199 z" />
   </g>
 </svg>
