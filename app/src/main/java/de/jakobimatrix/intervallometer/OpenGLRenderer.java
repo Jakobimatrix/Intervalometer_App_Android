@@ -24,8 +24,10 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         this.screen_width_px = screen_width_px;
         this.screen_height_px = screen_height_px;
 
-        for(Integer i = 0; i < 10; i++){
-            chars.add(new DrawableChar(c, new Pos3d(0.3*i-1,0,0.1), 0.3f, i.toString().charAt(0), 500));
+        double i = 0;
+        for(Character chara : AlphabetDatabase.getAllSupportedCharacters()){
+            chars.add(new DrawableChar(c, new Pos3d(0.2*i-2,0,0.3), 0.1f, chara, 50));
+            i++;
         }
     }
 
@@ -94,7 +96,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         for (Movable movable : movables.values()) {
             movable.draw(gl10);
         }
-        for(Integer i = 0; i < 10; i++){
+        for(Integer i = 0; i < chars.size(); i++){
             chars.get(i).draw(gl10);
         }
     }

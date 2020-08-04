@@ -17,13 +17,13 @@ public class DrawableRectangle extends Drawable {
 
     protected void calculateCornerPositions(){
         // top-left
-        corner[0] = new Pos3d(width/2.0 , height /2.0, 0);
+        corner[0] = new Pos3d(width/2f , height/2f, 0);
         // bot-left
-        corner[1] = new Pos3d(-width/2.0 , height /2.0, 0);
+        corner[1] = new Pos3d(-width/2f , height/2f, 0);
         // bot-right
-        corner[2] = new Pos3d(-width/2.0 , -height /2.0, 0);
+        corner[2] = new Pos3d(-width/2f , -height/2f, 0);
         // top-right
-        corner[3] = new Pos3d(width/2.0 , -height /2.0, 0);
+        corner[3] = new Pos3d(width/2f , -height/2f, 0);
 
         for(int i = 0; i < NUM_CORNERS; i++){
             corner[i].add(translation);

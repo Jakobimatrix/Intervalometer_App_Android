@@ -15,10 +15,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class Texture extends DrawableRectangle {
 
-    public Texture(Context context, Pos3d position, float width, float height, int width_px, int height_px) {
+    public Texture(Context context, Pos3d position, float width, float height) {
         super(context, position, width, height);
-        this.height_px = height_px;
-        this.width_px = width_px;
     }
 
     @Override
@@ -139,8 +137,7 @@ public class Texture extends DrawableRectangle {
     AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
     private final static int NUM_VERTICES = 4;
     private FloatBuffer texture_buffer;
-    int height_px; // resolution y
-    int width_px;  // resolution x
+
     private Bitmap bitmap = null;
     private int[] textures = new int[1];
     private boolean need_texture_reload = true;
