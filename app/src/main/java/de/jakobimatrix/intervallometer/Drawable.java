@@ -137,6 +137,28 @@ public abstract class Drawable {
     }
 
     /*!
+     * \brief add2RelativePositionToParent adds an offset to the current relative transposition to its parent.
+     * \param p The relative pose translation to add.
+     */
+    public void add2RelativePositionToParent(Pos3d p){
+        // first we need to reset the position otherwise multiple calls of ths function will result in an accumulated translation.
+        position.sub(translation_2_parent);
+        // now we can overwrite translation_2_parent
+        translation_2_parent = Pos3d.add(translation_2_parent, p);
+        // set the new position which will than add the translation to the parent
+        // as well as the new position for all other children.
+        setPosition(position);
+    }
+
+    /*!
+     * \brief getRelativePositionToParent return the current offset
+     * \return translation_2_parent
+     */
+    public Pos3d getRelativePositionToParent(){
+        return translation_2_parent;
+    }
+
+    /*!
      * \brief isWithin This should return true if a given pose is within the region of the drawable
      */
     abstract public boolean isWithin(Pos3d p);

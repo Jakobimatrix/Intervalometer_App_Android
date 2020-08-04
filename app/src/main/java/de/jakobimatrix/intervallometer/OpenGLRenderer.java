@@ -16,8 +16,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 
 class OpenGLRenderer implements GLSurfaceView.Renderer {
 
-    private ArrayList<DrawableChar> chars = new ArrayList<>(10);
-
     public OpenGLRenderer(Context c, int screen_width_px, int screen_height_px){
         context = c;
         // will be set onSurfaceChanged which also will be called once
@@ -25,10 +23,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         this.screen_height_px = screen_height_px;
 
         double i = 0;
-        for(Character chara : AlphabetDatabase.getAllSupportedCharacters()){
-            chars.add(new DrawableChar(c, new Pos3d(0.1*i-2,0,0.1), 0.3f, chara, 100));
-            i++;
-        }
     }
 
     // fucking no destructors in java, so you call this manually.
@@ -81,9 +75,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         for (Movable movable : movables.values()) {
             movable.forceReRender();
         }
-        for(Integer i = 0; i < chars.size(); i++){
-            chars.get(i).forceReRender();
-        }
     }
 
     @Override
@@ -95,9 +86,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         for (Movable movable : movables.values()) {
             movable.draw(gl10);
-        }
-        for(Integer i = 0; i < chars.size(); i++){
-            chars.get(i).draw(gl10);
         }
     }
 

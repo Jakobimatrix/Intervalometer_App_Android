@@ -195,6 +195,23 @@ public class DrawableRectangle extends Drawable {
         set_origin_cb = new setRightCenterOrigin();
     }
 
+    class setCustomOrigin implements CallBackOnSetOrigin {
+        public void setOrigin() {
+            setCustomOrigin(custom_origin);
+        }
+    }
+
+    public void setCustomOrigin(Pos3d origin){
+        custom_origin = new Pos3d(origin);
+        translation = new Pos3d(origin);
+        needs_rendering = true;
+        set_origin_cb = new setCustomOrigin();
+    }
+
+    public Pos3d getOrigin(){
+        return translation;
+    }
+
     public float getWidth(){
         return width;
     }
@@ -232,6 +249,7 @@ public class DrawableRectangle extends Drawable {
 
     Pos3d translation = Pos3d.Zero();
     CallBackOnSetOrigin set_origin_cb = new setBotLeftOrigin();
+    Pos3d custom_origin = Pos3d.Zero();
 
     float width;
     float height;
