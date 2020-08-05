@@ -138,9 +138,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 }
-                movable_release_callback.onFingerRelease();
-                movable_release_callback = new CallBackOnFingerReleaseNOP();
-                break;
+                return true;
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
                 action_hold_down = true;
@@ -174,7 +172,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                 movable_guess = INVALID_KEY;
             }
         }
-        if (movable_guess == -1) {
+        if (movable_guess == INVALID_KEY) {
             for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
                 Movable mv = entry.getValue();
                 if (mv.isHold(last_pos_openGL)) {
@@ -183,6 +181,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                     // set a guess for the next time
                     movable_guess = entry.getKey();
                     movable_release_callback = mv.on_finger_release_callback;
+                    Log.d("release_callback", "set");
                     break;
                 }
             }
@@ -204,6 +203,12 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                 },
                 delay
             );
+        }else{
+            Log.d("touchAction", "stop");
+            movable_guess = INVALID_KEY;
+            movable_release_callback.onFingerRelease();
+            movable_release_callback = new CallBackOnFingerReleaseNOP();
+            Log.d("onTouchEvent", "movable_release_callback DONE and CLEARED");
         }
     }
 
