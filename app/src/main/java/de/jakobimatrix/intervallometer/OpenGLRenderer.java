@@ -181,7 +181,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                     // set a guess for the next time
                     movable_guess = entry.getKey();
                     movable_release_callback = mv.on_finger_release_callback;
-                    Log.d("release_callback", "set");
                     break;
                 }
             }
@@ -204,11 +203,9 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
                 delay
             );
         }else{
-            Log.d("touchAction", "stop");
             movable_guess = INVALID_KEY;
             movable_release_callback.onFingerRelease();
             movable_release_callback = new CallBackOnFingerReleaseNOP();
-            Log.d("onTouchEvent", "movable_release_callback DONE and CLEARED");
         }
     }
 

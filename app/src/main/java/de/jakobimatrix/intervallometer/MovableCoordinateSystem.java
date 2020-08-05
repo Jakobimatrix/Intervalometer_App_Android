@@ -1,7 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.telephony.gsm.GsmCellLocation;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -83,7 +83,7 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public void setPosition(Pos3d position_){
-        if(isValidFUnctionId(active_function)){
+        if(isValidFunctionId(active_function) && sensitivity()){
             functions.get(active_function).setPosition(position_);
             scale(); // TODO we could check if scaling in necessary
         }
@@ -91,7 +91,7 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public void move(Pos3d dp){
-        if(isValidFUnctionId(active_function)){
+        if(isValidFunctionId(active_function) && sensitivity()){
             functions.get(active_function).move(dp);
             scale(); // TODO we could check if scaling in necessary
         }
@@ -102,6 +102,37 @@ public class MovableCoordinateSystem extends Movable {
         for(MovableFunction df: functions){
             df.endTouch();
         }
+        hold_start = FIRST_CONTACT;
+    }
+
+    private boolean sensitivity(){
+        if(hold_start == FIRST_CONTACT){
+            hold_start = System.currentTimeMillis();
+            active_tick_start = 0;
+        }
+        long now = System.currentTimeMillis();
+        long duration = now - hold_start;
+
+        long wait;
+        double multiply = 1.;
+
+        // depending on how long the user holds down, we wait x ms until we let the next change happen.
+        if(duration < SLOW_TICK_DURATION_HOLD_MS){
+            wait = SLOW_TICK_DURATION_MS;
+        }else if(duration < MEDIUM_TICK_DURATION_HOLD_MS){
+            wait = MEDIUM_TICK_DURATION_MS;
+        }else{
+            wait = MEDIUM_TICK_DURATION_MS;
+            multiply = 10.;
+        }
+
+        duration = now - active_tick_start;
+        if(duration > wait){
+            active_tick_start = now;
+            functions.get(active_function).setStepWidth(Pos3d.mul(current_grid_distance,multiply));
+            return true;
+        }
+        return false;
     }
 
     public void setGridPosition(Pos3d position_){
@@ -128,6 +159,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private void adjustGrid(){
+        current_grid_distance = Pos3d.Zero();
         for(int i = 0; i < 2; i++){
             int tick_id_counter = 0;
             // to avoid if else later
@@ -163,7 +195,7 @@ public class MovableCoordinateSystem extends Movable {
             pos_iterator.add(new Pos3d(system_viewport.min.x*is_y_d,system_viewport.min.y*is_x_d, 0));
 
             Pos3d d_pos_iterator = new Pos3d(grid_power*is_x_d, grid_power*is_y_d, 0);
-
+            current_grid_distance.add(d_pos_iterator);
             int grid_count = 0;
             for(DrawableRectangle grid_line : grid){
                 boolean inside = (!(pos_iterator.x > system_viewport.max.x) || is_y) &&
@@ -185,12 +217,9 @@ public class MovableCoordinateSystem extends Movable {
                         grid_line.setWidth((float) (GRID_WIDTH_TICK*is_x_d + grid_line.getWidth()*is_y_d));
                         grid_line.setHeight((float) (GRID_WIDTH_TICK*is_y_d + grid_line.getHeight()*is_x_d));
 
-                        Double d_tick = pos_iterator.x * is_x_d + pos_iterator.y * is_y_d;
+                        double d_tick = pos_iterator.x * is_x_d + pos_iterator.y * is_y_d;
                         d_tick = Utility.roundAtDecimal(d_tick, grid_power*tick_count_mod);
-                        // don't display comma if integer
-                        boolean is_integer = (d_tick == Math.round(d_tick));
-                        String tick = is_integer? ((Integer) d_tick.intValue()).toString(): d_tick.toString();
-                        setAxisTick(translation_openGL,tick, i, tick_id_counter++ );
+                        setAxisTick(translation_openGL, prepareTick(d_tick), i, tick_id_counter++ );
                     }else{
                         grid_line.setWidth((float) (GRID_WIDTH*is_x_d + grid_line.getWidth()*is_y_d));
                         grid_line.setHeight((float) (GRID_WIDTH*is_y_d + grid_line.getHeight()*is_x_d));
@@ -206,11 +235,31 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    private String prepareTick(Double d_tick){
+        // don't display comma if integer
+        boolean is_integer = (d_tick == Math.round(d_tick));
+        String tick = is_integer? ((Integer) d_tick.intValue()).toString(): d_tick.toString();
+        tick = tick.substring(0, Math.min(tick.length(), MAX_NUM_TICK_CHARS));
+
+        if(!tick.contains(".")){
+            return tick;
+        }
+        // delete trailing zeros and trailing comma
+        while (tick.length() > 1){
+            char c = tick.charAt(tick.length() - 1);
+            if(c == '0' || c == '.'){
+                tick = tick.substring(0, tick.length()-1);
+                continue;
+            }
+            break;
+        }
+        return tick;
+    }
+
     private void setAxisTick(Pos3d coord_pos, String tick, int direction, int id){
         final float ROTATION = (float) -(Math.PI/4); // save place
         Pos3d pos = new Pos3d(coord_pos);
         pos.z = Globals.FUNCTION_Z_ELEVATION;
-        tick = tick.substring(0, Math.min(tick.length(), MAX_NUM_TICK_CHARS));
         DrawableString ds = new DrawableString(parent.context, pos, FONT_SIZE, FONT_SIZE_PIX, tick);
         ds.setRotation(ROTATION);
         Pos3d mv = Pos3d.Zero();
@@ -225,8 +274,6 @@ public class MovableCoordinateSystem extends Movable {
             x_ticks.set(id, ds);
         }
     }
-
-
 
     private ArrayList <DrawableRectangle> getGrid(int i){
         if(i == 0){
@@ -338,7 +385,6 @@ public class MovableCoordinateSystem extends Movable {
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
-        mf.setMinStepWidth(min_step_width);
         mf.setLocked(true);
         functions.add(mf);
 
@@ -403,7 +449,7 @@ public class MovableCoordinateSystem extends Movable {
         throw new IllegalArgumentException( "MovableCoordinateSystem::setLocked: Don't use this function. Lock individual functions with setFunctionLocked().");
     }
 
-    private boolean isValidFUnctionId(int id){
+    private boolean isValidFunctionId(int id){
         if(id < functions.size() && id > INVALID_FUNCTION){
             return true;
         }
@@ -416,9 +462,17 @@ public class MovableCoordinateSystem extends Movable {
 
     // visual
     ViewPort openGL_viewport;
-
     // values on axis
     ViewPort system_viewport;
+
+    Pos3d current_grid_distance = Pos3d.Zero();
+    long hold_start = FIRST_CONTACT;
+    long active_tick_start = 0;
+    final static long FIRST_CONTACT = -1;
+    final static long SLOW_TICK_DURATION_MS = 750;
+    final static long SLOW_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_MS;
+    final static long MEDIUM_TICK_DURATION_MS = 200;
+    final static long MEDIUM_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 10*MEDIUM_TICK_DURATION_MS;
 
     DrawableArrow x_axis;
     DrawableArrow y_axis;

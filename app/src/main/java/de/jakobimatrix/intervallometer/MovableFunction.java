@@ -52,6 +52,7 @@ public class MovableFunction extends Movable {
     private void setAndHoldInputCommand(Pos3d input_open_gl){
         // basically calculate the command from the first touch and hold that command until touch is over
         if(last_active_manipulator == active_manipulator){
+            setInputCommand(input_open_gl);
             return;
         }
         last_active_manipulator = active_manipulator;
@@ -64,14 +65,17 @@ public class MovableFunction extends Movable {
             endTouch();
             return;
         }
+        setInputCommand(input_open_gl);
+    }
 
+    public void setInputCommand(Pos3d input_open_gl){
+        if(active_manipulator == INVALID_MANIPULATOR_ID){
+            return;
+        }
         active_quadrant = manipulator[active_manipulator].getQuadrant(input_open_gl);
 
-        // todo fast scrolling?
-        //double dx = getFunctionViewport().width()/10.;
-        //double dy = getFunctionViewport().height()/10.;
-        double dx = 2*min_step_width;
-        double dy = 2*min_step_width;
+        double dx = step_width.x;
+        double dy = step_width.y;
         switch (active_quadrant){
             case BOT:
                 dpos_command_system = new Pos3d(0, -dy, 0);
@@ -80,10 +84,10 @@ public class MovableFunction extends Movable {
                 dpos_command_system = new Pos3d(0, dy, 0);
                 break;
             case LEFT:
-                dpos_command_system = new Pos3d(adjustDx(-dx), 0, 0);
+                dpos_command_system = new Pos3d(-dx, 0, 0);
                 break;
             case RIGHT:
-                dpos_command_system = new Pos3d(adjustDx(dx), 0, 0);
+                dpos_command_system = new Pos3d(dx, 0, 0);
                 break;
         }
 
@@ -172,28 +176,14 @@ public class MovableFunction extends Movable {
         return false;
     }
 
-    /*!
-     * \brief adjustDx Maces sure given dx will always be at least of the size of the minimal step length.
-     * \param dx the step length to be adjusted.
-     * \return A number smaller than -min_step_width or bigger than min_step_width.
-     */
-    private double adjustDx(double dx){
-        if(dx > 0){
-            return Math.max(dx, min_step_width);
-        }
-        return Math.min(dx, -min_step_width);
-    }
-
     private void scaleFunctionMinX(double dx){
         DrawableFunction df = getDrawableFunction();
         df.setMin(df.min_x + dx);
-        checkMinStepWidth();
     }
 
     private void scaleFunctionMaxX(double dx){
         DrawableFunction df = getDrawableFunction();
         df.setMax(df.max_x + dx);
-        checkMinStepWidth();
     }
 
     private void setFunctionGivenManipulators(){
@@ -225,29 +215,6 @@ public class MovableFunction extends Movable {
     private void scaleFunctionOffset(double dy){
         getDrawableFunction().moveY(dy);
         setManipulatorsBasedOnFunction();
-    }
-
-    public void setMinStepWidth(double min_step_width){
-        if(min_step_width < 0){
-            this.min_step_width = 0;
-            return;
-        }
-        this.min_step_width = min_step_width;
-        checkMinStepWidth();
-    }
-
-    private void checkMinStepWidth(){
-        if(min_step_width <= 0){
-            return;
-        }
-        DrawableFunction df = getDrawableFunction();
-        double log_min_step_width = Math.round(Math.log10(min_step_width));
-        double step_power = Math.pow(10,(int) log_min_step_width);
-        df.setMax(Utility.roundAtDecimal(df.max_x, step_power));
-        df.setMin(Utility.roundAtDecimal(df.min_x, step_power));
-        if(df.min_x == df.max_x){
-            df.setMax(df.max_x + min_step_width);
-        }
     }
 
     Pos3d getLeftManipulatorGLpos(){
@@ -327,6 +294,10 @@ public class MovableFunction extends Movable {
         super.setLocked(l);
     }
 
+    public void setStepWidth(Pos3d step){
+        step_width = step;
+    }
+
     final static int NUM_MANIPULATORS = 3;
     MovableDot [] manipulator = new MovableDot[NUM_MANIPULATORS];
 
@@ -343,6 +314,5 @@ public class MovableFunction extends Movable {
 
     public boolean lock_manipulation;
 
-    final static double DEFAULT_MIN_STEP_WIDTH = 0;
-    double min_step_width = DEFAULT_MIN_STEP_WIDTH;
+    Pos3d step_width = new Pos3d(1,1,0);
 }
