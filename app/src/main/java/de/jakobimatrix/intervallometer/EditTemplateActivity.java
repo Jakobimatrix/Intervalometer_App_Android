@@ -69,9 +69,10 @@ public class EditTemplateActivity extends Activity {
         poly.add(2.5);
         poly.add(1.);
         Function f = new Function(poly);
-        int index = coord_overview.addFunction(f, 0, 4, 1);
+        int index = coord_overview.addFunction(f, 0., 4.);
         coord_overview.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview);
+        coord_overview.stickToGrid(new Pos3d(1,1,0));
 
         Pos3d complete_left_down_screen2 = new Pos3d(10, size.y-200, 0);
         Pos3d complete_top_right_screen2 = new Pos3d(size.x/2-10, size.y/2+10., 0);
@@ -91,7 +92,7 @@ public class EditTemplateActivity extends Activity {
         Function f3 = new Function(poly3);
         index = coord_overview2.addFunction(f2, 0.0, 4);
         coord_overview2.setFunctionLocked(false, index);
-        index = coord_overview2.addFunction(f3, -4.0, 0, 1);
+        index = coord_overview2.addFunction(f3, -4.0, 0);
         coord_overview2.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview2);
 

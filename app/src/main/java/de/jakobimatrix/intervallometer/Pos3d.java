@@ -6,6 +6,10 @@ public class Pos3d {
     public double y;
     public double z;
 
+    public static boolean equals(Pos3d p1, Pos3d p2) {
+        return (p1.x == p2.x && p1.y == p2.y && p1.z == p2.z);
+    }
+
     /*!
      * \brief get Returns one dimension depending on given i:
      * 0 -> x
@@ -186,5 +190,14 @@ public class Pos3d {
 
     public String toString(){
         return "x:" + x + " y:" + y + " z:" + z;
+    }
+
+    /*!
+     * \brief abs Sets the x,y,z values to be positive
+     */
+    public void abs() {
+        x = Math.abs(x);
+        y = Math.abs(y);
+        z = Math.abs(z);
     }
 }

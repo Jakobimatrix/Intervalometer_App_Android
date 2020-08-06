@@ -121,4 +121,8 @@ public class Utility {
     public final static double cutAtDecimal(double number, double power){
         return (double) Math.ceil(number / power) * power;
     }
+
+    final static double EPSILON_D = Math.ulp(4.0);
+    final static float EPSILON_F = Math.ulp(4.0f);
+
 }

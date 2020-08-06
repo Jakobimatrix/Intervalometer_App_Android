@@ -93,6 +93,14 @@ public class MovableFunction extends Movable {
 
         pos_command_openGL = input_open_gl;
         pos_command_openGL.z = 0;
+
+        Pos3d p1_sys = Pos3d.Zero();
+        Pos3d p2_sys = new Pos3d(dpos_command_system);
+
+        DrawableFunction df = (DrawableFunction) parent;
+        Pos3d p1_gl = df.f2openGL.transform(p1_sys);
+        Pos3d p2_gl = df.f2openGL.transform(p2_sys);
+        dpos_command_openGL = Pos3d.sub(p2_gl,p1_gl);
     }
 
     @Override
@@ -136,7 +144,7 @@ public class MovableFunction extends Movable {
             case 0:
                 if(top_dow_direction){
                     Pos3d posLeft =  new Pos3d(manipulator[0].getPosition());
-                    posLeft.y += dpos_command_system.y;
+                    posLeft.y += dpos_command_openGL.y;
                     manipulator[0].setPosition(posLeft);
                     setFunctionGivenManipulators();
                 }else {
@@ -145,7 +153,7 @@ public class MovableFunction extends Movable {
                 break;
             case 1:
                 if(top_dow_direction){
-                    scaleFunctionOffset(dpos_command_system.y);
+                    scaleFunctionOffset(dpos_command_openGL.y);
                 }else{
                     // TODO not wanted
                     moveFunctionOffset(dpos_command_system.x);
@@ -154,7 +162,7 @@ public class MovableFunction extends Movable {
             case 2:
                 if(top_dow_direction){
                     Pos3d posRight =  manipulator[2].getPosition();
-                    posRight.y += dpos_command_system.y;
+                    posRight.y += dpos_command_openGL.y;
                     manipulator[2].setPosition(posRight);
                     setFunctionGivenManipulators();
                 }else {
@@ -178,12 +186,28 @@ public class MovableFunction extends Movable {
 
     private void scaleFunctionMinX(double dx){
         DrawableFunction df = getDrawableFunction();
-        df.setMin(df.min_x + dx);
+        // make sure the function does not get a length of zero
+        double new_min = df.min_x + dx;
+        if(dx > 0){
+            if(Math.abs(new_min - df.max_x) < Utility.EPSILON_D){
+                new_min = df.min_x + 2*dx;
+                // set min can deal with min > max
+            }
+        }
+        df.setMin(new_min);
     }
 
     private void scaleFunctionMaxX(double dx){
         DrawableFunction df = getDrawableFunction();
-        df.setMax(df.max_x + dx);
+        // make sure the function does not get a length of zero
+        double new_max = df.max_x + dx;
+        if(dx < 0){
+            if(Math.abs(new_max - df.min_x) < Utility.EPSILON_D){
+                new_max = df.max_x + 2*dx;
+                // set min can deal with max < min
+            }
+        }
+        df.setMax(new_max);
     }
 
     private void setFunctionGivenManipulators(){
@@ -192,20 +216,21 @@ public class MovableFunction extends Movable {
         ArrayList<Pos3d> poses = new ArrayList<>();
         switch(f.getOrder()){
             case 1:
-                poses.add(df.f2openGL.invTransform(manipulator[1].getPosition()));
+                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[1].getPosition())));
                 break;
             case 2:
-                poses.add(df.f2openGL.invTransform(manipulator[0].getPosition()));
-                poses.add(df.f2openGL.invTransform(manipulator[2].getPosition()));
+                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[0].getPosition())));
+                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[2].getPosition())));
                 break;
             case 3:
-                poses.add(df.f2openGL.invTransform(manipulator[0].getPosition()));
-                poses.add(df.f2openGL.invTransform(manipulator[1].getPosition()));
-                poses.add(df.f2openGL.invTransform(manipulator[2].getPosition()));
+                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[0].getPosition())));
+                poses.add(df.f2openGL.invTransform(manipulator[1].getPosition())); // don't stick the middle one to grid
+                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[2].getPosition())));
                 break;
             default:
                 throw new IllegalArgumentException( "MovableFunction::setFunctionGivenManipulators: I only support Functions of order 1, 2 or 3." );
         }
+
         f.setFunctionGivenPoints(poses);
         df.setFunction(f);
 
@@ -231,22 +256,22 @@ public class MovableFunction extends Movable {
 
     public double getFunctionMaxX(){
         DrawableFunction df = (DrawableFunction) parent;
-        return df.max_x;
+        return getNextGridPointX(df.max_x);
     }
 
     public double getFunctionMinX(){
         DrawableFunction df = (DrawableFunction) parent;
-        return df.min_x;
+        return getNextGridPointX(df.min_x);
     }
 
     public double getFunctionMaxY(){
         DrawableFunction df = (DrawableFunction) parent;
-        return df.f.getMax(df.min_x, df.max_x);
+        return  getNextGridPointY(df.f.getMax(df.min_x, df.max_x));
     }
 
     public double getFunctionMinY(){
         DrawableFunction df = (DrawableFunction) parent;
-        return df.f.getMin(df.min_x, df.max_x);
+        return getNextGridPointY(df.f.getMin(df.min_x, df.max_x));
     }
 
     public ViewPort getFunctionViewport(){
@@ -294,8 +319,49 @@ public class MovableFunction extends Movable {
         super.setLocked(l);
     }
 
-    public void setStepWidth(Pos3d step){
-        step_width = step;
+    /*!
+     * \brief setStepWidth
+     * Sets the step size at which an input (move) command for the function gets created.
+     * The step width cant be smaller than the set grid.
+     * If a smaller step size is given return is false and the step size will be adapted.
+     * \param step A 3d point where the x and y coordinates are the step command.
+     * return true if the given step size was greater than the grid.
+     */
+    public boolean setStepWidth(Pos3d step){
+        // step width cant be smaller  than grid width
+        step_width.x = Math.max(step_width.x, grid.x);
+        step_width.y = Math.max(step_width.y, grid.y);
+        step_width.z = step.z;
+        return Pos3d.equals(step, step_width);
+    }
+
+    /*!
+     * \brief setStepWidth set the minimal grid size for the function
+     * The function will always stick to the grid with its ends.
+     */
+    public void stickToGrid(Pos3d grid){
+        this.grid = grid;
+        this.grid.abs();
+    }
+
+    public Pos3d getNextGridPoint(Pos3d pos){
+        pos.x = getNextGridPointX(pos.x);
+        pos.y = getNextGridPointY(pos.y);
+        return pos;
+    }
+
+    public double getNextGridPointX(double x){
+        if(grid.x > Utility.EPSILON_D) {
+            return Math.round(x / grid.x) * grid.x;
+        }
+        return x;
+    }
+
+    public double getNextGridPointY(double y){
+        if(grid.y > Utility.EPSILON_D) {
+            return Math.round(y / grid.y) * grid.y;
+        }
+        return y;
     }
 
     final static int NUM_MANIPULATORS = 3;
@@ -306,6 +372,7 @@ public class MovableFunction extends Movable {
     int last_active_manipulator = INVALID_MANIPULATOR_ID;
 
     Pos3d dpos_command_system = Pos3d.Zero();
+    Pos3d dpos_command_openGL = Pos3d.Zero();
     Pos3d pos_command_openGL = Pos3d.Zero();
     MovableDot.QUADRANT active_quadrant;
 
@@ -315,4 +382,5 @@ public class MovableFunction extends Movable {
     public boolean lock_manipulation;
 
     Pos3d step_width = new Pos3d(1,1,0);
+    Pos3d grid = Pos3d.Zero();
 }

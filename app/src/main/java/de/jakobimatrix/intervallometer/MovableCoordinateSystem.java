@@ -198,15 +198,13 @@ public class MovableCoordinateSystem extends Movable {
             current_grid_distance.add(d_pos_iterator);
             int grid_count = 0;
             for(DrawableRectangle grid_line : grid){
-                boolean inside = (!(pos_iterator.x > system_viewport.max.x) || is_y) &&
-                        (!(pos_iterator.y > system_viewport.max.y) || is_x);
+                boolean inside = (!(pos_iterator.x >= system_viewport.max.x) || is_y) &&
+                        (!(pos_iterator.y >= system_viewport.max.y) || is_x);
                 Pos3d translation_openGL = system_2_open_gl.transform(pos_iterator);
                 // translation_openGL is now absolute position
                 Pos3d rel_translation_openGL = absolutePos2relativePos(translation_openGL);
                 rel_translation_openGL.z += Globals.GRID_Z_ELEVATION; // to be sure that grid is above bg.
                 grid_line.setRelativePositionToParent(rel_translation_openGL);
-
-                pos_iterator.add(d_pos_iterator);
 
                 boolean draw_tick = (tick_id_counter < NUM_TICK_LABELS && grid_count++%tick_count_mod == 0);
 
@@ -227,11 +225,23 @@ public class MovableCoordinateSystem extends Movable {
                 }else{
                     grid_line.setColor(ColorRGBA.TRANSPARENT);
                 }
+                pos_iterator.add(d_pos_iterator);
             }
             // make the rest invisible by displaying nothing
             for(;tick_id_counter < NUM_TICK_LABELS; tick_id_counter++){
                 setAxisTick(Pos3d.Zero(),"", i, tick_id_counter );
             }
+        }
+    }
+
+    /*!
+     * \brief stickToGrid set the minimal grid size for all functions
+     * The function will always stick to the grid.
+     * \param grid A 3D point where x and y denote the grid width.
+     */
+    public void stickToGrid(Pos3d grid){
+        for(MovableFunction mf : functions){
+            mf.stickToGrid(grid);
         }
     }
 
@@ -346,7 +356,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private double getAllFunctionsMaxX(){
-        double max = Double.MIN_VALUE;
+        double max = Double.NEGATIVE_INFINITY;
         for(MovableFunction f: functions){
             max = Math.max(max, f.getFunctionMaxX());
         }
@@ -354,7 +364,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private double getAllFunctionsMinX(){
-        double min = Double.MAX_VALUE;
+        double min = Double.POSITIVE_INFINITY;
         for(MovableFunction f: functions){
             min = Math.min(min, f.getFunctionMinX());
         }
@@ -378,14 +388,13 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     public int addFunction(Function f, double min, double max){
-        return addFunction(f,min,max,0.0);
-    }
+        Pos3d grid = functions.size()>0? functions.get(0).grid:Pos3d.Zero();
 
-    public int addFunction(Function f, double min, double max, double min_step_width){
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
         mf.setLocked(true);
+        mf.stickToGrid(grid);
         functions.add(mf);
 
         scale();
