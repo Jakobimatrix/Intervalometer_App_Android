@@ -13,12 +13,23 @@ import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
+// to render a texture inside a rectangle
 public class Texture extends DrawableRectangle {
 
+    /*!
+     * \brief Texture Constructor
+     * \param context what shall I do without it?
+     * \param position The position of the texture in open GL coordinates (default origin is center)
+     * \param width the width in open gl scale
+     * \param height the height in open gl scale
+     */
     public Texture(Context context, Pos3d position, float width, float height) {
         super(context, position, width, height);
     }
 
+    /*!
+     * \brief clean Destructor, should be called if you like your ram
+     */
     @Override
     public void clean(){
         if(bitmap != null){
@@ -35,6 +46,9 @@ public class Texture extends DrawableRectangle {
         need_texture_reload = true;
     }
 
+    /*!
+     * \brief loadGLTexture Loads the texture into an pointer and bind it to openGL something i don't now.
+     */
     public void loadGLTexture(GL10 gl) {
         // generate one texture pointer
         gl.glGenTextures(1, textures, 0);
@@ -54,6 +68,9 @@ public class Texture extends DrawableRectangle {
         need_texture_reload = false;
     }
 
+    /*!
+     * \brief Texture pointer gets lost at some points in time, call this if that happens.
+     */
     @Override
     public void forceReRender(){
         super.forceReRender();

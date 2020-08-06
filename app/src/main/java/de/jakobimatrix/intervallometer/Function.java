@@ -7,7 +7,7 @@ public class Function {
     /*!
      * \brief Constructor
      * \param poly The polynom representing the function like:
-     * f(x) = poly[0] + poly[1]*x + poly[2]*x^^2 + ...
+     * f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
      */
     public Function(ArrayList<Double> poly){
         this.polynomial = poly;
@@ -17,6 +17,11 @@ public class Function {
         this.polynomial.addAll(f.polynomial);
     }
 
+    /*!
+     * \brief f calculate f(x)
+     * \param x
+     * \return f(x)
+     */
     public double f(double x){
         double fx = 0;
         for(int i = 0; i < polynomial.size(); i++){
@@ -25,6 +30,9 @@ public class Function {
         return fx;
     }
 
+    /*!
+     * \brief df Return the coefficients of the derivation of f
+     */
     public ArrayList<Double> df(){
         ArrayList<Double> df = new ArrayList<Double>(polynomial.size()-1);
         for(int i = 1; i < polynomial.size(); i++){
@@ -33,18 +41,11 @@ public class Function {
         return df;
     }
 
-    void setCoef(int i, double coef){
-        int dif = polynomial.size()-i;
-        if(dif > 0){
-            polynomial.set(i, coef);
-        }else{
-            for(int j = 0; j < dif; j++){
-                polynomial.add(0.0);
-            }
-            polynomial.add(coef);
-        }
-    }
-
+    /*!
+     * \brief getMin calculates Min(f(x)) x[left, right]
+     * \param left The left border
+     * \param right the right border
+     */
     public double getMin(double left, double right){
         // I am lazy here since I know that I only need up to second order
         switch (polynomial.size()){
@@ -71,35 +72,63 @@ public class Function {
         }
     }
 
+    /*!
+     * \brief getMax calculates Max(f(x)) x[left, right]
+     * \param left The left border
+     * \param right the right border
+     */
     public double getMax(double left, double right){
         Function f = Function.scale(this, -1.0);
         return -f.getMin(left, right);
     }
 
+    /*!
+     * \brief scale scale the function m*f(x)
+     * \param m the scale factor
+     */
     public void scale (double m){
         for(int i = 0; i < polynomial.size(); i++){
             polynomial.set(i, polynomial.get(i)*m);
         }
     }
 
+    /*!
+     * \brief scale scale the function m*f(x)
+     * \param f The function to be scaled
+     * \param m the scale factor
+     * \return tha scaled version of f
+     */
     public final static Function scale(Function f, double m){
         Function f2 = new Function(new ArrayList<Double>(f.polynomial));
         f2.scale(m);
         return f2;
     }
 
+    /*!
+     * \brief toString
+     * \return "f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ..."
+     */
     public String toString(){
-        String s = "";
+        String s = "f(x) = ";
         for(int i = 0; i < polynomial.size(); i++){
             s += polynomial.get(i) + "*x^" + i + " + ";
         }
         return s;
     }
 
+    /*!
+     * \brief getOrder
+     * \return the number of coefficients.
+     */
     public int getOrder(){
         return polynomial.size();
     }
 
+    /*!
+     * \brief setFunctionGivenPoints calculate the function given n points
+     * supports 1, 2 or 3 points.
+     * \param p the points
+     */
     public void setFunctionGivenPoints(ArrayList<Pos3d> p){
         polynomial.clear();
         switch (p.size()){
@@ -148,11 +177,15 @@ public class Function {
         }
     }
 
+    /*!
+     * \brief moveOffsetY move the function along y axis about dy
+     * \param dy shift
+     */
     public void moveOffsetY(double dy){
         polynomial.set(0, polynomial.get(0)+dy);
     }
 
-    // f(x) = poly[0] + poly[1]*x + poly[2]*x^^2 + ...
+    // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
     public ArrayList<Double> polynomial = new ArrayList<>();
 
     public void moveOffsetX(double dx) {

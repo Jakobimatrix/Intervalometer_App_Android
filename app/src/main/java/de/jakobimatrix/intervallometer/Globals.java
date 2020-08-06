@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+// evil globals disguised as an instance class.
 public class Globals {
     private static Globals mInstance= null;
 

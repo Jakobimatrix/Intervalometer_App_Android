@@ -7,11 +7,31 @@ import java.util.ArrayList;
 import javax.microedition.khronos.opengles.GL10;
 
 public class DrawableString extends Drawable {
+
+    /*!
+     * \brief DrawableString Constructor
+     * \param context_ In this context a context is without text.
+     * \param position_ te position of the to be displayed string in openGL coordinates. Origin is bot left.
+     * \param font_size font height in openGL scale
+     * \param font_height_pix The necessary amount of pixel in height.
+     * \param Value the string to be rendered.
+     */
     public DrawableString(Context context_, Pos3d position_, float font_size, int font_height_pix, String value) {
         super(context_, position_);
         this.font_size = font_size;
         this.font_height_pix = font_height_pix;
         setString(value);
+    }
+
+    /*!
+     * \brief clean If you like your ram, you want to clean up all the bitmaps
+     * like a destructor.
+     */
+    public void clean(){
+        for(DrawableChar dc: string){
+            dc.clean();
+        }
+        string.clear();
     }
 
     @Override
@@ -51,7 +71,7 @@ public class DrawableString extends Drawable {
         Pos3d offset = Pos3d.Zero();
         Pos3d add = Pos3d.Zero();
         Pos3d margin_right = new Pos3d(CHAR_DIST_PERCENT*font_size,0,0);
-        string.clear();
+        clean();
         for(int i = 0; i < value.length(); i++){
             DrawableChar dc = new DrawableChar(context, getPosition(), font_size , value.charAt(i), font_height_pix);
             dc.setBotLeftOrigin();

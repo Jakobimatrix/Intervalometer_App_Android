@@ -53,6 +53,11 @@ public abstract class Drawable {
         drawForRealNow(gl);
     }
 
+    /*!
+     * \brief drawForRealNow will be called from the parent method draw.
+     * Needed for textures since they need other settings for the GL10.
+     * For non textures this will copy all the triangles into the gpu to be rendered.
+     */
     protected void drawForRealNow(GL10 gl){
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glVertexPointer(COORDS_PER_VERTEX, GL10.GL_FLOAT, vertex_stride, vertex_buffer);

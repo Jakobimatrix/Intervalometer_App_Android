@@ -7,7 +7,17 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 
+// clas to display a function within a given view
 public class DrawableFunction extends Drawable {
+    /*!
+     * \brief DrawableFunction Constructor
+     * \param context_ someone som context please?
+     * \param position_ the BOT LEFT corner of the system in open GL coordinates
+     * \param f The function to be displayed
+     * \param min_x The minimal value of f(x) to be rendered
+     * \param max_x The maximal value of f(x) to be rendered
+     * \param system_2_open_gl homography describing the conversation from system coordinates to open gl coordinates.
+     */
     public DrawableFunction(Context context_, Pos3d position_, Function f, double min_x, double max_x, Homography2d system_2_open_gl) {
         super(context_, position_);
         this.f = f;
@@ -144,17 +154,29 @@ public class DrawableFunction extends Drawable {
         return false;
     }
 
+    /*!
+     * \brief setMax
+     * \param max_x The maximal value of f(x) to be rendered
+     */
     public void setMax(double max_x) {
         this.max_x = max_x;
         swapIf();
         needs_rendering = true;
     }
 
+    /*!
+     * \brief moveY move the function in y direction
+     * \param dy the length at which to move the function in y direction.
+     */
     public void moveY(double dy){
         getFunction().moveOffsetY(dy);
         needs_rendering = true;
     }
 
+    /*!
+     * \brief moveX move the function in x direction
+     * \param dx the length at which to move the function in x direction.
+     */
     public void moveX(double dx){
         getFunction().moveOffsetX(dx);
         max_x += dx;
@@ -162,12 +184,19 @@ public class DrawableFunction extends Drawable {
         needs_rendering = true;
     }
 
+    /*!
+     * \brief setMin
+     * \param min_x The maximal value of f(x) to be rendered
+     */
     public void setMin(double min_x) {
         this.min_x = min_x;
         swapIf();
         needs_rendering = true;
     }
 
+    /*!
+     * \brief swapIf make sure that max_x > min_x
+     */
     private void swapIf(){
         // std::swap anyone? Oh that's right fucking Java can not make a double a reference.
         if(this.min_x > this.max_x){
@@ -177,11 +206,18 @@ public class DrawableFunction extends Drawable {
         }
     }
 
+    /*!
+     * \brief setHomography set a new homography system 2 openGl
+     */
     public void setHomography(Homography2d system_2_open_gl){
         f2openGL = system_2_open_gl;
         needs_rendering = true;
     }
 
+    /*!
+     * \brief setThickness set how thick the function shall be displayed.
+     * \param thickness in openGL scale
+     */
     public void setThickness(float thickness){
         line_thickness = thickness;
         begin.setRadius(thickness/2f);

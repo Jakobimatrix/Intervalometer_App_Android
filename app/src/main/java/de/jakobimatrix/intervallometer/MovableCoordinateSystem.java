@@ -9,6 +9,14 @@ import java.util.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 public class MovableCoordinateSystem extends Movable {
+
+    /*!
+     * \brief MovableCoordinateSystem Constructor
+     * \param context_ anyone? context anyone?
+     * \param position_ the bot, left position of the coordinate system in open gl coordinates
+     * \param width The width in openGL scale of the coordinate system
+     * \param height The height in openGL scale of the coordinate system
+     */
     public MovableCoordinateSystem(Context context_, Pos3d position_, float width, float height) {
         super(new DrawableRectangle(context_, new Pos3d(position_), width, height));
         DrawableRectangle bg = (DrawableRectangle) parent;
@@ -66,6 +74,11 @@ public class MovableCoordinateSystem extends Movable {
         is_locked = false;
     }
 
+    /*!
+     * \brief isWithin Return true if the position_ corresponds to one of the manipulator points of one of the displayed functions.
+     * active_function will be set for manipulation
+     * \param position_ the position in openGL.
+     */
     @Override
     public boolean isWithin(Pos3d position_) {
         // Todo we have to deal with Manipulators going over the edge
@@ -81,6 +94,9 @@ public class MovableCoordinateSystem extends Movable {
         return false;
     }
 
+    /*!
+     * \brief setPosition sets the position of the active_functions active manipulator to change that function.
+     */
     @Override
     public void setPosition(Pos3d position_){
         if(isValidFunctionId(active_function) && sensitivity()){
@@ -97,6 +113,10 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    /*!
+     * \brief endTouch must be called abd will pass that call to the active function to
+     * signal that the user stopped touching the screen.
+     */
     @Override
     public void endTouch() {
         for(MovableFunction df: functions){
@@ -105,6 +125,12 @@ public class MovableCoordinateSystem extends Movable {
         hold_start = FIRST_CONTACT;
     }
 
+    /*!
+     * \brief sensitivity sets the step width at which the active function can be manipulated, it also
+     * returns weather a manipulation shall occur according to the length of the touch.
+     * It discretize the manipulations depending on the holding time.
+     * \return true if it is time for manipulation.
+     */
     private boolean sensitivity(){
         if(hold_start == FIRST_CONTACT){
             hold_start = System.currentTimeMillis();
@@ -135,7 +161,7 @@ public class MovableCoordinateSystem extends Movable {
         return false;
     }
 
-    public void setGridPosition(Pos3d position_){
+    public void setCoordinateSystemPosition(Pos3d position_){
         parent.setPosition(position_);
         scale();
     }
@@ -158,6 +184,9 @@ public class MovableCoordinateSystem extends Movable {
         parent.setColor(color);
     }
 
+    /*!
+     * \brief adjustGrid Calculates the grid and sets the ticks.
+     */
     private void adjustGrid(){
         current_grid_distance = Pos3d.Zero();
         for(int i = 0; i < 2; i++){
@@ -198,8 +227,8 @@ public class MovableCoordinateSystem extends Movable {
             current_grid_distance.add(d_pos_iterator);
             int grid_count = 0;
             for(DrawableRectangle grid_line : grid){
-                boolean inside = (!(pos_iterator.x >= system_viewport.max.x) || is_y) &&
-                        (!(pos_iterator.y >= system_viewport.max.y) || is_x);
+                boolean inside = ((pos_iterator.x < system_viewport.max.x + Utility.EPSILON_D) || is_y) &&
+                        ((pos_iterator.y < system_viewport.max.y + Utility.EPSILON_D) || is_x);
                 Pos3d translation_openGL = system_2_open_gl.transform(pos_iterator);
                 // translation_openGL is now absolute position
                 Pos3d rel_translation_openGL = absolutePos2relativePos(translation_openGL);
@@ -245,6 +274,11 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    /*!
+     * \brief prepareTick transform double to string to be displayed as tick value.
+     * \param d_tick the grid value
+     * \return tick value as string
+     */
     private String prepareTick(Double d_tick){
         // don't display comma if integer
         boolean is_integer = (d_tick == Math.round(d_tick));
@@ -266,6 +300,13 @@ public class MovableCoordinateSystem extends Movable {
         return tick;
     }
 
+    /*!
+     * \brief setAxisTick Called by adjustGrid to set the tick
+     * \param coord_pos Position of the tick (origin of the grid bar)
+     * \param tick The string to be displayed
+     * \param direction 0 = x tick, 1 = y tick
+     * \param id the number of the tick to be displayed. = position in x_ticks/y_ticks vector.
+     */
     private void setAxisTick(Pos3d coord_pos, String tick, int direction, int id){
         final float ROTATION = (float) -(Math.PI/4); // save place
         Pos3d pos = new Pos3d(coord_pos);
@@ -305,6 +346,9 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    /*!
+     * \brief setViewportSystem Set the viewport of the Coordinate System according to the max and min Values needed to be displayed.
+     */
     private void setViewportSystem(){
         system_viewport.min.x = getAllFunctionsMinX();
         system_viewport.min.y = getAllFunctionsMinY();
@@ -328,6 +372,9 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    /*!
+     * \brief setViewPortOpenGL Set the viewport of the Coordinate System in open GL coordinates according to position width and height.
+     */
     private void setViewPortOpenGL(){
         Pos3d position_ = getPosition();
         float width = getWidth();
@@ -341,6 +388,10 @@ public class MovableCoordinateSystem extends Movable {
         openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
     }
 
+    /*!
+     * \brief scale rescales the coordinate system, calculating the homography between openGL and
+     * coordinates, calculates the grid and redraws all functions.
+     */
     private void scale(){
         setViewportSystem();
         setViewPortOpenGL();
@@ -372,7 +423,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private double getAllFunctionsMaxY(){
-        double max = Double.MIN_VALUE;
+        double max = Double.NEGATIVE_INFINITY;
         for(MovableFunction f: functions){
             max = Math.max(max, f.getFunctionMaxY());
         }
@@ -380,13 +431,20 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private double getAllFunctionsMinY(){
-        double min = Double.MAX_VALUE;
+        double min = Double.POSITIVE_INFINITY;
         for(MovableFunction f: functions){
             min = Math.min(min, f.getFunctionMinY());
         }
         return min;
     }
 
+    /*!
+     * \brief addFunction Adds a function to be displayed
+     * \param f The function
+     * \param min The min x value to be displayed
+     * \param max The max x value to be displayed
+     * \return an index over which the function can be deleted/locked etc...
+     */
     public int addFunction(Function f, double min, double max){
         Pos3d grid = functions.size()>0? functions.get(0).grid:Pos3d.Zero();
 
@@ -414,6 +472,10 @@ public class MovableCoordinateSystem extends Movable {
         rescaleAllFunctions();
     }
 
+    /*!
+     * \brief rescaleAllFunctions
+     * set the current homography to each unction which will trigger a redraw.
+     */
     private void rescaleAllFunctions(){
         for(MovableFunction mf:functions){
             mf.setHomography(system_2_open_gl);
@@ -449,6 +511,11 @@ public class MovableCoordinateSystem extends Movable {
         throw new IllegalArgumentException( "MovableCoordinateSystem::getMovableFunction: given index is not a function set prior");
     }
 
+    /*!
+     * \brief setFunctionLocked (un)lock a function to make it manipulable via manipulator.
+     * \param l look true/false
+     * \param function_index The function to lock/unlock
+     */
     public void setFunctionLocked(boolean l, int function_index){
         getMovableFunction(function_index).setLocked(l);
     }

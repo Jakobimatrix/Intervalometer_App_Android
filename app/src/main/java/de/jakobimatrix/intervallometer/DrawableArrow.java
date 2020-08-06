@@ -83,21 +83,33 @@ public class DrawableArrow extends Drawable {
         index_buffer.position(0);
     }
 
+    /*!
+     * \brief setRotationUP set the rotation of the arrow such that it points upwards.
+     */
     public void setRotationUP(){
         rotation_rad = 0;
         needs_rendering = true;
     }
 
+    /*!
+     * \brief setRotationDOWN set the rotation of the arrow such that it points downwards.
+     */
     public void setRotationDOWN(){
         rotation_rad = Math.PI;
         needs_rendering = true;
     }
 
+    /*!
+     * \brief setRotationLEFT set the rotation of the arrow such that it points to the left.
+     */
     public void setRotationLEFT(){
         rotation_rad = Math.PI/2;
         needs_rendering = true;
     }
 
+    /*!
+     * \brief setRotationRIGHT set the rotation of the arrow such that it points to the right.
+     */
     public void setRotationRIGHT(){
         rotation_rad = -Math.PI/2;
         needs_rendering = true;
@@ -106,10 +118,6 @@ public class DrawableArrow extends Drawable {
     @Override
     public boolean isWithin(Pos3d p) {
         return false;
-    }
-
-    public float getBodyWidth(){
-        return body_width;
     }
 
     float height;

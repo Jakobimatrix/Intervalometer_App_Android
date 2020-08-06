@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+// wrapper class Viewport spans a rectangle with bot left and top right point min/max
 public class ViewPort {
     ViewPort(Pos3d min, Pos3d max){
         this.max = max;

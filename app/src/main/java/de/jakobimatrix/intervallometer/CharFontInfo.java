@@ -3,9 +3,9 @@ package de.jakobimatrix.intervallometer;
 /*
 * https://i.stack.imgur.com/8E8XO.gif
 * */
-
-public class CharInfo {
-    CharInfo(float real_height_percentage, float elevation_percentage, int resource_id){
+// class to hold Information about the font like height relative to the font size and how much it needs to be raised.
+public class CharFontInfo {
+    CharFontInfo(float real_height_percentage, float elevation_percentage, int resource_id){
         this.real_height_percentage = real_height_percentage;
         this.elevation_percentage = elevation_percentage;
         this.resource_id = resource_id;

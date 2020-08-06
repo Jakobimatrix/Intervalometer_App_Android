@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+// class to transform between 2 2D perspectives such as openGL and screen coordinates
 public class Homography2d {
 
     public void setIdentity(){
@@ -12,6 +13,7 @@ public class Homography2d {
     }
 
     public double [] h = new double[9];
+
     public double [] h_inv = new double[9];
 
     public Pos3d transform(final Pos3d p){
@@ -28,6 +30,12 @@ public class Homography2d {
         return p_;
     }
 
+    /*!
+     * \brief calculateHomography2DNoRotation given 4 points (two in each perspective) calculate the homography
+     * to transform from p to p_
+     * \params p1, p2 the two points in the current perspective
+     * \params p1_, p_2 the two points corresponding to p1, p2 in the target perspective.
+     */
     public void calculateHomography2DNoRotation(final Pos3d p1, final Pos3d p1_, final Pos3d p2, final Pos3d p2_){
         /*
          *|x_|   |f1 0 tx|   |x|

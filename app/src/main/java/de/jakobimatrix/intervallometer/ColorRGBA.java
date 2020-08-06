@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+// class to hold r g b a values
 public class ColorRGBA {
     public float r;
     public float g;

@@ -5,7 +5,16 @@ import android.content.Context;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+// display a rectangle in open gl
 public class DrawableRectangle extends Drawable {
+
+    /*!
+     * \brief DrawableRectangle Constructor
+     * \param context_ I don't know do you?
+     * \param position_ The position in open GL coordinates of the rectangle (Origin per default is center)
+     * \param width_ width of the rectangle in open gl scale
+     * \param height_ height of the rectangle in open gl scale
+     */
     public DrawableRectangle(Context context_, Pos3d position_, float width_, float height_) {
         super(context_, position_);
         width = width_;
@@ -15,6 +24,9 @@ public class DrawableRectangle extends Drawable {
         }
     }
 
+    /*!
+     * \brief calculateCornerPositions prerender calculations of the corner positions.
+     */
     protected void calculateCornerPositions(){
         // top-left
         corner[0] = new Pos3d(width/2f , height/2f, 0);
@@ -83,6 +95,10 @@ public class DrawableRectangle extends Drawable {
         return false;
     }
 
+    /*!
+     * \brief CallBackOnSetOrigin Interface to hold a function which recalculates
+     * the origin translation if rectangle properties have changed.
+     */
     public interface CallBackOnSetOrigin{
         void setOrigin();
     }
@@ -201,6 +217,10 @@ public class DrawableRectangle extends Drawable {
         }
     }
 
+    /*!
+     * \brief setCustomOrigin Set a custom origin
+     * \param origin The origin in openGL coordinates
+     */
     public void setCustomOrigin(Pos3d origin){
         custom_origin = new Pos3d(origin);
         translation = new Pos3d(origin);
