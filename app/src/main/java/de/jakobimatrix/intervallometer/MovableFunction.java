@@ -143,28 +143,21 @@ public class MovableFunction extends Movable {
         switch (active_manipulator){
             case 0:
                 if(top_dow_direction){
-                    Pos3d posLeft =  new Pos3d(manipulator[0].getPosition());
-                    posLeft.y += dpos_command_openGL.y;
-                    manipulator[0].setPosition(posLeft);
-                    setFunctionGivenManipulators();
+                    moveManipulatorYAndSetFunction(0, dpos_command_openGL.y);
                 }else {
                     scaleFunctionMinX(dpos_command_system.x);
                 }
                 break;
             case 1:
                 if(top_dow_direction){
-                    scaleFunctionOffset(dpos_command_openGL.y);
+                    moveFunctionYOffset(dpos_command_openGL.y);
                 }else{
-                    // TODO not wanted
-                    moveFunctionOffset(dpos_command_system.x);
+                    moveFunctionXOffset(dpos_command_system.x);
                 }
                 break;
             case 2:
                 if(top_dow_direction){
-                    Pos3d posRight =  manipulator[2].getPosition();
-                    posRight.y += dpos_command_openGL.y;
-                    manipulator[2].setPosition(posRight);
-                    setFunctionGivenManipulators();
+                    moveManipulatorYAndSetFunction(2, dpos_command_openGL.y);
                 }else {
                     scaleFunctionMaxX(dpos_command_system.x);
                 }
@@ -172,9 +165,63 @@ public class MovableFunction extends Movable {
         }
     }
 
-    private void moveFunctionOffset(double dx) {
-        getDrawableFunction().moveX(dx);
-        setManipulatorsBasedOnFunction();
+    private void moveManipulatorYAndSetFunction(int manipulator_id, double dy){
+        moveManipulatorAndSetFunction(manipulator_id, new Pos3d(0,dy,0));
+    }
+
+    private void moveManipulatorXAndSetFunction(int manipulator_id, double dx){
+        moveManipulatorAndSetFunction(manipulator_id, new Pos3d(dx,0,0));
+    }
+
+    private void moveManipulatorAndSetFunction(int manipulator_id, Pos3d dp){
+        if(!lock_chain) {
+            lock_chain = true;
+            if (isValidManipulatorId(manipulator_id)) {
+                Pos3d pos = manipulator[manipulator_id].getPosition();
+                pos.add(dp);
+                manipulator[manipulator_id].setPosition(pos);
+                setFunctionGivenManipulators();
+            }
+            if(manipulator_id == 0 && isCoupledLeft()){
+                coupled_function_left.moveManipulatorAndSetFunction(2, dp);
+            }else if(manipulator_id == 2 && isCoupledRight()){
+                coupled_function_right.moveManipulatorAndSetFunction(0, dp);
+            }
+            lock_chain = false;
+        }
+    }
+
+    /*!
+     * \brief moveFunctionOffset Moves the function in x direction
+     * This is called via mid manipulator left/right direction
+     * \param dx The amount to move the function in x direction
+     */
+    private void moveFunctionXOffset(double dx) {
+        if(!lock_chain) {
+            lock_chain = true;
+            getDrawableFunction().moveX(dx);
+            setManipulatorsBasedOnFunction();
+
+            if(isCoupledLeft()){
+                if(coupled_function_right.getFunction().getOrder() == 1){
+                    coupled_function_left.scaleFunctionMaxX(dx);
+                }else{
+                    coupled_function_left.moveManipulatorXAndSetFunction(2, dx);
+                }
+            }
+            if(isCoupledRight()){
+                coupled_function_right.moveFunctionXOffset(dx);
+            }
+            lock_chain = false;
+        }
+    }
+
+    // the right coupled function moved to the left, we squish
+    private void squishFromRight(double dx){
+        Pos3d new_right_manip_pos = manipulator[2].getPosition();
+        new_right_manip_pos.x += dx;
+        manipulator[2].setPosition(new_right_manip_pos);
+        setFunctionGivenManipulators();
     }
 
     private boolean isValidManipulatorId(int id){
@@ -185,29 +232,45 @@ public class MovableFunction extends Movable {
     }
 
     private void scaleFunctionMinX(double dx){
-        DrawableFunction df = getDrawableFunction();
-        // make sure the function does not get a length of zero
-        double new_min = df.min_x + dx;
-        if(dx > 0){
-            if(Math.abs(new_min - df.max_x) < Utility.EPSILON_D){
-                new_min = df.min_x + 2*dx;
-                // set min can deal with min > max
+        if(!lock_chain) {
+            DrawableFunction df = getDrawableFunction();
+            // make sure the function does not get a length of zero
+            double new_min = df.min_x + dx;
+            if (dx > 0) {
+                if (Math.abs(new_min - df.max_x) < Utility.EPSILON_D) {
+                    return;
+                }
             }
+            df.setMin(new_min);
+
+            lock_chain = true;
+            if (isCoupledLeft()) {
+                // The min of the right function about dx
+                coupled_function_left.scaleFunctionMaxX(dx);
+            }
+            lock_chain = false;
         }
-        df.setMin(new_min);
     }
 
     private void scaleFunctionMaxX(double dx){
-        DrawableFunction df = getDrawableFunction();
-        // make sure the function does not get a length of zero
-        double new_max = df.max_x + dx;
-        if(dx < 0){
-            if(Math.abs(new_max - df.min_x) < Utility.EPSILON_D){
-                new_max = df.max_x + 2*dx;
-                // set min can deal with max < min
+        if(!lock_chain) {
+            DrawableFunction df = getDrawableFunction();
+            // make sure the function does not get a length of zero
+            double new_max = df.max_x + dx;
+            if (dx < 0) {
+                if (Math.abs(new_max - df.min_x) < Utility.EPSILON_D) {
+                    return;
+                }
             }
+            df.setMax(new_max);
+
+            lock_chain = true;
+            if (isCoupledRight()) {
+                // The min of the right function about dx
+                coupled_function_right.scaleFunctionMinX(dx);
+            }
+            lock_chain = false;
         }
-        df.setMax(new_max);
     }
 
     private void setFunctionGivenManipulators(){
@@ -237,9 +300,114 @@ public class MovableFunction extends Movable {
         setManipulatorsBasedOnFunction();
     }
 
-    private void scaleFunctionOffset(double dy){
-        getDrawableFunction().moveY(dy);
-        setManipulatorsBasedOnFunction();
+    /*!
+     * \brief moveFunctionYOffset
+     * This is called via mid manipulator top/down direction
+     * \param dy The amount to move the function in y direction
+     */
+    private void moveFunctionYOffset(double dy){
+        if(!lock_chain) {
+            lock_chain = true;
+            getDrawableFunction().moveY(dy);
+            setManipulatorsBasedOnFunction();
+            if (isCoupledLeft()) {
+                coupled_function_left.moveFunctionYOffset(dy);
+            }
+            if (isCoupledRight()) {
+                coupled_function_right.moveFunctionYOffset(dy);
+            }
+            lock_chain = false;
+        }
+    }
+
+    /*!
+     * \brief registerCoupledFunctionPair takes two Movable functions and registers them as coupled.
+     * \param left The function on the left
+     * \param right The function on the right
+     */
+    static void registerCoupledFunctionPair(MovableFunction left, MovableFunction right){
+        left.registerCoupledFunctionRight(right);
+        right.registerCoupledFunctionRight(left);
+    }
+
+    // let loose left and register new
+    private void registerCoupledFunctionLeft(MovableFunction mf){
+        registerOpenFunctionLeft();
+        coupled_function_left = mf;
+    }
+
+    // let loose right and register new
+    private void registerCoupledFunctionRight(MovableFunction mf){
+        registerOpenFunctionRight();
+        coupled_function_right = mf;
+    }
+
+    // tell the left coupled function to let loose too
+    private void registerOpenFunctionLeft(){
+        if(isCoupledLeft()){
+            coupled_function_left.registerOpenFunctionRight();
+            coupled_function_left = null;
+        }
+    }
+
+    // tell the right coupled function to let loose too
+    private void registerOpenFunctionRight(){
+        if(isCoupledRight()){
+            coupled_function_right.registerOpenFunctionLeft();
+            coupled_function_right = null;
+        }
+    }
+
+    public boolean isCoupledRight(){
+        return coupled_function_right != null;
+    }
+
+    public boolean isCoupledLeft(){
+        return coupled_function_left != null;
+    }
+
+    public void synchronizeCoupledLeft(){
+        if(isCoupledLeft()){
+            Pos3d actual = manipulator[0].getPosition();
+            Pos3d target = coupled_function_left.manipulator[2].getPosition();
+            Pos3d dp = Pos3d.sub(target, actual);
+            moveFunctionAndTail(dp);
+        }
+    }
+
+    public void synchronizeCoupledRight(){
+        if(isCoupledRight()){
+            coupled_function_right.synchronizeCoupledLeft();
+        }
+    }
+
+    public void synchronizeThis(int order){
+        if(isCoupledRight()){
+            Pos3d right = coupled_function_right.manipulator[0].getPosition();
+            manipulator[2].setPosition(right);
+        }
+        if(isCoupledLeft()){
+            Pos3d left = coupled_function_right.manipulator[2].getPosition();
+            manipulator[0].setPosition(left);
+        }
+
+        // cheat and set order of function to two
+        Function f = getFunction();
+        ArrayList<Pos3d> poses = new ArrayList<>(2);
+        poses.add(Pos3d.Zero());
+        poses.add(Pos3d.Zero());
+        f.setFunctionGivenPoints(poses);
+        setFunctionGivenManipulators();
+    }
+
+    private void moveFunctionAndTail(Pos3d dp){
+        for(int i = 0; i < NUM_MANIPULATORS; i++){
+            manipulator[i].move(dp);
+        }
+        setFunctionGivenManipulators();
+        if(isCoupledRight()){
+            coupled_function_right.moveFunctionAndTail(dp);
+        }
     }
 
     Pos3d getLeftManipulatorGLpos(){
@@ -380,7 +548,13 @@ public class MovableFunction extends Movable {
     final static float DEFAULT_MANIPULATOR_RADIUS = 0.25f;
 
     public boolean lock_manipulation;
+    // lock a movable function if it is coupled
+    // to avoid loops. (No destructors == no scoped look guards, me sad)
+    private boolean lock_chain = false;
 
     Pos3d step_width = new Pos3d(1,1,0);
     Pos3d grid = Pos3d.Zero();
+
+    MovableFunction coupled_function_left = null;
+    MovableFunction coupled_function_right = null;
 }
