@@ -1,6 +1,10 @@
 package de.jakobimatrix.intervallometer;
 
+import android.util.Log;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 public class Utility {
@@ -106,7 +110,6 @@ public class Utility {
     }
 
 
-
     /*!
      * \brief cutAtDecimal Cuts a number at a given power.
      * E.g.:
@@ -121,6 +124,42 @@ public class Utility {
     public final static double cutAtDecimal(double number, double power){
         return (double) Math.ceil(number / power) * power;
     }
+
+    public final static  String Bytes2String(byte[] buffer, int length){
+        String s = "[";
+        String supplement = "";
+        for(int i = 0; i < length; i++){
+            s = s + supplement + String.format("%2s", Integer.toHexString(buffer[i] & 0xFF)).replace(' ', '0');
+            supplement = "|";
+        }
+        s = s + "]";
+        return s;
+    }
+
+    public final static  void int2Bytes(int i, byte[] buffer){
+        buffer[0] = (byte)((i >> 24) & 0xFF) ;
+        buffer[1] = (byte)((i >> 16) & 0xFF) ;
+        buffer[2] = (byte)((i >> 8) & 0XFF);
+        buffer[3] = (byte)((i & 0XFF));
+    }
+
+    public final static  String bytes2string(byte[] buffer, int length){
+        // in Java int has 4 bytes
+        // on ATtiny long has 4 bytes
+        String hex = Bytes2String(buffer, length);
+        String s = null;
+        try {
+            s = new String(buffer, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            s = "throw exeption";
+        }
+        Log.i("read as String:",s);
+        Log.i("read as Hex:", hex);
+
+        return hex;
+    }
+
 
     final static double EPSILON_D = Math.ulp(4.0);
     final static float EPSILON_F = Math.ulp(4.0f);

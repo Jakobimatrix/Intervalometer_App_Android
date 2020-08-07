@@ -112,43 +112,8 @@ public class BluetoothManager {
         final int index_start = 0;
         final int num_bytes_red = input_stream.read(buffer, index_start, read_bytes-index_start);
 
-        message.append(bytes2string(buffer,read_bytes));
+        message.append(Utility.bytes2string(buffer,read_bytes));
         return true;
-    }
-
-    public String Bytes2String(byte[] buffer, int length){
-        String s = "[";
-        String supplement = "";
-        for(int i = 0; i < length; i++){
-            s = s + supplement + String.format("%2s", Integer.toHexString(buffer[i] & 0xFF)).replace(' ', '0');
-            supplement = "|";
-        }
-        s = s + "]";
-        return s;
-    }
-
-    public void int2Bytes(int i, byte[] buffer){
-        buffer[0] = (byte)((i >> 24) & 0xFF) ;
-        buffer[1] = (byte)((i >> 16) & 0xFF) ;
-        buffer[2] = (byte)((i >> 8) & 0XFF);
-        buffer[3] = (byte)((i & 0XFF));
-    }
-
-    public String bytes2string(byte[] buffer, int length){
-        // in Java int has 4 bytes
-        // on ATtiny long has 4 bytes
-        String hex = Bytes2String(buffer, length);
-        String s = null;
-        try {
-            s = new String(buffer, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            s = "throw exeption";
-        }
-        Log.i("read as String:",s);
-        Log.i("read as Hex:", hex);
-
-        return hex;
     }
 
     /*!

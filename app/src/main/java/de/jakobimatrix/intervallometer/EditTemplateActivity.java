@@ -65,10 +65,7 @@ public class EditTemplateActivity extends Activity {
         float height = (float) (complete_top_right_open_gl.y - complete_left_down_open_gl.y);
         coord_overview = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
 
-        ArrayList<Double> poly = new ArrayList<>(2);
-        poly.add(2.5);
-        poly.add(1.);
-        Function f = new Function(poly);
+        Function f = new ConstantFunction(2);
         int index = coord_overview.addFunction(f, 0., 4.);
         coord_overview.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview);
@@ -82,17 +79,9 @@ public class EditTemplateActivity extends Activity {
         float height2 = (float) (complete_top_right_open_gl2.y - complete_left_down_open_gl2.y);
         coord_overview2 = new MovableCoordinateSystem(this, complete_left_down_open_gl2, width2, height2 );
 
-        ArrayList<Double> poly2 = new ArrayList<>(3);
-        poly2.add(2.);
-        poly2.add(0.);
-        poly2.add(1.);
-        Function f2 = new Function(poly2);
-        ArrayList<Double> poly3 = new ArrayList<>(1);
-        poly3.add(3.);
-        Function f3 = new Function(poly3);
+        Function f2 = new LinearFunction(3, 2);
+
         index = coord_overview2.addFunction(f2, 0.0, 4);
-        coord_overview2.setFunctionLocked(false, index);
-        index = coord_overview2.addFunction(f3, -4.0, 0);
         coord_overview2.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview2);
 
@@ -104,9 +93,9 @@ public class EditTemplateActivity extends Activity {
         float height3 = (float) (complete_top_right_open_gl3.y - complete_left_down_open_gl3.y);
         coord_overview3 = new MovableCoordinateSystem(this, complete_left_down_open_gl3, width3, height3 );
 
-        ArrayList<Double> poly4 = new ArrayList<>(1);
-        poly4.add(2.);
-        Function f4 = new Function(poly4);
+        Pos3d  left = new Pos3d(0,0,0);
+        Pos3d  right = new Pos3d(4,10,0);
+        Function f4 = new SigmoidFunction(left, right);
         index = coord_overview3.addFunction(f4, -4.0, 4);
         coord_overview3.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview3);

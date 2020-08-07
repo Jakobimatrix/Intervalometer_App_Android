@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 public class Function {
 
+    public Function(){ }
+
     /*!
      * \brief Constructor
      * \param poly The polynom representing the function like:
@@ -78,8 +80,10 @@ public class Function {
      * \param right the right border
      */
     public double getMax(double left, double right){
-        Function f = Function.scale(this, -1.0);
-        return -f.getMin(left, right);
+        scale(-1.0);
+        double max = getMin(left, right);
+        scale(-1.0);
+        return max;
     }
 
     /*!
@@ -92,17 +96,6 @@ public class Function {
         }
     }
 
-    /*!
-     * \brief scale scale the function m*f(x)
-     * \param f The function to be scaled
-     * \param m the scale factor
-     * \return tha scaled version of f
-     */
-    public final static Function scale(Function f, double m){
-        Function f2 = new Function(new ArrayList<Double>(f.polynomial));
-        f2.scale(m);
-        return f2;
-    }
 
     /*!
      * \brief toString
@@ -152,7 +145,7 @@ public class Function {
                 polynomial.add(b);
             }
                 break;
-            case 3: //quadratic y = ax^2 bx + c
+            case 3: //quadratic y = ax^2 + bx + c
                 // https://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
                 // Todo maybe use lin algebra? http://ejml.org/wiki/index.php?title=Main_Page
                 // or https://commons.apache.org/proper/commons-math/
@@ -209,5 +202,11 @@ public class Function {
             default:
                 throw new IllegalArgumentException( "Function::moveOffsetX: I only support 1,2 or 3 Points.");
         }
+    }
+
+    public byte[] toByteStream(int min, int max){
+        byte[] num_pics = new byte[4];
+        Utility.int2Bytes(max-min, num_pics);
+        return num_pics;
     }
 }

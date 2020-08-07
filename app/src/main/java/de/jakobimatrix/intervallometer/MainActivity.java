@@ -385,14 +385,14 @@ public class MainActivity extends Activity {
             byte buffer_temp_a[] = new byte[4];
             byte buffer_temp_b[] = new byte[4];
             byte buffer_temp_c[] = new byte[4];
-            bluetooth_manager.int2Bytes(1000, buffer_temp_c);
+            Utility.int2Bytes(1000, buffer_temp_c);
             byte[] buffer_f1 = {0x01, 0x00,0x00,0x00,0x0F, buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3]};
-            bluetooth_manager.int2Bytes(100, buffer_temp_b);
+            Utility.int2Bytes(100, buffer_temp_b);
             byte[] buffer_f2 = {0x02, 0x00,0x00,0x00,0x0A,
                     buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
                     buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
-            bluetooth_manager.int2Bytes(-100, buffer_temp_b);
-            bluetooth_manager.int2Bytes(2000, buffer_temp_c);
+            Utility.int2Bytes(-100, buffer_temp_b);
+            Utility.int2Bytes(2000, buffer_temp_c);
             byte[] buffer_f3 = {0x02, 0x00,0x00,0x00,0x0A,
                     buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
                     buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
