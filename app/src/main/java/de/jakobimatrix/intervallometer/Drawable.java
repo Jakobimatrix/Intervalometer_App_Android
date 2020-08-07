@@ -241,6 +241,6 @@ public abstract class Drawable {
 
     Pos3d translation_2_parent = new Pos3d(0,0,0);
 
-    int triangle_coloring = GL10.GL_TRIANGLE_STRIP;
+    int triangle_coloring = GL10.GL_TRIANGLE_STRIP; // GL10.GL_LINE_STRIP;
 
 }

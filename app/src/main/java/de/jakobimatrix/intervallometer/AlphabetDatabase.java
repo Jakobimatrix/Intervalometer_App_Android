@@ -3,6 +3,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,6 +98,9 @@ public class AlphabetDatabase {
      * \return The given char if it is supported, a ? otherwise.
      */
     private Character validateCharacter(Character c){
+        if(!look_up_drawables.containsKey(c)){
+            Log.d("AlphabetDatabase ", "char " + c + " not found");
+        }
         return look_up_drawables.containsKey(c)? c: UNKNOWN_CHAR;
     }
 

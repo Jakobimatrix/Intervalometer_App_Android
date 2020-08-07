@@ -35,12 +35,15 @@ public class Function {
     /*!
      * \brief df Return the coefficients of the derivation of f
      */
-    public ArrayList<Double> df(){
-        ArrayList<Double> df = new ArrayList<Double>(polynomial.size()-1);
-        for(int i = 1; i < polynomial.size(); i++){
-            df.add(polynomial.get(i)*i);
+    public double df(double x){
+        if(df == null){
+            ArrayList<Double> df_poly = new ArrayList<Double>(polynomial.size()-1);
+            for(int i = 1; i < polynomial.size(); i++){
+                df_poly.add(polynomial.get(i)*i);
+            }
+            df = new Function(df_poly);
         }
-        return df;
+        return df.f(x);
     }
 
     /*!
@@ -63,9 +66,11 @@ public class Function {
                 double l = f(left);
                 double r = f(right);
                 if(polynomial.get(2)>0){
-                    ArrayList<Double> df = df();
+                    if(df == null){
+                        df(0); // will save df
+                    }
                     // 0 = ax + b
-                    double x = -df.get(0)/df.get(1);
+                    double x = -df.polynomial.get(0)/df.polynomial.get(1);
                     l = Math.min(l,x);
                 }
                 return Math.min(l,r);
@@ -81,7 +86,7 @@ public class Function {
      */
     public double getMax(double left, double right){
         scale(-1.0);
-        double max = getMin(left, right);
+        double max = -getMin(left, right);
         scale(-1.0);
         return max;
     }
@@ -93,6 +98,9 @@ public class Function {
     public void scale (double m){
         for(int i = 0; i < polynomial.size(); i++){
             polynomial.set(i, polynomial.get(i)*m);
+        }
+        if(df != null){
+            df.scale(m);
         }
     }
 
@@ -124,6 +132,7 @@ public class Function {
      */
     public void setFunctionGivenPoints(ArrayList<Pos3d> p){
         polynomial.clear();
+        df = null;
         switch (p.size()){
             case 1: // constant y = c
                 polynomial.add(p.get(0).y);
@@ -178,9 +187,6 @@ public class Function {
         polynomial.set(0, polynomial.get(0)+dy);
     }
 
-    // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
-    public ArrayList<Double> polynomial = new ArrayList<>();
-
     public void moveOffsetX(double dx) {
         switch (getOrder()){
             case 1: // y = c do nothing
@@ -202,6 +208,10 @@ public class Function {
             default:
                 throw new IllegalArgumentException( "Function::moveOffsetX: I only support 1,2 or 3 Points.");
         }
+
+        if(df != null){
+            df.moveOffsetX(dx);
+        }
     }
 
     public byte[] toByteStream(int min, int max){
@@ -209,4 +219,9 @@ public class Function {
         Utility.int2Bytes(max-min, num_pics);
         return num_pics;
     }
+
+
+    // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
+    protected ArrayList<Double> polynomial = new ArrayList<>();
+    protected Function df = null;
 }

@@ -60,19 +60,25 @@ public class SigmoidFunction extends LinearFunction{
     }
 
     @Override
-    public ArrayList<Double> df(){
-        throw new IllegalArgumentException( "Don't use df on a sigmoid. Don't wanna implement it.");
-        // I mean I would need a Function similar to this to hold zwo lin functions /\  or \/, and for them to have a df of two constant __-- or --__
+    public double df(double x){
+        if(x <= min_x || x >= max_x){
+            return 0;
+        }
+        if(x < getMid()){
+            return left_parabola.df(x);
+        }else{
+            return right_parabola.df(x);
+        }
     }
 
     @Override
     public double getMin(double left, double right){
-        return Math.min(left_parabola.getMin(left,right), right_parabola.getMin(left,right));
+        return Math.min(left_parabola.f(min_x), right_parabola.f(max_x));
     }
 
     @Override
     public double getMax(double left, double right){
-        return Math.max(left_parabola.getMin(left,right), right_parabola.getMin(left,right));
+        return Math.max(left_parabola.f(min_x), right_parabola.f(max_x));
     }
 
     @Override
@@ -87,7 +93,7 @@ public class SigmoidFunction extends LinearFunction{
 
     @Override
     public int getOrder(){
-        return 4;
+        return 2;
     }
 
     @Override
@@ -97,7 +103,6 @@ public class SigmoidFunction extends LinearFunction{
         }
         constructSigmoid(p.get(0), p.get(1));
     }
-
 
     @Override
     public void moveOffsetY(double dy){

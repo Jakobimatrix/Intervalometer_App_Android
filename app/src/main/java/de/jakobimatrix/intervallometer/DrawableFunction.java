@@ -47,7 +47,6 @@ public class DrawableFunction extends Drawable {
         ArrayList<Short> vertices_ids_v = new ArrayList<>(num_vertices_ids);
         ArrayList<Float> vertices_v = new ArrayList<Float>(num_vertices);
 
-        Function df = new Function(f.df());
 
         /*
         * We want to sample num_samples of that function. To get a line with a line_thickness
@@ -79,7 +78,7 @@ public class DrawableFunction extends Drawable {
         double eq_step = (max_x-min_x) / (num_samples-1);
         short vertex_id = 0;
         for(int i = 0; i < num_samples; i++){
-            double grad = df.f(x);
+            double grad = f.df(x);
             double y = f.f(x);
             double g = -1./grad;
             double dx = d/Math.sqrt(g*g + 1.);

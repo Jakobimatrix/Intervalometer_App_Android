@@ -39,22 +39,22 @@ public class QuadraticFunction extends Function {
     public void setFunctionGivenExtrema(Pos3d extrema, Pos3d p){
         /*
         e := extrema
-        y_p = ax_p^2 + bx_p + c     (I)
-        y_e = ax_e^2 + bx_e + c     (II)
-        0 = 2ax_e + b               (III)
+        y_p = a*x_p^2 + b*x_p + c     (I)
+        y_e = a*x_e^2 + b*x_e + c     (II)
+        0 = 2*a*x_e + b               (III)
         (I - II)
-        y_p - y_e = a(x_p^2 - x_e^2) + b(x_p - x_e)             (IV)
+        y_p - y_e = a*(x_p^2 - x_e^2) + b*(x_p - x_e)             (IV)
         (III ->)
-        b = -2ax_e                  (V)
+        b = -2*a*x_e                  (V)
         (V -> IV)
-        y_p - y_e = a(x_p^2 - x_e^2) -2ax_e(x_p - x_e)
-        y_p - y_e = a[(x_p^2 - x_e^2) -2x_e(x_p - x_e)]         (VI)
+        y_p - y_e = a*(x_p^2 - x_e^2) -2*a*x_e(x_p - x_e)
+        y_p - y_e = a*[(x_p^2 - x_e^2) -2*x_e*(x_p - x_e)]         (VI)
         (VI ->)
-        a = (y_p - y_e) / [(x_p^2 - x_e^2) -2x_e(x_p - x_e)]    (VII)
+        a = (y_p - y_e) / [(x_p^2 - x_e^2) -2*x_e*(x_p - x_e)]    (VII)
         (V)
-        b = -2ax_e
+        b = -2*a*x_e
         (I)
-        c = y_p - ax_p^2 + bx_p
+        c = y_p - a*x_p^2 - b*x_p
         */
 
         double y_p = p.y;
@@ -62,9 +62,9 @@ public class QuadraticFunction extends Function {
         double y_e = extrema.y;
         double x_e = extrema.x;
 
-        double a = (y_p - y_e) / ((x_p*x_p - x_e*x_e) -2*x_e*(x_p - x_e));
+        double a = (y_p - y_e) / ((x_p*x_p - x_e*x_e) - 2.0*x_e*(x_p - x_e));
         double b = -2*a*x_e;
-        double c = y_p - a*x_p*x_p + b*x_p;
+        double c = y_p - a*x_p*x_p - b*x_p;
 
         polynomial.clear();
         polynomial.add(c);

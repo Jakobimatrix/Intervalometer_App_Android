@@ -94,9 +94,9 @@ public class EditTemplateActivity extends Activity {
         coord_overview3 = new MovableCoordinateSystem(this, complete_left_down_open_gl3, width3, height3 );
 
         Pos3d  left = new Pos3d(0,0,0);
-        Pos3d  right = new Pos3d(4,10,0);
+        Pos3d  right = new Pos3d(2,2,0);
         Function f4 = new SigmoidFunction(left, right);
-        index = coord_overview3.addFunction(f4, -4.0, 4);
+        index = coord_overview3.addFunction(f4, left.x, right.x);
         coord_overview3.setFunctionLocked(false, index);
         renderer.addMovable(coord_overview3);
     }
