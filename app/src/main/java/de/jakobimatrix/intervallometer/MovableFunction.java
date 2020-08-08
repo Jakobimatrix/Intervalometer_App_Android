@@ -145,12 +145,13 @@ public class MovableFunction extends Movable {
                 if(top_dow_direction){
                     moveManipulatorYAndSetFunction(0, dpos_command_openGL.y);
                 }else {
+                    moveManipulatorXAndSetFunction(0, dpos_command_openGL.x);
                     scaleFunctionMinX(dpos_command_system.x);
                 }
                 break;
             case 1:
                 if(top_dow_direction){
-                    moveFunctionYOffset(dpos_command_openGL.y);
+                    moveFunctionYOffset(dpos_command_system.y);
                 }else{
                     moveFunctionXOffset(dpos_command_system.x);
                 }
@@ -159,6 +160,7 @@ public class MovableFunction extends Movable {
                 if(top_dow_direction){
                     moveManipulatorYAndSetFunction(2, dpos_command_openGL.y);
                 }else {
+                    moveManipulatorXAndSetFunction(2, dpos_command_openGL.x);
                     scaleFunctionMaxX(dpos_command_system.x);
                 }
                 break;

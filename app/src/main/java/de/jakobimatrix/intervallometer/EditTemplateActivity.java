@@ -71,7 +71,7 @@ public class EditTemplateActivity extends Activity {
         renderer.addMovable(coord_overview);
         coord_overview.stickToGrid(new Pos3d(1,1,0));
 
-        Pos3d complete_left_down_screen2 = new Pos3d(10, size.y-200, 0);
+        Pos3d complete_left_down_screen2 = new Pos3d(40, size.y-200, 0);
         Pos3d complete_top_right_screen2 = new Pos3d(size.x/2-10, size.y/2+10., 0);
         Pos3d complete_top_right_open_gl2 = renderer.screen2openGl(complete_top_right_screen2);
         Pos3d complete_left_down_open_gl2 = renderer.screen2openGl(complete_left_down_screen2);

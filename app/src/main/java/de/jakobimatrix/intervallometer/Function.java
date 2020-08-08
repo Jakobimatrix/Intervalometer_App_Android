@@ -104,7 +104,6 @@ public class Function {
         }
     }
 
-
     /*!
      * \brief toString
      * \return "f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ..."
@@ -224,4 +223,6 @@ public class Function {
     // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
     protected ArrayList<Double> polynomial = new ArrayList<>();
     protected Function df = null;
+
+    int GRAD;
 }
