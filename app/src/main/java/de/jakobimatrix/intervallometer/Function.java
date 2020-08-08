@@ -193,6 +193,7 @@ public class Function {
             case 2: // y = bx + c
                 //dy = b*dx
                 polynomial.set(0, polynomial.get(0) + polynomial.get(1)*dx);
+                break;
             case 3: // quadratic
                 // just make 3 points, shift them and calculate new quadratic
                 Pos3d p1 = new Pos3d(-100 + dx, f(-100),0);
@@ -223,6 +224,4 @@ public class Function {
     // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
     protected ArrayList<Double> polynomial = new ArrayList<>();
     protected Function df = null;
-
-    int GRAD;
 }
