@@ -15,15 +15,23 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
 public class EditTemplateActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         charToBitmapConverter.init(getBaseContext());
+
+        Display display = getWindowManager().getDefaultDisplay();
+        display.getSize(screen_size);
+
+        // landscape x <--> y
+        int temp = screen_size.x;
+        screen_size.x = screen_size.y;
+        screen_size.x = temp;
+
+        screen_viewport = new ViewPort(new Pos3d(0,screen_size.y,0), new Pos3d(screen_size.x,0,0));
 
         setContentView(R.layout.activity_edit_template);
 
@@ -38,67 +46,59 @@ public class EditTemplateActivity extends Activity {
      * Sett find all Gui elements by id and connect them to the corresponding variable.
      */
     private void connectWithGUI(){
-        Display screen_size = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        screen_size.getSize(size);
-
         gl_view = (GLSurfaceView)findViewById(R.id.openGlView);
         gl_view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        renderer = new OpenGLRenderer(this, size.x, size.y);
+        renderer = new OpenGLRenderer(this, screen_size.x, screen_size.y);
         gl_view.setRenderer(renderer);
 
         button_save = (Button) findViewById(R.id.button_save);
 
         // DEBUG
-        seeker_y = (TextView) findViewById(R.id.seeker_y);
-        seeker_x = (TextView) findViewById(R.id.seeker_x);
+        if(DEBUG_TOUCH) {
+            seeker_y = (TextView) findViewById(R.id.seeker_y);
+            seeker_x = (TextView) findViewById(R.id.seeker_x);
 
-        double width_100p_in_px = size.x;
-        double height_100p_in_px = size.y;
-        double margin_px = 40;
+            debug_seeker = new MovableDot(getBaseContext(),
+                    new Pos3d(0, 0, 0), 0.1f);
+            renderer.addMovable(debug_seeker);
+        }
+    }
 
-        Pos3d complete_left_down_screen = new Pos3d(margin_px, size.y/2f-2*margin_px, 0);
-        Pos3d complete_top_right_screen = new Pos3d(size.x - 2*margin_px, margin_px, 0);
-        Pos3d complete_top_right_open_gl = renderer.screen2openGl(complete_top_right_screen);
-        Pos3d complete_left_down_open_gl = renderer.screen2openGl(complete_left_down_screen);
-        float width = (float) (complete_top_right_open_gl.x - complete_left_down_open_gl.x);
-        float height = (float) (complete_top_right_open_gl.y - complete_left_down_open_gl.y);
-        coord_overview = new MovableCoordinateSystem(this, complete_left_down_open_gl, width, height );
+    private void setUpCoordSystem(){
+        // TODO To show the x,y ticks
+        // TODO THIS SHOULD BE DONE BY MovableCoordinateSystem
+        double MARGIN_BOT = 75;
+        double MARGIN_LEFT = 75;
+        double MARGIN_TOP = 75;
 
-        Function f = new ConstantFunction(2);
-        int index = coord_overview.addFunction(f, 0., 4.);
+        // for the symbols
+        float MARGIN_RIGHT = getResources().getDimension(R.dimen.min_clickable_button_size);
+
+        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_BOT, screen_size.y - MARGIN_LEFT, 0);
+        Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0 + MARGIN_TOP, 0);
+        ViewPort coord_screen = new ViewPort(bot_left_screen, top_right_screen);
+        ViewPort coord_sys_view_gl = renderer.screen2openGL(coord_screen);
+        coord_overview = new MovableCoordinateSystem(this, coord_sys_view_gl.min, (float) coord_sys_view_gl.widthAbs(), (float) coord_sys_view_gl.heightAbs());
+
+
+        Function f1 = new ConstantFunction(2);
+        int index = coord_overview.addFunction(f1, 0., 4.);
         coord_overview.setFunctionLocked(false, index);
-        renderer.addMovable(coord_overview);
-        coord_overview.stickToGrid(new Pos3d(1,1,0));
 
-        Pos3d complete_left_down_screen2 = new Pos3d(40, size.y-200, 0);
-        Pos3d complete_top_right_screen2 = new Pos3d(size.x/2-10, size.y/2+10., 0);
-        Pos3d complete_top_right_open_gl2 = renderer.screen2openGl(complete_top_right_screen2);
-        Pos3d complete_left_down_open_gl2 = renderer.screen2openGl(complete_left_down_screen2);
-        float width2 = (float) (complete_top_right_open_gl2.x - complete_left_down_open_gl2.x);
-        float height2 = (float) (complete_top_right_open_gl2.y - complete_left_down_open_gl2.y);
-        coord_overview2 = new MovableCoordinateSystem(this, complete_left_down_open_gl2, width2, height2 );
+        Function f2 = new LinearFunction(-2, 1);
+        index = coord_overview.addFunction(f2, 4., 8.);
+        coord_overview.setFunctionLocked(false, index);
 
-        Function f2 = new LinearFunction(3, 2);
-
-        index = coord_overview2.addFunction(f2, 0.0, 4);
-        coord_overview2.setFunctionLocked(false, index);
-        renderer.addMovable(coord_overview2);
-
-        Pos3d complete_left_down_screen3 = new Pos3d(size.x/2 + 10, size.y-200, 0);
-        Pos3d complete_top_right_screen3 = new Pos3d(size.x-10, size.y/2+10., 0);
-        Pos3d complete_top_right_open_gl3 = renderer.screen2openGl(complete_top_right_screen3);
-        Pos3d complete_left_down_open_gl3 = renderer.screen2openGl(complete_left_down_screen3);
-        float width3 = (float) (complete_top_right_open_gl3.x - complete_left_down_open_gl3.x);
-        float height3 = (float) (complete_top_right_open_gl3.y - complete_left_down_open_gl3.y);
-        coord_overview3 = new MovableCoordinateSystem(this, complete_left_down_open_gl3, width3, height3 );
+        Function f3 = new ConstantFunction(6);
+        index = coord_overview.addFunction(f3, 8., 12.);
+        coord_overview.setFunctionLocked(false, index);
 
         Pos3d  left = new Pos3d(0,0,0);
         Pos3d  right = new Pos3d(2,2,0);
         Function f4 = new SigmoidFunction(left, right);
-        index = coord_overview3.addFunction(f4, left.x, right.x);
-        coord_overview3.setFunctionLocked(false, index);
-        renderer.addMovable(coord_overview3);
+
+        coord_overview.stickToGrid(new Pos3d(1,1,0));
+        renderer.addMovable(coord_overview);
     }
 
     /*!
@@ -160,6 +160,8 @@ public class EditTemplateActivity extends Activity {
 
             seeker_x.setLayoutParams(params_x);
             seeker_y.setLayoutParams(params_y);
+
+            debug_seeker.setPosition(renderer.screen2openGl(new Pos3d(x, y, 0)));
         }
 
         return renderer.onTouchEvent(event);
@@ -218,6 +220,9 @@ public class EditTemplateActivity extends Activity {
         }else{
             is_new_template = false;
         }
+
+
+        setUpCoordSystem();
     }
     // UI stuff
     private GLSurfaceView gl_view;
@@ -227,13 +232,15 @@ public class EditTemplateActivity extends Activity {
     boolean is_new_template;
 
     MovableCoordinateSystem coord_overview;
-    MovableCoordinateSystem coord_overview2;
-    MovableCoordinateSystem coord_overview3;
 
     AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
+
+    ViewPort screen_viewport = null;
+    Point screen_size = new Point();;
 
     // DEBUG
     private TextView seeker_y;
     private TextView seeker_x;
     final boolean DEBUG_TOUCH = false;
+    MovableDot debug_seeker;
 }

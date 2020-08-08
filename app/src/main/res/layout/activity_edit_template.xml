@@ -28,11 +28,11 @@
         android:text="" />
 
     <LinearLayout
-        android:layout_below="@id/openGlView"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="@dimen/min_neg_clickable_button_size">
+        android:layout_toRightOf="@id/openGlView"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:layout_marginLeft="@dimen/min_neg_clickable_button_size">
 
         <Space style="@style/spacerBottomButtons"/>
         <Button

@@ -246,5 +246,5 @@ public class DrawableFunction extends Drawable {
     DrawableCircle end;
 
     final static int DEFAULT_NUM_SAMPLES = 30;
-    final static float DEFAULT_LINE_THICKNESS = 0.045f;
+    final static float DEFAULT_LINE_THICKNESS = 0.05f;
 }

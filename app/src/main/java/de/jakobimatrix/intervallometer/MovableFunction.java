@@ -145,8 +145,9 @@ public class MovableFunction extends Movable {
                 if(top_dow_direction){
                     moveManipulatorYAndSetFunction(0, dpos_command_openGL.y);
                 }else {
-                    moveManipulatorXAndSetFunction(0, dpos_command_openGL.x);
-                    scaleFunctionMinX(dpos_command_system.x);
+                    if(scaleFunctionMinX(dpos_command_system.x)) {
+                        moveManipulatorXAndSetFunction(0, dpos_command_openGL.x);
+                    }
                 }
                 break;
             case 1:
@@ -160,8 +161,9 @@ public class MovableFunction extends Movable {
                 if(top_dow_direction){
                     moveManipulatorYAndSetFunction(2, dpos_command_openGL.y);
                 }else {
-                    moveManipulatorXAndSetFunction(2, dpos_command_openGL.x);
-                    scaleFunctionMaxX(dpos_command_system.x);
+                    if(scaleFunctionMaxX(dpos_command_system.x)){
+                        moveManipulatorXAndSetFunction(2, dpos_command_openGL.x);
+                    }
                 }
                 break;
         }
@@ -233,14 +235,14 @@ public class MovableFunction extends Movable {
         return false;
     }
 
-    private void scaleFunctionMinX(double dx){
+    private boolean scaleFunctionMinX(double dx){
         if(!lock_chain) {
             DrawableFunction df = getDrawableFunction();
             // make sure the function does not get a length of zero
             double new_min = df.min_x + dx;
             if (dx > 0) {
                 if (Math.abs(new_min - df.max_x) < Utility.EPSILON_D) {
-                    return;
+                    return false;
                 }
             }
             df.setMin(new_min);
@@ -252,16 +254,17 @@ public class MovableFunction extends Movable {
             }
             lock_chain = false;
         }
+        return true;
     }
 
-    private void scaleFunctionMaxX(double dx){
+    private boolean scaleFunctionMaxX(double dx){
         if(!lock_chain) {
             DrawableFunction df = getDrawableFunction();
             // make sure the function does not get a length of zero
             double new_max = df.max_x + dx;
             if (dx < 0) {
                 if (Math.abs(new_max - df.min_x) < Utility.EPSILON_D) {
-                    return;
+                    return false;
                 }
             }
             df.setMax(new_max);
@@ -273,6 +276,7 @@ public class MovableFunction extends Movable {
             }
             lock_chain = false;
         }
+        return true;
     }
 
     private void setFunctionGivenManipulators(){
@@ -327,7 +331,7 @@ public class MovableFunction extends Movable {
      * \param left The function on the left
      * \param right The function on the right
      */
-    static void registerCoupledFunctionPair(MovableFunction left, MovableFunction right){
+    public static void registerCoupledFunctionPair(MovableFunction left, MovableFunction right){
         left.registerCoupledFunctionRight(right);
         right.registerCoupledFunctionRight(left);
     }

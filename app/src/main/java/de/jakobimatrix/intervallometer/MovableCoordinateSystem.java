@@ -455,6 +455,8 @@ public class MovableCoordinateSystem extends Movable {
         mf.stickToGrid(grid);
         functions.add(mf);
 
+        synchronizeFunctions();
+
         scale();
         rescaleAllFunctions();
         return functions.size()-1;
@@ -467,6 +469,8 @@ public class MovableCoordinateSystem extends Movable {
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
         mf.setLocked(true);
         functions.set(index, mf);
+
+        synchronizeFunctions();
 
         scale();
         rescaleAllFunctions();
@@ -532,6 +536,12 @@ public class MovableCoordinateSystem extends Movable {
         return false;
     }
 
+    public void synchronizeFunctions(){
+        for(int i = 0; i < functions.size() - 1; i++){
+            MovableFunction.registerCoupledFunctionPair(functions.get(i), functions.get(i+1));
+        }
+    }
+
     final static int INVALID_FUNCTION = -1;
     int active_function = INVALID_FUNCTION;
     Vector<MovableFunction> functions = new Vector<>();
@@ -562,7 +572,7 @@ public class MovableCoordinateSystem extends Movable {
     ArrayList <DrawableString> y_ticks = new ArrayList<>(NUM_TICK_LABELS);
     final static int MAX_NUM_TICK_CHARS = 6;
 
-    final static float FONT_SIZE = 0.15f;
+    final static float FONT_SIZE = 0.4f;
     final static int FONT_SIZE_PIX = 75;
 
     Pos3d [] static_grid_offset_openGL = new Pos3d[2];
@@ -572,7 +582,7 @@ public class MovableCoordinateSystem extends Movable {
     final static int NUM_TICK_LABELS = 15;
     final static float AXIS_WIDTH = 0.2f;
     final static float GRID_WIDTH = 0.01f;
-    final static float GRID_WIDTH_TICK = 0.025f;
+    final static float GRID_WIDTH_TICK = 0.03f;
 
     final static float MIN_WIDTH = 1.f;
     final static float MIN_HEIGHT= 10.f;

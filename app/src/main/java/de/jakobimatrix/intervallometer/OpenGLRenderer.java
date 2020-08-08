@@ -256,15 +256,22 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     public Pos3d screen2openGl(Pos3d screen_coordinate){
         Pos3d openGL_coordinate = new Pos3d(screen_coordinate);
         final float scaling = Math.min(screen_width_px, screen_height_px);
-        final float MAGIC_NUMBER = 1.125f;
+        //final float MAGIC_NUMBER = 1.125f;
         // TODO this magic number works only on screens 1080*1920
-        // TODO E.g. the number must be 2 for screens of 1920*1080
+        final float MAGIC_NUMBER = 2f;
+        // TODO this magic number works only on screens 1920*1080
         // I have no idea where I fucked up and I also don't care anymore.
         // I mean this: https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glFrustum.xml
         final float factor = (zoom*MAGIC_NUMBER) / (scaling);
         openGL_coordinate.x = -(screen_coordinate.x - screen_width_px/2.f) * factor;
         openGL_coordinate.y = (screen_coordinate.y - screen_height_px/2.f) * factor;
         return openGL_coordinate;
+    }
+
+    public ViewPort screen2openGL(ViewPort screen){
+        Pos3d min = screen2openGl(screen.min);
+        Pos3d max = screen2openGl(screen.max);
+        return new ViewPort(min, max);
     }
 
     public interface CallBackOnFingerRelease{

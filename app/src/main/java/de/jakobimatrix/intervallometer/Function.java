@@ -220,7 +220,6 @@ public class Function {
         return num_pics;
     }
 
-
     // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
     protected ArrayList<Double> polynomial = new ArrayList<>();
     protected Function df = null;

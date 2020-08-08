@@ -7,6 +7,11 @@ public class ViewPort {
         this.min = min;
     }
 
+    public ViewPort(ViewPort screen) {
+        this.max = screen.max;
+        this.min = screen.min;
+    }
+
     public boolean isWithin(ViewPort v){
         if(v.min.x < min.x || v.min.y < min.y || v.max.x > max.x || v.max.y > max.y){
             return false;
@@ -25,8 +30,16 @@ public class ViewPort {
         return max.x - min.x;
     }
 
+    public double widthAbs(){
+        return Math.abs(max.x - min.x);
+    }
+
     public double height(){
         return max.y - min.y;
+    }
+
+    public double heightAbs(){
+        return Math.abs(max.y - min.y);
     }
 
     public Pos3d diag(){
