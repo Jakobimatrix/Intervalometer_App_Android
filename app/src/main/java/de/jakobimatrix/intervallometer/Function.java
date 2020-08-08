@@ -37,7 +37,7 @@ public class Function {
      */
     public double df(double x){
         if(df == null){
-            ArrayList<Double> df_poly = new ArrayList<Double>(polynomial.size()-1);
+            ArrayList<Double> df_poly = new ArrayList<Double>();
             for(int i = 1; i < polynomial.size(); i++){
                 df_poly.add(polynomial.get(i)*i);
             }

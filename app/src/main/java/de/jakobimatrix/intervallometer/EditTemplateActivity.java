@@ -80,9 +80,10 @@ public class EditTemplateActivity extends Activity {
         ViewPort coord_sys_view_gl = renderer.screen2openGL(coord_screen);
         coord_overview = new MovableCoordinateSystem(this, coord_sys_view_gl.min, (float) coord_sys_view_gl.widthAbs(), (float) coord_sys_view_gl.heightAbs());
 
+        int index;
 
         Function f1 = new ConstantFunction(2);
-        int index = coord_overview.addFunction(f1, 0., 4.);
+        index = coord_overview.addFunction(f1, 0., 4.);
         coord_overview.setFunctionLocked(false, index);
 
         Function f2 = new LinearFunction(-2, 1);
@@ -93,9 +94,16 @@ public class EditTemplateActivity extends Activity {
         index = coord_overview.addFunction(f3, 8., 12.);
         coord_overview.setFunctionLocked(false, index);
 
-        Pos3d  left = new Pos3d(0,0,0);
-        Pos3d  right = new Pos3d(2,2,0);
+
+        Pos3d  left = new Pos3d(12,6,0);
+        Pos3d  right = new Pos3d(16,0,0);
         Function f4 = new SigmoidFunction(left, right);
+        index = coord_overview.addFunction(f4, left.x, right.x);
+        coord_overview.setFunctionLocked(false, index);
+
+        Function f5 = new LinearFunction(-right.x, 1);
+        index = coord_overview.addFunction(f5, right.x, right.x+4);
+        coord_overview.setFunctionLocked(false, index);
 
         coord_overview.stickToGrid(new Pos3d(1,1,0));
         renderer.addMovable(coord_overview);

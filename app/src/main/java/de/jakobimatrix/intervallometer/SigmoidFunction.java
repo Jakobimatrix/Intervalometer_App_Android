@@ -25,10 +25,15 @@ public class SigmoidFunction extends LinearFunction{
         constructSigmoid(left, right);
     }
 
-    public void constructSigmoid(Pos3d left, Pos3d right){
+    public void constructSigmoid(Pos3d left_, Pos3d right_){
+        if(left_.x == right_.x){
+            throw new IllegalArgumentException( "SigmoidFunction::constructSigmoid: Both points (left and right) have the same x value." );
+        }
+        Pos3d left = new Pos3d(left_);
+        Pos3d right = new Pos3d(right_);
         if(left.x > right.x){
             Pos3d temp = new Pos3d(left);
-            left = new Pos3d(right);;
+            left = new Pos3d(right);
             right = temp;
         }
         polynomial.add(left.y);
@@ -43,6 +48,9 @@ public class SigmoidFunction extends LinearFunction{
         center.add(left);
         left_parabola.setFunctionGivenExtrema(left, center);
         right_parabola.setFunctionGivenExtrema(right, center);
+
+        left_parabola.df = null;
+        right_parabola.df = null;
     }
 
     double getMid(){
