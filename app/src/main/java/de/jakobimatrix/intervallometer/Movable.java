@@ -56,6 +56,12 @@ public abstract class Movable {
         parent.move(dp);
     }
 
+    /*!
+     * \brief executeCommand is like the move command but requires a discrete direction
+     * cmd the direction command
+     */
+    public abstract void executeCommand(CMD cmd);
+
     /*
     * \brief Callback class - function java shit.
     * //https://stackoverflow.com/questions/18279302/how-do-i-perform-a-java-callback-between-classes

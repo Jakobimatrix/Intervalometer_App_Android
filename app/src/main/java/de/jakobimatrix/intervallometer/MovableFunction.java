@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
+enum CMD{UP,DOWN,LEFT, RIGHT, NULL};
+
 public class MovableFunction extends Movable {
     public MovableFunction(Context context, Pos3d position,Function f,double min, double max, Homography2d system_2_open_gl) {
         super(new DrawableFunction(context, position, f, min, max, system_2_open_gl));
@@ -18,82 +20,40 @@ public class MovableFunction extends Movable {
 
     @Override
     public boolean isWithin(Pos3d position_) {
-        boolean is_within = checkLastPosHolds(position_);
-        if(!is_within) {
-            active_manipulator = INVALID_MANIPULATOR_ID;
-            for (int i = 0; i < NUM_MANIPULATORS; i++) {
-                if (manipulator[i].isHold(position_)) {
-                    active_manipulator = i;
-                    is_within = true;
-                    break;
-                }
-            }
-        }
-        setAndHoldInputCommand(position_);
-        return is_within;
-    }
-
-    private boolean checkLastPosHolds(final Pos3d p) {
-        p.z = 0;
-        // Basically if the user did not move his finger from the old position
-        // than we use the first input he gave as long as he touches that position.
-
-        if(isValidManipulatorId(active_manipulator)){
-            double distance = p.distance(pos_command_openGL);
-            if(distance < manipulator_radius/4.){
+        for (int i = 0; i < NUM_MANIPULATORS; i++) {
+            if (manipulator[i].isWithin(position_)) {
+                active_manipulator = i;
+                manipulator[i].setLocked(false);
                 return true;
             }
         }
-        // In case we did not get the signal for some raising conditions.
-        // ... I'd rather cheat here a little than finding the real problem.
-        endTouch();
+        if(isValidManipulatorId(active_manipulator)){
+            manipulator[active_manipulator].setLocked(true);
+        }
+        active_manipulator = INVALID_MANIPULATOR_ID;
         return false;
     }
 
-    private void setAndHoldInputCommand(Pos3d input_open_gl){
-        // basically calculate the command from the first touch and hold that command until touch is over
-        if(last_active_manipulator == active_manipulator){
-            setInputCommand(input_open_gl);
-            return;
-        }
-        last_active_manipulator = active_manipulator;
-
-        for(int i = 0; i < NUM_MANIPULATORS; i++){
-            manipulator[i].setLocked(i!=last_active_manipulator);
-        }
-
-        if(active_manipulator == INVALID_MANIPULATOR_ID){
-            endTouch();
-            return;
-        }
-        setInputCommand(input_open_gl);
-    }
-
-    public void setInputCommand(Pos3d input_open_gl){
-        if(active_manipulator == INVALID_MANIPULATOR_ID){
-            return;
-        }
-        active_quadrant = manipulator[active_manipulator].getQuadrant(input_open_gl);
-
-        double dx = step_width.x;
-        double dy = step_width.y;
-        switch (active_quadrant){
-            case BOT:
-                dpos_command_system = new Pos3d(0, -dy, 0);
-                break;
-            case TOP:
-                dpos_command_system = new Pos3d(0, dy, 0);
+    public void setCommand(CMD cmd){
+        double dx = 0;
+        double dy = 0;
+        switch (cmd){
+            case RIGHT:
+                dx = step_width.x;
                 break;
             case LEFT:
-                dpos_command_system = new Pos3d(-dx, 0, 0);
+                dx = -step_width.x;
                 break;
-            case RIGHT:
-                dpos_command_system = new Pos3d(dx, 0, 0);
+            case UP:
+                dy = step_width.y;
+                break;
+            case DOWN:
+                dy = -step_width.y;
+                break;
+            case NULL:
                 break;
         }
-
-        pos_command_openGL = input_open_gl;
-        pos_command_openGL.z = 0;
+        dpos_command_system = new Pos3d(dx, dy, 0);
 
         Pos3d p1_sys = Pos3d.Zero();
         Pos3d p2_sys = new Pos3d(dpos_command_system);
@@ -114,11 +74,12 @@ public class MovableFunction extends Movable {
 
     @Override
     public void move(Pos3d dp){
-        if(active_manipulator > -1){
-            Pos3d p = new Pos3d(dp);
-            p.add(manipulator[active_manipulator].getPosition());
-            this.setPosition(dp);
-        }
+        throw new IllegalArgumentException( "MovableFunction::move: please use setCommand and executeCurrentCommand" );
+    }
+
+    @Override
+    public void executeCommand(CMD cmd) {
+        throw new IllegalArgumentException( "MovableFunction::executeCommand: not implemented" );
     }
 
     @Override
@@ -126,20 +87,21 @@ public class MovableFunction extends Movable {
         last_active_manipulator = INVALID_MANIPULATOR_ID;
         active_manipulator = INVALID_MANIPULATOR_ID;
         dpos_command_system = Pos3d.Zero();
-        pos_command_openGL = Pos3d.Zero();
-        active_quadrant = null;
         for(int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].endTouch();
-            manipulator[i].setLocked(false);
+            manipulator[i].setLocked(true);
         }
     }
 
     @Override
     public void setPosition(Pos3d p){
+        throw new IllegalArgumentException( "MovableFunction::move: please use setCommand and executeCurrentCommand" );
+    }
+
+    public void executeCurrentCommand(){
         if(!isValidManipulatorId(active_manipulator)){
             return;
         }
-
         if(active_manipulator == MID_MANIPULATOR_ID){
             moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dpos_command_openGL);
             moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dpos_command_openGL);
@@ -147,8 +109,6 @@ public class MovableFunction extends Movable {
             moveManipulatorAndSetFunction(active_manipulator, dpos_command_openGL);
         }
     }
-
-
 
     private void moveManipulatorAndSetFunction(int manipulator_id, Pos3d dp){
         if(!lock_chain && isValidManipulatorId(manipulator_id)) {
@@ -454,8 +414,6 @@ public class MovableFunction extends Movable {
 
     Pos3d dpos_command_system = Pos3d.Zero();
     Pos3d dpos_command_openGL = Pos3d.Zero();
-    Pos3d pos_command_openGL = Pos3d.Zero();
-    MovableDot.QUADRANT active_quadrant;
 
     float manipulator_radius = DEFAULT_MANIPULATOR_RADIUS;
     final static float DEFAULT_MANIPULATOR_RADIUS = 0.4f;

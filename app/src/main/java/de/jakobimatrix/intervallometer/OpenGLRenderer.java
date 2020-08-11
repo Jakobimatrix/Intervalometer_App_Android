@@ -131,13 +131,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
-                action_hold_down = false;
-                try {
-                    touch_action_thread.join();
-                    touch_action_thread = null;
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
+                stopTouchActionThread();
                 return true;
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
@@ -148,12 +142,40 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
             touch_action_thread = new Thread() {
                 @Override
                 public void run() {
-                    touchAction();
+                    touchAction(CMD.NULL,-1);
                 }
             };
             touch_action_thread.start();
         }
         return true;
+    }
+
+    private void stopTouchActionThread(){
+        action_hold_down = false;
+        if(touch_action_thread != null) {
+            try {
+                touch_action_thread.join();
+                touch_action_thread = null;
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    /*!
+     * \brief startTouchActionThread direct with a command rather than with the touch position.
+     * The tread will be stopped at release (see onTouchEvent)
+     */
+    public void startTouchActionThread(final CMD cmd, final int hint){
+        stopTouchActionThread();
+        action_hold_down = true;
+        touch_action_thread = new Thread() {
+            @Override
+            public void run() {
+                touchAction(cmd, hint);
+            }
+        };
+        touch_action_thread.start();
     }
 
     /*!
@@ -162,42 +184,47 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      * as long as action_hold_down == true.
      * It will run loop every HOLD_DELAY_MS ms if possible.
      */
-    private void touchAction(){
+    private void touchAction(final CMD cmd, final int hint){
         long start = System.currentTimeMillis();
-        if (movables.containsKey(movable_guess)) {
-            Movable mv = movables.get(movable_guess);
-            if (mv.isHold(last_pos_openGL)) {
-                mv.setPosition(last_pos_openGL);
-            } else {
-                movable_guess = INVALID_KEY;
-            }
-        }
-        if (movable_guess == INVALID_KEY) {
-            for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
-                Movable mv = entry.getValue();
+        if(cmd != CMD.NULL && movables.containsKey(hint)){
+            Movable mv = movables.get(hint);
+            mv.executeCommand(cmd);
+        }else {
+            // use position
+            if (movables.containsKey(movable_guess)) {
+                Movable mv = movables.get(movable_guess);
                 if (mv.isHold(last_pos_openGL)) {
                     mv.setPosition(last_pos_openGL);
-                    // there can only be one movable to be hold at a time;
-                    // set a guess for the next time
-                    movable_guess = entry.getKey();
-                    movable_release_callback = mv.on_finger_release_callback;
-                    break;
+                } else {
+                    movable_guess = INVALID_KEY;
+                }
+            }
+            if (movable_guess == INVALID_KEY) {
+                for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
+                    Movable mv = entry.getValue();
+                    if (mv.isHold(last_pos_openGL)) {
+                        mv.setPosition(last_pos_openGL);
+                        // there can only be one movable to be hold at a time;
+                        // set a guess for the next time
+                        movable_guess = entry.getKey();
+                        movable_release_callback = mv.on_finger_release_callback;
+                        break;
+                    }
                 }
             }
         }
-
         long stop = System.currentTimeMillis();
-        long delay = HOLD_DELAY_MS - (start - stop);
+        long delay = Globals.HOLD_DELAY_MS - (start - stop);
         if(delay < 0){
             Log.w("OpenGLRend::touchAction", "ist taking unexpectedly long: " + (start - stop) + "ms");
-            delay = HOLD_DELAY_MS;
+            delay = Globals.HOLD_DELAY_MS;
         }
         if(action_hold_down){
             new java.util.Timer().schedule(
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
-                        touchAction();
+                        touchAction(cmd, hint);
                     }
                 },
                 delay
@@ -268,6 +295,10 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return openGL_coordinate;
     }
 
+    public double screen2OpenGl(int pix){
+        return screen2openGl(new Pos3d(pix, 0, 0)).x;
+    }
+
     public ViewPort screen2openGL(ViewPort screen){
         Pos3d min = screen2openGl(screen.min);
         Pos3d max = screen2openGl(screen.max);
@@ -302,6 +333,4 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     boolean action_hold_down = false;
     Thread touch_action_thread = null;
-
-    final static long HOLD_DELAY_MS = 100;
 }

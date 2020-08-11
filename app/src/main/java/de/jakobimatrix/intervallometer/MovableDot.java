@@ -23,6 +23,11 @@ public class MovableDot extends Movable{
     }
 
     @Override
+    public void executeCommand(CMD cmd) {
+        throw new IllegalArgumentException( "MovableDot::executeCommand: not implemented" );
+    }
+
+    @Override
     public void endTouch() {
 
     }

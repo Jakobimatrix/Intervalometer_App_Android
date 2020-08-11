@@ -87,6 +87,7 @@ public class MovableCoordinateSystem extends Movable {
         if(true || parent.isWithin(position_)) {
             for (int i = 0; i < functions.size(); i++) {
                 if (functions.get(i).isWithin(position_)) {
+                    // toggle
                     active_function = i;
                     return true;
                 }
@@ -101,30 +102,36 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public void setPosition(Pos3d position_){
-        if(isValidFunctionId(active_function) && sensitivity()){
-            functions.get(active_function).setPosition(position_);
-            scale(); // TODO we could check if scaling in necessary
-        }
+        //throw new IllegalArgumentException( "MovableCoordinateSystem::setPosition: please use executeCommand" );
     }
 
     @Override
     public void move(Pos3d dp){
-        if(isValidFunctionId(active_function) && sensitivity()){
-            functions.get(active_function).move(dp);
-            scale(); // TODO we could check if scaling in necessary
-        }
+        //throw new IllegalArgumentException( "MovableCoordinateSystem::move: please use executeCommand" );
+    }
+
+    @Override
+    public void endTouch() {
+        // obsolete concept
     }
 
     /*!
      * \brief endTouch must be called abd will pass that call to the active function to
      * signal that the user stopped touching the screen.
      */
-    @Override
-    public void endTouch() {
+    public void manuelEndTouch() {
         for(MovableFunction df: functions){
             df.endTouch();
         }
         hold_start = FIRST_CONTACT;
+    }
+
+    public void executeCommand(CMD cmd){
+        if(isValidFunctionId(active_function) && sensitivity()){
+            functions.get(active_function).setCommand(cmd);
+            functions.get(active_function).executeCurrentCommand();
+            scale(); // TODO we could check if scaling in necessary
+        }
     }
 
     /*!

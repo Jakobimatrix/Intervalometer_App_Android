@@ -2,6 +2,7 @@ package de.jakobimatrix.intervallometer;
 
 import androidx.appcompat.app.AlertDialog;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
@@ -11,7 +12,9 @@ import android.os.Bundle;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -25,13 +28,6 @@ public class EditTemplateActivity extends Activity {
 
         Display display = getWindowManager().getDefaultDisplay();
         display.getSize(screen_size);
-
-        // landscape x <--> y
-        int temp = screen_size.x;
-        screen_size.x = screen_size.y;
-        screen_size.x = temp;
-
-        screen_viewport = new ViewPort(new Pos3d(0,screen_size.y,0), new Pos3d(screen_size.x,0,0));
 
         setContentView(R.layout.activity_edit_template);
 
@@ -51,7 +47,26 @@ public class EditTemplateActivity extends Activity {
         renderer = new OpenGLRenderer(this, screen_size.x, screen_size.y);
         gl_view.setRenderer(renderer);
 
-        button_save = (Button) findViewById(R.id.button_save);
+        buttons[SAVE_BTN] = (Button) findViewById(R.id.button_save);
+        buttons[MV_UP_BTN] = (Button) findViewById(R.id.move_up);
+        buttons[MV_LEFT_BTN] = (Button) findViewById(R.id.move_left);
+        buttons[MV_RIGHT_BTN] = (Button) findViewById(R.id.move_right);
+        buttons[MV_DOWN_BTN] = (Button) findViewById(R.id.move_down);
+        buttons[INFO_BTN] = (Button) findViewById(R.id.info);
+
+        // dynamically set width to have squared buttons
+        int button_width = getButtonWidth();
+        for(int i = 0; i < NUM_BUTTONS; i++){
+            ViewGroup.LayoutParams layout = buttons[i].getLayoutParams();
+            layout.height = button_width;
+            layout.width = button_width;
+            buttons[i].setLayoutParams(layout);
+        }
+        // reduce the gl layout width about the button size since the button layout is right of gl.
+        ViewGroup.LayoutParams params = gl_view.getLayoutParams();
+        params.width = screen_size.x - button_width;
+        gl_view.setLayoutParams(params);
+
 
         // DEBUG
         if(DEBUG_TOUCH) {
@@ -65,16 +80,18 @@ public class EditTemplateActivity extends Activity {
     }
 
     private void setUpCoordSystem(){
+
         // TODO To show the x,y ticks
         // TODO THIS SHOULD BE DONE BY MovableCoordinateSystem
-        double MARGIN_BOT = 75;
-        double MARGIN_LEFT = 75;
-        double MARGIN_TOP = 75;
+        double MARGIN_BOT = 10;
+        double MARGIN_LEFT = 100;
+        double MARGIN_TOP = 10;
 
         // for the symbols
-        float MARGIN_RIGHT = getResources().getDimension(R.dimen.min_clickable_button_size);
+        // TODO somehow that is not the correct margin
+        double MARGIN_RIGHT = getButtonWidth();
 
-        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_BOT, screen_size.y - MARGIN_LEFT, 0);
+        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_LEFT, screen_size.y - MARGIN_BOT, 0);
         Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0 + MARGIN_TOP, 0);
         ViewPort coord_screen = new ViewPort(bot_left_screen, top_right_screen);
         ViewPort coord_sys_view_gl = renderer.screen2openGL(coord_screen);
@@ -92,34 +109,99 @@ public class EditTemplateActivity extends Activity {
 
         Function f3 = new ConstantFunction(6);
         index = coord_overview.addFunction(f3, 8., 12.);
-        coord_overview.setFunctionLocked(false, index);
-
 
         Pos3d  left = new Pos3d(12,6,0);
         Pos3d  right = new Pos3d(16,0,0);
         Function f4 = new SigmoidFunction(left, right);
         index = coord_overview.addFunction(f4, left.x, right.x);
-        coord_overview.setFunctionLocked(false, index);
 
         Function f5 = new LinearFunction(-right.x, 1);
         index = coord_overview.addFunction(f5, right.x, right.x+4);
-        coord_overview.setFunctionLocked(false, index);
 
         coord_overview.stickToGrid(new Pos3d(1,1,0));
-        renderer.addMovable(coord_overview);
+        coord_view_id = renderer.addMovable(coord_overview);
+    }
+
+    /*!
+     * \brief getButtonWidth
+     * calculates the width of the left buttons such that thy are quadratic.
+     */
+    int getButtonWidth(){
+        return screen_size.y/NUM_BUTTONS;
     }
 
     /*!
      * \brief setGUIFunctions
      * set all OnTouch-, Onchange-, and Onwhatever events to private connected Gui elements.
      */
+    @SuppressLint("ClickableViewAccessibility")
     private void setGUIFunctions(){
-        button_save.setOnClickListener(new View.OnClickListener() {
+        buttons[SAVE_BTN].setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveAndExit();
             }
         });
+
+        buttons[MV_UP_BTN].setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    renderer.startTouchActionThread(CMD.UP, coord_view_id);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    coord_overview.manuelEndTouch();
+
+                }
+                return false;
+            }
+        });
+
+        buttons[MV_DOWN_BTN].setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    renderer.startTouchActionThread(CMD.DOWN, coord_view_id);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    coord_overview.manuelEndTouch();
+
+                }
+                return false;
+            }
+        });
+
+        buttons[MV_LEFT_BTN].setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    renderer.startTouchActionThread(CMD.LEFT, coord_view_id);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    coord_overview.manuelEndTouch();
+
+                }
+                return false;
+            }
+        });
+
+        buttons[MV_RIGHT_BTN].setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    renderer.startTouchActionThread(CMD.RIGHT, coord_view_id);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    coord_overview.manuelEndTouch();
+                }
+                return false;
+            }
+        });
+
+
+        buttons[INFO_BTN].setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO show how many photos, how long the video (depend on fps) and how long it takes to take all pictures.
+            }
+        });
+
         /*
         // example for on slider listeners
         slider.seekbar.setOnSeekBarChangeListener(
@@ -236,14 +318,22 @@ public class EditTemplateActivity extends Activity {
     private GLSurfaceView gl_view;
     private OpenGLRenderer renderer;
 
-    private Button button_save;
+    final static int NUM_BUTTONS = 6;
+    final static int SAVE_BTN = 0;
+    final static int MV_UP_BTN = 1;
+    final static int MV_LEFT_BTN = 2;
+    final static int MV_RIGHT_BTN = 3;
+    final static int MV_DOWN_BTN = 4;
+    final static int INFO_BTN = 5;
+    private Button[] buttons = new Button[NUM_BUTTONS];
+
     boolean is_new_template;
 
     MovableCoordinateSystem coord_overview;
+    int coord_view_id = -1;
 
     AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
 
-    ViewPort screen_viewport = null;
     Point screen_size = new Point();;
 
     // DEBUG

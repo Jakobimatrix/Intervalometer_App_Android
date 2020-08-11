@@ -10,7 +10,9 @@
         android:id="@+id/openGlView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true" />
+        android:layout_marginLeft="0px"
+        android:layout_centerHorizontal="false"
+        android:layout_marginStart="0px" />
 
     <TextView
         android:id="@+id/seeker_x"
@@ -28,33 +30,36 @@
         android:text="" />
 
     <LinearLayout
+        android:id="@+id/buttonLayout"
         android:layout_toRightOf="@id/openGlView"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:layout_marginLeft="@dimen/min_neg_clickable_button_size">
+        android:orientation="vertical">
 
-        <Space style="@style/spacerBottomButtons"/>
         <Button
-            style="@style/clickableButtonBot"
+            style="@style/clickableButton"
             android:id="@+id/button_save"
             android:background="@drawable/ic_outline_save_24"/>
-        <Space style="@style/spacerBottomButtons"/>
         <Button
-            style="@style/clickableButtonBot"
-            android:id="@+id/button_placeholder_1"
-            android:background="@color/transparent" />
-        <Space style="@style/spacerBottomButtons"/>
+            style="@style/clickableButton"
+            android:id="@+id/move_up"
+            android:background="@drawable/ic_baseline_arrow_drop_up_24" />
         <Button
-            style="@style/clickableButtonBot"
-            android:id="@+id/button_placeholder_2"
-            android:background="@color/transparent"/>
-        <Space style="@style/spacerBottomButtons"/>
+            style="@style/clickableButton"
+            android:id="@+id/move_left"
+            android:background="@drawable/ic_baseline_arrow_left_24"/>
         <Button
-            style="@style/clickableButtonBot"
-            android:id="@+id/button_placeholder_3"
-            android:background="@color/transparent"/>
-        <Space style="@style/spacerBottomButtons"/>
+            style="@style/clickableButton"
+            android:id="@+id/move_right"
+            android:background="@drawable/ic_baseline_arrow_right_24"/>
+        <Button
+            style="@style/clickableButton"
+            android:id="@+id/move_down"
+            android:background="@drawable/ic_baseline_arrow_drop_down_24"/>
+        <Button
+            style="@style/clickableButton"
+            android:id="@+id/info"
+            android:background="@drawable/ic_baseline_info_24"/>
     </LinearLayout>
 
 </RelativeLayout>
