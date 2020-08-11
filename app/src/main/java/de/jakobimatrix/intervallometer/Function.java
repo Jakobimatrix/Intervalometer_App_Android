@@ -192,7 +192,7 @@ public class Function {
                 return;
             case 2: // y = bx + c
                 //dy = b*dx
-                polynomial.set(0, polynomial.get(0) + polynomial.get(1)*dx);
+                polynomial.set(0, polynomial.get(0) - polynomial.get(1)*dx);
                 break;
             case 3: // quadratic
                 // just make 3 points, shift them and calculate new quadratic

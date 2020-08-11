@@ -178,8 +178,8 @@ public class DrawableFunction extends Drawable {
      */
     public void moveX(double dx){
         getFunction().moveOffsetX(dx);
-        max_x += dx;
-        min_x += dx;
+        //max_x += dx;
+        //min_x += dx;
         needs_rendering = true;
     }
 

@@ -25,9 +25,11 @@ public class MovableCoordinateSystem extends Movable {
 
         // Move everything such that the axis (arrows) are inside the bg (rectangle).
         // Otherwise the arrows would be half off the bg.
-        static_axis_offset[0] = new Pos3d(0, AXIS_WIDTH/2f, 0);
-        static_axis_offset[1] = new Pos3d(AXIS_WIDTH/2f, 0, 0);
-        static_axis_offset[2] = new Pos3d(AXIS_WIDTH/2f, AXIS_WIDTH/2f, 0);
+        // todo depends on size of Manipulator and Tick
+        double margin = 0.35;
+        static_axis_offset[0] = new Pos3d(0, margin, 0);
+        static_axis_offset[1] = new Pos3d(margin, 0, 0);
+        static_axis_offset[2] = new Pos3d(margin, margin, 0);
 
         setViewPortOpenGL();
 
@@ -46,8 +48,8 @@ public class MovableCoordinateSystem extends Movable {
         y_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ==
 
         for(int i = 0; i < NUM_GRID_STRIPES; i++){
-            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), width-AXIS_WIDTH, GRID_WIDTH));
-            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, height-AXIS_WIDTH));
+            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), (float) (width-2*margin), GRID_WIDTH));
+            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, (float) (height-2*margin)));
             y_grid.get(i).setLeftCenterOrigin();
             x_grid.get(i).setBotCenterOrigin();
             x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);

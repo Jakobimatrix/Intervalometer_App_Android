@@ -1,6 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
+import android.drm.DrmStore;
 
 import java.util.ArrayList;
 
@@ -10,7 +11,7 @@ public class MovableFunction extends Movable {
     public MovableFunction(Context context, Pos3d position,Function f,double min, double max, Homography2d system_2_open_gl) {
         super(new DrawableFunction(context, position, f, min, max, system_2_open_gl));
         for (int i = 0; i < NUM_MANIPULATORS; i++){
-            manipulator[i] = new MovableDot(context,position, manipulator_radius);
+            manipulator[i] = new Manipulator(context,position, manipulator_radius);
         }
         setManipulatorsBasedOnFunction();
     }
@@ -139,94 +140,32 @@ public class MovableFunction extends Movable {
             return;
         }
 
-        boolean top_dow_direction = active_quadrant == MovableDot.QUADRANT.BOT || active_quadrant == MovableDot.QUADRANT.TOP;
-        switch (active_manipulator){
-            case 0:
-                if(top_dow_direction){
-                    moveManipulatorYAndSetFunction(LEFT_MANIPULATOR_ID, dpos_command_openGL.y);
-                }else {
-                    if(scaleFunctionMinX(dpos_command_system.x)) {
-                        moveManipulatorXAndSetFunction(LEFT_MANIPULATOR_ID, dpos_command_openGL.x);
-                    }
-                }
-                break;
-            case 1:
-                if(top_dow_direction){
-                    moveFunctionYOffset(dpos_command_system.y);
-                }else{
-                    moveFunctionXOffset(dpos_command_system.x);
-                }
-                break;
-            case 2:
-                if(top_dow_direction){
-                    moveManipulatorYAndSetFunction(RIGHT_MANIPULATOR_ID, dpos_command_openGL.y);
-                }else {
-                    if(scaleFunctionMaxX(dpos_command_system.x)){
-                        moveManipulatorXAndSetFunction(RIGHT_MANIPULATOR_ID, dpos_command_openGL.x);
-                    }
-                }
-                break;
+        if(active_manipulator == MID_MANIPULATOR_ID){
+            moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dpos_command_openGL);
+            moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dpos_command_openGL);
+        }else{
+            moveManipulatorAndSetFunction(active_manipulator, dpos_command_openGL);
         }
     }
 
-    private void moveManipulatorYAndSetFunction(int manipulator_id, double dy){
-        moveManipulatorAndSetFunction(manipulator_id, new Pos3d(0,dy,0));
-    }
 
-    private void moveManipulatorXAndSetFunction(int manipulator_id, double dx){
-        moveManipulatorAndSetFunction(manipulator_id, new Pos3d(dx,0,0));
-    }
 
     private void moveManipulatorAndSetFunction(int manipulator_id, Pos3d dp){
-        if(!lock_chain) {
+        if(!lock_chain && isValidManipulatorId(manipulator_id)) {
             lock_chain = true;
-            if (isValidManipulatorId(manipulator_id)) {
-                Pos3d pos = manipulator[manipulator_id].getPosition();
-                pos.add(dp);
-                manipulator[manipulator_id].setPosition(pos);
-                setFunctionGivenManipulators(manipulator_id);
-            }
-            boolean is_constant = getFunction().getOrder() == 1;
-            if((manipulator_id == 0 || is_constant) && isCoupledLeft()){
+
+            Pos3d pos = manipulator[manipulator_id].getPosition();
+            pos.add(dp);
+            manipulator[manipulator_id].setPosition(pos);
+            setFunctionGivenManipulators(manipulator_id);
+
+            if((manipulator_id == LEFT_MANIPULATOR_ID) && isCoupledLeft()){
                 coupled_function_left.moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dp);
-            }else if((manipulator_id == 0 || is_constant) && isCoupledRight()){
+            }else if((manipulator_id == RIGHT_MANIPULATOR_ID) && isCoupledRight()){
                 coupled_function_right.moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dp);
             }
             lock_chain = false;
         }
-    }
-
-    /*!
-     * \brief moveFunctionOffset Moves the function in x direction
-     * This is called via mid manipulator left/right direction
-     * \param dx The amount to move the function in x direction
-     */
-    private void moveFunctionXOffset(double dx) {
-        if(!lock_chain) {
-            lock_chain = true;
-            getDrawableFunction().moveX(dx);
-            setManipulatorsBasedOnFunction();
-
-            if(isCoupledLeft()){
-                if(coupled_function_right.getFunction().getOrder() == 1){
-                    coupled_function_left.scaleFunctionMaxX(dx);
-                }else{
-                    coupled_function_left.moveManipulatorXAndSetFunction(RIGHT_MANIPULATOR_ID, dx);
-                }
-            }
-            if(isCoupledRight()){
-                coupled_function_right.moveFunctionXOffset(dx);
-            }
-            lock_chain = false;
-        }
-    }
-
-    // the right coupled function moved to the left, we squish
-    private void squishFromRight(double dx){
-        Pos3d new_right_manip_pos = manipulator[RIGHT_MANIPULATOR_ID].getPosition();
-        new_right_manip_pos.x += dx;
-        manipulator[RIGHT_MANIPULATOR_ID].setPosition(new_right_manip_pos);
-        setFunctionGivenManipulators(RIGHT_MANIPULATOR_ID);
     }
 
     private boolean isValidManipulatorId(int id){
@@ -281,50 +220,24 @@ public class MovableFunction extends Movable {
     }
 
     private void setFunctionGivenManipulators(int id_moved_manip){
-        Function f = getFunction();
+        // TODO edge case 2 manipulators have the same position
+        java.util.Arrays.sort(manipulator);
         DrawableFunction df = (DrawableFunction) parent;
+        Pos3d left = getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition()));
+        Pos3d right = getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition()));
+
+        Function f = getFunction();
         ArrayList<Pos3d> poses = new ArrayList<>();
-        switch(f.getOrder()){
-            case 1:
-                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[id_moved_manip].getPosition())));
-                break;
-            case 2:
-                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition())));
-                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition())));
-                break;
-            case 3:
-                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition())));
-                poses.add(df.f2openGL.invTransform(manipulator[MID_MANIPULATOR_ID].getPosition())); // don't stick the middle one to grid
-                poses.add(getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition())));
-                break;
-            default:
-                throw new IllegalArgumentException( "MovableFunction::setFunctionGivenManipulators: I only support Functions of order 1, 2 or 3." );
-        }
+        poses.add(left);
+        poses.add(right);
 
         f.setFunctionGivenPoints(poses);
         df.setFunction(f);
+        df.setMax(right.x);
+        df.setMin(left.x);
 
+        // to sync things up
         setManipulatorsBasedOnFunction();
-    }
-
-    /*!
-     * \brief moveFunctionYOffset
-     * This is called via mid manipulator top/down direction
-     * \param dy The amount to move the function in y direction
-     */
-    private void moveFunctionYOffset(double dy){
-        if(!lock_chain) {
-            lock_chain = true;
-            getDrawableFunction().moveY(dy);
-            setManipulatorsBasedOnFunction();
-            if (isCoupledLeft()) {
-                coupled_function_left.moveFunctionYOffset(dy);
-            }
-            if (isCoupledRight()) {
-                coupled_function_right.moveFunctionYOffset(dy);
-            }
-            lock_chain = false;
-        }
     }
 
     /*!
@@ -333,21 +246,10 @@ public class MovableFunction extends Movable {
      * \param right The function on the right
      */
     public static void registerCoupledFunctionPair(MovableFunction left, MovableFunction right){
-        left.registerCoupledFunctionRight(right);
-        right.registerCoupledFunctionRight(left);
+        left.coupled_function_right = right;
+        right.coupled_function_left = left;
     }
 
-    // let loose left and register new
-    private void registerCoupledFunctionLeft(MovableFunction mf){
-        registerOpenFunctionLeft();
-        coupled_function_left = mf;
-    }
-
-    // let loose right and register new
-    private void registerCoupledFunctionRight(MovableFunction mf){
-        registerOpenFunctionRight();
-        coupled_function_right = mf;
-    }
 
     // tell the left coupled function to let loose too
     private void registerOpenFunctionLeft(){
@@ -541,7 +443,7 @@ public class MovableFunction extends Movable {
     }
 
     final static int NUM_MANIPULATORS = 3;
-    MovableDot [] manipulator = new MovableDot[NUM_MANIPULATORS];
+    Manipulator [] manipulator = new Manipulator[NUM_MANIPULATORS];
     static final int LEFT_MANIPULATOR_ID = 0;
     static final int MID_MANIPULATOR_ID = 1;
     static final int RIGHT_MANIPULATOR_ID = 2;
