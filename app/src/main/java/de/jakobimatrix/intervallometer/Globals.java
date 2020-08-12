@@ -28,5 +28,5 @@ public class Globals {
     final static public byte NUM_VALUES_F_LIN = 3;
     final static public byte NUM_VALUES_F_QUAD = 4;
 
-    final static long HOLD_DELAY_MS = 100;
+    final static long HOLD_DELAY_MS = 33;
 }

@@ -1,7 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -121,16 +120,31 @@ public class MovableCoordinateSystem extends Movable {
 
     private void removeZeroWidthFunctions(){
         boolean removed = false;
+
+        lock_function_access = false;
         for(int i = functions.size()-1; i > -1; i--){
             MovableFunction mf = functions.get(i);
             if(mf.getFunctionMaxX() == mf.getFunctionMinX()){
+                LOCK_FUNCTION_ACCESS();
                 functions.remove(i);
+                UNLOCK_FUNCTION_ACCESS();
                 removed = true;
             }
         }
         if(removed){
             synchronizeFunctions();
         }
+    }
+
+    private void LOCK_FUNCTION_ACCESS(){
+        while(lock_function_access){
+
+        }
+        lock_function_access = true;
+    }
+
+    private void UNLOCK_FUNCTION_ACCESS(){
+        lock_function_access = false;
     }
 
     /*!
@@ -197,9 +211,11 @@ public class MovableCoordinateSystem extends Movable {
     @Override
     public void draw(GL10 gl){
         parent.draw(gl);
-        for(MovableFunction f:functions){
+        LOCK_FUNCTION_ACCESS();
+        for (MovableFunction f : functions) {
             f.draw(gl);
         }
+        UNLOCK_FUNCTION_ACCESS();
         for(DrawableString ds: x_ticks){
             ds.draw(gl);
         }
@@ -495,8 +511,10 @@ public class MovableCoordinateSystem extends Movable {
         relative_position.add(static_axis_offset[2]);
         getMovableFunction(index); // throw if index is out of bounds
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
-        mf.setLocked(true);
+
+        LOCK_FUNCTION_ACCESS();
         functions.set(index, mf);
+        UNLOCK_FUNCTION_ACCESS();
 
         synchronizeFunctions();
 
@@ -573,6 +591,7 @@ public class MovableCoordinateSystem extends Movable {
     final static int INVALID_FUNCTION = -1;
     int active_function = INVALID_FUNCTION;
     Vector<MovableFunction> functions = new Vector<>();
+    boolean lock_function_access = false;
 
     // visual
     ViewPort openGL_viewport;
