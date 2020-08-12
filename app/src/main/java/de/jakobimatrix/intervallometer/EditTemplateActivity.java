@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -80,17 +81,20 @@ public class EditTemplateActivity extends Activity {
     }
 
     private void setUpCoordSystem(){
-
         // for the symbols
         // TODO somehow that is not the correct margin
-        int MARGIN_LEFT = 100;
-        double MARGIN_RIGHT = getButtonWidth();
+        int MARGIN_LEFT = getButtonWidth()/2;
+        double MARGIN_RIGHT = getButtonWidth()/2;
 
         Pos3d bot_left_screen = new Pos3d(0 + MARGIN_LEFT, screen_size.y, 0);
         Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0, 0);
-        ViewPort coord_screen = new ViewPort(bot_left_screen, top_right_screen);
-        ViewPort coord_sys_view_gl = renderer.screen2openGL(coord_screen);
-        coord_overview = new MovableCoordinateSystem(this, coord_sys_view_gl.min, (float) coord_sys_view_gl.widthAbs(), (float) coord_sys_view_gl.heightAbs());
+        Pos3d bot_left_view_gl  = renderer.screen2openGl(bot_left_screen);
+        Pos3d top_right_view_gl  = renderer.screen2openGl(top_right_screen);
+        Log.d("bot_left_view_gl", bot_left_view_gl.toString());
+        float width = (float) Math.abs(top_right_view_gl.x - bot_left_view_gl.x);
+        float height = (float) Math.abs(top_right_view_gl.y - bot_left_view_gl.y);
+
+        coord_overview = new MovableCoordinateSystem(this, bot_left_view_gl, width, height);
 
         int index;
 
@@ -287,7 +291,6 @@ public class EditTemplateActivity extends Activity {
         builder.setMessage(getString(R.string.edit_template_save_dialog)).setPositiveButton(getString(R.string.yes), dialogClickListener)
                 .setNegativeButton(getString(R.string.no), dialogClickListener).show();
     }
-
 
     /*!
      * \brief loadTemplate

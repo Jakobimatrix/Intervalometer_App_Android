@@ -43,7 +43,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO THIS IS CALLED too WHEN ROTATEING THE PHONE so lock rotation!
         gl10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
 
-        gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
+        //gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
     }
@@ -246,7 +246,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return screen2openGl(new Pos3d(pix, 0, 0)).x;
     }
 
-    public ViewPort screen2openGL(ViewPort screen){
+    public ViewPort screen2openGl(ViewPort screen){
         Pos3d min = screen2openGl(screen.min);
         Pos3d max = screen2openGl(screen.max);
         return new ViewPort(min, max);
@@ -314,7 +314,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     CMD analog_command = CMD.NULL;
     Movable analog_movable = null;
-    Timer timer_touch_action = new Timer();
+    Timer timer_touch_action = null;
     boolean on_finger_released_called = false;
     boolean stop_touch_tread = false;
     Timer timer_analog_action = new Timer();

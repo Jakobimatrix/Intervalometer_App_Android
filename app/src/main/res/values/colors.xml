@@ -4,6 +4,7 @@
     <color name="Secondary">#454745</color>
     <color name="Letters">#DED2BA</color>
     <color name="Editable">#ECF5DB</color>
+    <color name="Gold"></color>
     <color name="Disconnected">#9c2424</color>
     <color name="Connected">#1c783b</color>
     <color name="ERROR">#FF0000</color>

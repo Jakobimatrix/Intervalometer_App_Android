@@ -280,14 +280,9 @@ public class MovableCoordinateSystem extends Movable {
             */
             double start = system_viewport.min.x*is_x_d + system_viewport.min.y*is_y_d;
 
-            Log.d("start " + i, start + "");
-            Log.d("start " + i, system_viewport.min.toString());
-
             start = Utility.cutAtDecimal(start, grid_power);
 
-            Log.d("start cut " + i, start + "");
             // build the grid, starting at start, adding d_pos every iteration
-
             Pos3d pos_iterator = new Pos3d(start*is_x_d,start*is_y_d, 0);
             // add the offset of the direction we don't iterate through.
             pos_iterator.add(new Pos3d(system_viewport.min.x*is_y_d,system_viewport.min.y*is_x_d, 0));
