@@ -70,12 +70,10 @@ public class MovableDot extends Movable{
 
     DrawableCircle inner_circle;
 
-    final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0,0,0,0.0);
+    final static ColorRGBA LOCKED_OUTER_CIRCLE = new ColorRGBA(0,0,0,0.1);
     final static ColorRGBA LOCKED_INNER_CIRCLE = new ColorRGBA(0.8,0,0,1.0);
     final static ColorRGBA MOVABLE_OUTER_CIRCLE = new ColorRGBA(0.0,0.8,0.0,1.0);
-    // Since both circles are at same height, the renderer wont draw the circle "behind", since it is too close.
-    // Now if I make the smaller circle transparent, it looks like the larger outer circle has a hole.
-    final static ColorRGBA MOVABLE_INNER_CIRCLE = new ColorRGBA(0,0,0,0.0);
+    final static ColorRGBA MOVABLE_INNER_CIRCLE = new ColorRGBA(0,0,0,0.1);
 
     final static double MIN_TOUCH_RADIUS = 0.35;
 

@@ -125,6 +125,7 @@ public class Texture extends DrawableRectangle {
 
         // enable texture
         gl.glEnable(GL10.GL_TEXTURE_2D);
+        gl.glColor4f(color.r, color.g, color.b, color.a);
 
         // Point to our buffers
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
