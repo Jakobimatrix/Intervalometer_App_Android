@@ -1,6 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -70,7 +71,7 @@ public class DrawableString extends Drawable {
     public void setString(String value){
         Pos3d offset = Pos3d.Zero();
         Pos3d add = Pos3d.Zero();
-        Pos3d margin_right = new Pos3d(CHAR_DIST_PERCENT*font_size,0,0);
+        Pos3d margin_right = new Pos3d(getMargin(),0,0);
         clean();
         for(int i = 0; i < value.length(); i++){
             DrawableChar dc = new DrawableChar(context, getPosition(), font_size , value.charAt(i), font_height_pix);
@@ -91,8 +92,26 @@ public class DrawableString extends Drawable {
         if(string.size() == 0){
             return 0;
         }
-        DrawableChar dc = string.get(string.size()-1);
-        return dc.getPosition().x + dc.getWidth() - getPosition().x;
+        double margin = getMargin();
+        double width = -margin;
+        for(DrawableChar dc : string){
+            width += (dc.width + margin);
+        }
+        //Log.d("string width", toString() + " w: " + width);
+        return width;
+    }
+
+    @Override
+    public String toString() {
+        String s = "";
+        for(DrawableChar dc:string){
+            s += dc.c;
+        }
+        return s;
+    }
+
+    public double getMargin(){
+        return CHAR_DIST_PERCENT*font_size;
     }
 
     public void setRotation(float rot_rad){

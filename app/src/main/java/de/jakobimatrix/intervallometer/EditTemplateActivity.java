@@ -81,18 +81,13 @@ public class EditTemplateActivity extends Activity {
 
     private void setUpCoordSystem(){
 
-        // TODO To show the x,y ticks
-        // TODO THIS SHOULD BE DONE BY MovableCoordinateSystem
-        double MARGIN_BOT = 10;
-        double MARGIN_LEFT = 100;
-        double MARGIN_TOP = 10;
-
         // for the symbols
         // TODO somehow that is not the correct margin
+        int MARGIN_LEFT = 100;
         double MARGIN_RIGHT = getButtonWidth();
 
-        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_LEFT, screen_size.y - MARGIN_BOT, 0);
-        Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0 + MARGIN_TOP, 0);
+        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_LEFT, screen_size.y, 0);
+        Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0, 0);
         ViewPort coord_screen = new ViewPort(bot_left_screen, top_right_screen);
         ViewPort coord_sys_view_gl = renderer.screen2openGL(coord_screen);
         coord_overview = new MovableCoordinateSystem(this, coord_sys_view_gl.min, (float) coord_sys_view_gl.widthAbs(), (float) coord_sys_view_gl.heightAbs());
