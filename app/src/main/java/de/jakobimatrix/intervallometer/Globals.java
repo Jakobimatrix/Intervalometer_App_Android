@@ -14,8 +14,8 @@ public class Globals {
     }
 
     final static public double GRID_Z_ELEVATION = 0.001;
-    final static public double FUNCTION_Z_ELEVATION = 0.003;
-    final static public double MANIPULATOR_Z_ELEVATION = 0.0075;
+    final static public double FUNCTION_Z_ELEVATION = 0.002;
+    final static public double MANIPULATOR_Z_ELEVATION = 0.009;
 
     // protocol for hardware program
     final static public byte SYMBOL_STOP = 0x00;

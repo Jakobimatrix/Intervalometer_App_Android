@@ -72,7 +72,6 @@ public class MovableCoordinateSystem extends Movable {
         x_axis.setColor(grid_color);
         y_axis.setColor(grid_color);
 
-        // we lock the functions individually
         is_locked = false;
     }
 
@@ -83,11 +82,9 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public boolean isWithin(Pos3d position_) {
-        // Todo we have to deal with Manipulators going over the edge
-        if(true || parent.isWithin(position_)) {
+        if(parent.isWithin(position_)) {
             for (int i = 0; i < functions.size(); i++) {
-                if (functions.get(i).isWithin(position_)) {
-                    // toggle
+                if (functions.get(i).isWithinToggle(position_)) {
                     active_function = i;
                     return true;
                 }
@@ -102,17 +99,23 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public void setPosition(Pos3d position_){
-        //throw new IllegalArgumentException( "MovableCoordinateSystem::setPosition: please use executeCommand" );
+        if(parent.isWithin(position_)) {
+            if(isValidFunctionId(active_function)){
+                functions.get(active_function).setPosition(position_);
+            }
+        }
     }
 
     @Override
     public void move(Pos3d dp){
-        //throw new IllegalArgumentException( "MovableCoordinateSystem::move: please use executeCommand" );
+        //TODO manual moving the manipulator
     }
 
     @Override
     public void endTouch() {
-        // obsolete concept
+        for(MovableFunction df: functions){
+            df.endTouch();
+        }
     }
 
     /*!
@@ -120,18 +123,16 @@ public class MovableCoordinateSystem extends Movable {
      * signal that the user stopped touching the screen.
      */
     public void manuelEndTouch() {
-        for(MovableFunction df: functions){
-            df.endTouch();
-        }
         hold_start = FIRST_CONTACT;
     }
 
     public void executeCommand(CMD cmd){
-        if(isValidFunctionId(active_function) && sensitivity()){
-            functions.get(active_function).setCommand(cmd);
-            functions.get(active_function).executeCurrentCommand();
-            scale(); // TODO we could check if scaling in necessary
+        if(sensitivity(cmd)){
+            for(MovableFunction mf : functions){
+                mf.executeCommand();
+            }
         }
+        scale();
     }
 
     /*!
@@ -140,7 +141,7 @@ public class MovableCoordinateSystem extends Movable {
      * It discretize the manipulations depending on the holding time.
      * \return true if it is time for manipulation.
      */
-    private boolean sensitivity(){
+    private boolean sensitivity(CMD cmd){
         if(hold_start == FIRST_CONTACT){
             hold_start = System.currentTimeMillis();
             active_tick_start = 0;
@@ -148,23 +149,25 @@ public class MovableCoordinateSystem extends Movable {
         long now = System.currentTimeMillis();
         long duration = now - hold_start;
 
-        long wait;
+        long wait = MEDIUM_TICK_DURATION_MS;
         double multiply = 1.;
 
         // depending on how long the user holds down, we wait x ms until we let the next change happen.
         if(duration < SLOW_TICK_DURATION_HOLD_MS){
             wait = SLOW_TICK_DURATION_MS;
-        }else if(duration < MEDIUM_TICK_DURATION_HOLD_MS){
-            wait = MEDIUM_TICK_DURATION_MS;
-        }else{
-            wait = MEDIUM_TICK_DURATION_MS;
+        }
+        if(duration > MEDIUM_TICK_DURATION_HOLD_MS){
             multiply = 10.;
+        }
+
+        // update the command for all functions
+        for(MovableFunction mf : functions){
+            mf.setCommand(cmd, Pos3d.mul(current_grid_distance, multiply));
         }
 
         duration = now - active_tick_start;
         if(duration > wait){
             active_tick_start = now;
-            functions.get(active_function).setStepWidth(Pos3d.mul(current_grid_distance,multiply));
             return true;
         }
         return false;
@@ -529,7 +532,7 @@ public class MovableCoordinateSystem extends Movable {
      * \param l look true/false
      * \param function_index The function to lock/unlock
      */
-    public void setFunctionLocked(boolean l, int function_index){
+    private void setFunctionLocked(boolean l, int function_index){
         getMovableFunction(function_index).setLocked(l);
     }
 

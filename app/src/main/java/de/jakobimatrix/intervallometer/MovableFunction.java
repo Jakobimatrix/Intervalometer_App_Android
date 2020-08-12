@@ -2,6 +2,7 @@ package de.jakobimatrix.intervallometer;
 
 import android.content.Context;
 import android.drm.DrmStore;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -14,6 +15,7 @@ public class MovableFunction extends Movable {
         super(new DrawableFunction(context, position, f, min, max, system_2_open_gl));
         for (int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i] = new Manipulator(context,position, manipulator_radius);
+            active_manipulator[i] = false;
         }
         setManipulatorsBasedOnFunction();
     }
@@ -22,19 +24,24 @@ public class MovableFunction extends Movable {
     public boolean isWithin(Pos3d position_) {
         for (int i = 0; i < NUM_MANIPULATORS; i++) {
             if (manipulator[i].isWithin(position_)) {
-                active_manipulator = i;
-                manipulator[i].setLocked(false);
                 return true;
             }
         }
-        if(isValidManipulatorId(active_manipulator)){
-            manipulator[active_manipulator].setLocked(true);
-        }
-        active_manipulator = INVALID_MANIPULATOR_ID;
         return false;
     }
 
-    public void setCommand(CMD cmd){
+    public boolean isWithinToggle(Pos3d position_) {
+        for (int i = 0; i < NUM_MANIPULATORS; i++) {
+            if (manipulator[i].isWithin(position_)) {
+                active_manipulator[i] = !active_manipulator[i];
+                manipulator[i].setLocked(!active_manipulator[i]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setCommand(CMD cmd, Pos3d step_width){
         double dx = 0;
         double dy = 0;
         switch (cmd){
@@ -74,7 +81,7 @@ public class MovableFunction extends Movable {
 
     @Override
     public void move(Pos3d dp){
-        throw new IllegalArgumentException( "MovableFunction::move: please use setCommand and executeCurrentCommand" );
+        //TODO manual moving the manipulator
     }
 
     @Override
@@ -84,55 +91,80 @@ public class MovableFunction extends Movable {
 
     @Override
     public void endTouch() {
-        last_active_manipulator = INVALID_MANIPULATOR_ID;
-        active_manipulator = INVALID_MANIPULATOR_ID;
-        dpos_command_system = Pos3d.Zero();
-        for(int i = 0; i < NUM_MANIPULATORS; i++){
-            manipulator[i].endTouch();
-            manipulator[i].setLocked(true);
-        }
+        // snap the function to the grid
+        setFunctionGivenManipulators();
     }
 
     @Override
     public void setPosition(Pos3d p){
-        throw new IllegalArgumentException( "MovableFunction::move: please use setCommand and executeCurrentCommand" );
-    }
-
-    public void executeCurrentCommand(){
-        if(!isValidManipulatorId(active_manipulator)){
-            return;
-        }
-        if(active_manipulator == MID_MANIPULATOR_ID){
-            moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dpos_command_openGL);
-            moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dpos_command_openGL);
-        }else{
-            moveManipulatorAndSetFunction(active_manipulator, dpos_command_openGL);
+        for (int i = 0; i < NUM_MANIPULATORS; i++) {
+            if (manipulator[i].isWithin(p)) {
+                boolean l = manipulator[i].isLocked();
+                p.z = Globals.MANIPULATOR_Z_ELEVATION;
+                moveManipulatorManuallyAndSetFunction(i, p);
+                return;
+            }
         }
     }
 
-    private void moveManipulatorAndSetFunction(int manipulator_id, Pos3d dp){
-        if(!lock_chain && isValidManipulatorId(manipulator_id)) {
+    public void executeCommand(CMD cmd, Pos3d step_width){
+        setCommand(cmd, step_width);
+        executeCommand();
+    }
+
+    public void executeCommand(){
+        for(int i = 0; i < NUM_MANIPULATORS; i++) {
+            if(active_manipulator[i]) {
+                moveManipulatorAndSetFunction(i, dpos_command_openGL);
+            }
+        }
+    }
+
+    private void moveManipulatorManuallyAndSetFunction(int manipulator_id, Pos3d p ){
+        if(!lock_chain) {
             lock_chain = true;
 
-            Pos3d pos = manipulator[manipulator_id].getPosition();
-            pos.add(dp);
-            manipulator[manipulator_id].setPosition(pos);
-            setFunctionGivenManipulators(manipulator_id);
+            Pos3d true_grid = grid;
+            grid = Pos3d.Zero();
+
+            manipulator[manipulator_id].setPosition(p);
+            setFunctionGivenManipulators();
+            grid = true_grid;
 
             if((manipulator_id == LEFT_MANIPULATOR_ID) && isCoupledLeft()){
-                coupled_function_left.moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dp);
+                // only move if it is not selected otherwise it will move two times
+                coupled_function_left.synchronizeThis();
             }else if((manipulator_id == RIGHT_MANIPULATOR_ID) && isCoupledRight()){
-                coupled_function_right.moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dp);
+                coupled_function_right.synchronizeThis();
             }
             lock_chain = false;
         }
     }
 
-    private boolean isValidManipulatorId(int id){
-        if(id != INVALID_MANIPULATOR_ID && manipulator.length > id){
-            return true;
+    private void moveManipulatorAndSetFunction(int manipulator_id, Pos3d dp){
+        if(!lock_chain) {
+            lock_chain = true;
+
+            Pos3d pos = manipulator[manipulator_id].getPosition();
+            pos.add(dp);
+            manipulator[manipulator_id].setPosition(pos);
+            setFunctionGivenManipulators();
+
+            if((manipulator_id == LEFT_MANIPULATOR_ID) && isCoupledLeft()){
+                // only move if it is not selected otherwise it will move two times
+                boolean selected = coupled_function_left.active_manipulator[RIGHT_MANIPULATOR_ID];
+                if(!selected) {
+                    coupled_function_left.moveManipulatorAndSetFunction(RIGHT_MANIPULATOR_ID, dp);
+                }
+            }else if((manipulator_id == RIGHT_MANIPULATOR_ID) && isCoupledRight()){
+                // only move if it is not selected otherwise it will move two times
+                boolean selected = coupled_function_right.active_manipulator[LEFT_MANIPULATOR_ID];
+                if(!selected) {
+                    coupled_function_right.moveManipulatorAndSetFunction(LEFT_MANIPULATOR_ID, dp);
+                }
+            }
+            lock_chain = false;
         }
-        return false;
     }
 
     private boolean scaleFunctionMinX(double dx){
@@ -179,7 +211,7 @@ public class MovableFunction extends Movable {
         return true;
     }
 
-    private void setFunctionGivenManipulators(int id_moved_manip){
+    private void setFunctionGivenManipulators(){
         // TODO edge case 2 manipulators have the same position
         java.util.Arrays.sort(manipulator);
         DrawableFunction df = (DrawableFunction) parent;
@@ -210,7 +242,6 @@ public class MovableFunction extends Movable {
         right.coupled_function_left = left;
     }
 
-
     // tell the left coupled function to let loose too
     private void registerOpenFunctionLeft(){
         if(isCoupledLeft()){
@@ -235,61 +266,31 @@ public class MovableFunction extends Movable {
         return coupled_function_left != null;
     }
 
-    public void synchronizeCoupledLeft(){
-        if(isCoupledLeft()){
-            Pos3d actual = manipulator[LEFT_MANIPULATOR_ID].getPosition();
-            Pos3d target = coupled_function_left.manipulator[RIGHT_MANIPULATOR_ID].getPosition();
-            Pos3d dp = Pos3d.sub(target, actual);
-            moveFunctionAndTail(dp);
-        }
-    }
-
-    public void synchronizeCoupledRight(){
-        if(isCoupledRight()){
-            coupled_function_right.synchronizeCoupledLeft();
-        }
-    }
-
-    public void synchronizeThis(int order){
+    /*!
+    * \brief synchronizeThis Will set the manipulators according to the coupled functions to match them.
+    * */
+    public void synchronizeThis(){
         if(isCoupledRight()){
             Pos3d right = coupled_function_right.manipulator[LEFT_MANIPULATOR_ID].getPosition();
             manipulator[RIGHT_MANIPULATOR_ID].setPosition(right);
         }
         if(isCoupledLeft()){
-            Pos3d left = coupled_function_right.manipulator[RIGHT_MANIPULATOR_ID].getPosition();
+            Pos3d left = coupled_function_left.manipulator[RIGHT_MANIPULATOR_ID].getPosition();
             manipulator[LEFT_MANIPULATOR_ID].setPosition(left);
         }
 
         // cheat and set order of function to two
         Function f = getFunction();
-        ArrayList<Pos3d> poses = new ArrayList<>(2);
-        poses.add(Pos3d.Zero());
-        poses.add(Pos3d.Zero());
+        ArrayList<Pos3d> poses = new ArrayList<Pos3d>(2){{
+            add(manipulator[LEFT_MANIPULATOR_ID].getPosition());
+            add(manipulator[RIGHT_MANIPULATOR_ID].getPosition());
+        }};
+
+        Pos3d true_grid = grid;
+        grid = Pos3d.Zero();
         f.setFunctionGivenPoints(poses);
-        int does_not_matter = 0;
-        setFunctionGivenManipulators(does_not_matter);
-    }
-
-    private void moveFunctionAndTail(Pos3d dp){
-        for(int i = 0; i < NUM_MANIPULATORS; i++){
-            manipulator[i].move(dp);
-        }
-        setFunctionGivenManipulators(MID_MANIPULATOR_ID);
-        if(isCoupledRight()){
-            coupled_function_right.moveFunctionAndTail(dp);
-        }
-    }
-
-    Pos3d getLeftManipulatorGLpos(){
-        return manipulator[LEFT_MANIPULATOR_ID].getPosition();
-    }
-
-    Pos3d getMidManipulatorGLpos(){
-        return manipulator[MID_MANIPULATOR_ID].getPosition();
-    }
-
-    Pos3d getRightManipulatorGLpos(){
-        return manipulator[RIGHT_MANIPULATOR_ID].getPosition();
+        setFunctionGivenManipulators();
+        grid = true_grid;
     }
 
     public double getFunctionMaxX(){
@@ -322,10 +323,9 @@ public class MovableFunction extends Movable {
         DrawableFunction df = (DrawableFunction) parent;
         Function f = getFunction();
         double mid = (df.max_x - df.min_x)/2.0 + df.min_x;
-        Pos3d [] ff = new Pos3d[3];
-        ff[0] = new Pos3d(df.min_x, f.f(df.min_x), Globals.MANIPULATOR_Z_ELEVATION);
-        ff[1] = new Pos3d(mid, f.f(mid), Globals.MANIPULATOR_Z_ELEVATION);
-        ff[2] = new Pos3d(df.max_x, f.f(df.max_x), Globals.MANIPULATOR_Z_ELEVATION);
+        Pos3d [] ff = new Pos3d[NUM_MANIPULATORS];
+        ff[LEFT_MANIPULATOR_ID] = new Pos3d(df.min_x, f.f(df.min_x), Globals.MANIPULATOR_Z_ELEVATION);
+        ff[RIGHT_MANIPULATOR_ID] = new Pos3d(df.max_x, f.f(df.max_x), Globals.MANIPULATOR_Z_ELEVATION);
 
         for(int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].setPosition(df.f2openGL.transform(ff[i]));
@@ -358,22 +358,6 @@ public class MovableFunction extends Movable {
     }
 
     /*!
-     * \brief setStepWidth
-     * Sets the step size at which an input (move) command for the function gets created.
-     * The step width cant be smaller than the set grid.
-     * If a smaller step size is given return is false and the step size will be adapted.
-     * \param step A 3d point where the x and y coordinates are the step command.
-     * return true if the given step size was greater than the grid.
-     */
-    public boolean setStepWidth(Pos3d step){
-        // step width cant be smaller  than grid width
-        step_width.x = Math.max(step_width.x, grid.x);
-        step_width.y = Math.max(step_width.y, grid.y);
-        step_width.z = step.z;
-        return Pos3d.equals(step, step_width);
-    }
-
-    /*!
      * \brief setStepWidth set the minimal grid size for the function
      * The function will always stick to the grid with its ends.
      */
@@ -402,15 +386,11 @@ public class MovableFunction extends Movable {
         return y;
     }
 
-    final static int NUM_MANIPULATORS = 3;
+    final static int NUM_MANIPULATORS = 2;
     Manipulator [] manipulator = new Manipulator[NUM_MANIPULATORS];
+    boolean [] active_manipulator = new boolean[NUM_MANIPULATORS];
     static final int LEFT_MANIPULATOR_ID = 0;
-    static final int MID_MANIPULATOR_ID = 1;
-    static final int RIGHT_MANIPULATOR_ID = 2;
-
-    final static int INVALID_MANIPULATOR_ID = -1;
-    int active_manipulator = INVALID_MANIPULATOR_ID;
-    int last_active_manipulator = INVALID_MANIPULATOR_ID;
+    static final int RIGHT_MANIPULATOR_ID = 1;
 
     Pos3d dpos_command_system = Pos3d.Zero();
     Pos3d dpos_command_openGL = Pos3d.Zero();
@@ -422,7 +402,6 @@ public class MovableFunction extends Movable {
     // to avoid loops. (No destructors == no scoped look guards, me sad)
     private boolean lock_chain = false;
 
-    Pos3d step_width = new Pos3d(1,1,0);
     Pos3d grid = Pos3d.Zero();
 
     MovableFunction coupled_function_left = null;

@@ -101,11 +101,9 @@ public class EditTemplateActivity extends Activity {
 
         Function f1 = new ConstantFunction(2);
         index = coord_overview.addFunction(f1, 0., 4.);
-        coord_overview.setFunctionLocked(false, index);
 
         Function f2 = new LinearFunction(-2, 1);
         index = coord_overview.addFunction(f2, 4., 8.);
-        coord_overview.setFunctionLocked(false, index);
 
         Function f3 = new ConstantFunction(6);
         index = coord_overview.addFunction(f3, 8., 12.);
@@ -147,10 +145,10 @@ public class EditTemplateActivity extends Activity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    renderer.startTouchActionThread(CMD.UP, coord_view_id);
+                    renderer.startTouchActionThread(CMD.UP, coord_overview);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    renderer.stopAnalogActionThread();
                     coord_overview.manuelEndTouch();
-
                 }
                 return false;
             }
@@ -160,10 +158,10 @@ public class EditTemplateActivity extends Activity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    renderer.startTouchActionThread(CMD.DOWN, coord_view_id);
+                    renderer.startTouchActionThread(CMD.DOWN, coord_overview);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    renderer.stopAnalogActionThread();
                     coord_overview.manuelEndTouch();
-
                 }
                 return false;
             }
@@ -173,10 +171,10 @@ public class EditTemplateActivity extends Activity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    renderer.startTouchActionThread(CMD.LEFT, coord_view_id);
+                    renderer.startTouchActionThread(CMD.LEFT, coord_overview);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    renderer.stopAnalogActionThread();
                     coord_overview.manuelEndTouch();
-
                 }
                 return false;
             }
@@ -186,8 +184,9 @@ public class EditTemplateActivity extends Activity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    renderer.startTouchActionThread(CMD.RIGHT, coord_view_id);
+                    renderer.startTouchActionThread(CMD.RIGHT, coord_overview);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    renderer.stopAnalogActionThread();
                     coord_overview.manuelEndTouch();
                 }
                 return false;

@@ -10,6 +10,8 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -27,15 +29,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     // fucking no destructors in java, so you call this manually.
     public void close(){
-        if(touch_action_thread != null) {
-            try {
-                touch_action_thread.join();
-                touch_action_thread = null;
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-
+        stopTouchActionThread();
         for (Movable movable : movables.values()) {
             movable.clean();
         }
@@ -131,34 +125,39 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
+                stop_touch_tread = true;
                 stopTouchActionThread();
+                manageOnFingerReleaseCall();
                 return true;
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-                action_hold_down = true;
-                break;
         }
-        if(touch_action_thread == null && action_hold_down) {
-            touch_action_thread = new Thread() {
-                @Override
-                public void run() {
-                    touchAction(CMD.NULL,-1);
-                }
-            };
-            touch_action_thread.start();
+        if(timer_touch_action == null) {
+            on_finger_released_called = false;
+            stop_touch_tread = false;
+            timer_touch_action = new Timer();
+            timer_touch_action.scheduleAtFixedRate(createTimerTaskRunTouchEvent(), 0,  Globals.HOLD_DELAY_MS);
         }
         return true;
     }
 
-    private void stopTouchActionThread(){
-        action_hold_down = false;
-        if(touch_action_thread != null) {
-            try {
-                touch_action_thread.join();
-                touch_action_thread = null;
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+    private void manageOnFingerReleaseCall(){
+        if(!on_finger_released_called){
+            on_finger_released_called = true;
+            movable_release_callback.onFingerRelease();
+            movable_release_callback = new CallBackOnFingerReleaseNOP();
+        }
+    }
+
+    public void stopTouchActionThread(){
+        if(timer_touch_action != null) {
+            timer_touch_action.cancel();
+            timer_touch_action = null;
+        }
+    }
+
+    public void stopAnalogActionThread(){
+        if(timer_analog_action != null) {
+            timer_analog_action.cancel();
+            timer_analog_action = null;
         }
     }
 
@@ -166,16 +165,11 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      * \brief startTouchActionThread direct with a command rather than with the touch position.
      * The tread will be stopped at release (see onTouchEvent)
      */
-    public void startTouchActionThread(final CMD cmd, final int hint){
-        stopTouchActionThread();
-        action_hold_down = true;
-        touch_action_thread = new Thread() {
-            @Override
-            public void run() {
-                touchAction(cmd, hint);
-            }
-        };
-        touch_action_thread.start();
+    public void startTouchActionThread(final CMD cmd, Movable mv){
+        stopAnalogActionThread();
+        setAnalogCmd(cmd, mv);
+        timer_analog_action = new Timer();
+        timer_analog_action.scheduleAtFixedRate(createTimerTaskRunAnalogCmd(), 0,  Globals.HOLD_DELAY_MS);
     }
 
     /*!
@@ -184,56 +178,9 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
      * as long as action_hold_down == true.
      * It will run loop every HOLD_DELAY_MS ms if possible.
      */
-    private void touchAction(final CMD cmd, final int hint){
-        long start = System.currentTimeMillis();
-        if(cmd != CMD.NULL && movables.containsKey(hint)){
-            Movable mv = movables.get(hint);
-            mv.executeCommand(cmd);
-        }else {
-            // use position
-            if (movables.containsKey(movable_guess)) {
-                Movable mv = movables.get(movable_guess);
-                if (mv.isHold(last_pos_openGL)) {
-                    mv.setPosition(last_pos_openGL);
-                } else {
-                    movable_guess = INVALID_KEY;
-                }
-            }
-            if (movable_guess == INVALID_KEY) {
-                for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
-                    Movable mv = entry.getValue();
-                    if (mv.isHold(last_pos_openGL)) {
-                        mv.setPosition(last_pos_openGL);
-                        // there can only be one movable to be hold at a time;
-                        // set a guess for the next time
-                        movable_guess = entry.getKey();
-                        movable_release_callback = mv.on_finger_release_callback;
-                        break;
-                    }
-                }
-            }
-        }
-        long stop = System.currentTimeMillis();
-        long delay = Globals.HOLD_DELAY_MS - (start - stop);
-        if(delay < 0){
-            Log.w("OpenGLRend::touchAction", "ist taking unexpectedly long: " + (start - stop) + "ms");
-            delay = Globals.HOLD_DELAY_MS;
-        }
-        if(action_hold_down){
-            new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        touchAction(cmd, hint);
-                    }
-                },
-                delay
-            );
-        }else{
-            movable_guess = INVALID_KEY;
-            movable_release_callback.onFingerRelease();
-            movable_release_callback = new CallBackOnFingerReleaseNOP();
-        }
+    private void setAnalogCmd(CMD cmd, Movable mv){
+        analog_command = cmd;
+        analog_movable = mv;
     }
 
     /*!
@@ -305,6 +252,51 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return new ViewPort(min, max);
     }
 
+    private TimerTask createTimerTaskRunAnalogCmd() {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                if(analog_movable != null){
+                    analog_movable.executeCommand(analog_command);
+                }
+            }
+        };
+    }
+
+    private TimerTask createTimerTaskRunTouchEvent() {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                if(stop_touch_tread){
+                    manageOnFingerReleaseCall();
+                }else {
+                    if (movables.containsKey(movable_guess)) {
+                        Movable mv = movables.get(movable_guess);
+                        if (mv.isHold(last_pos_openGL)) {
+                            mv.setPosition(last_pos_openGL);
+                            movable_release_callback = mv.on_finger_release_callback;
+                        } else {
+                            movable_guess = INVALID_KEY;
+                        }
+                    }
+                    if (movable_guess == INVALID_KEY) {
+                        for (Map.Entry<Integer, Movable> entry : movables.entrySet()) {
+                            Movable mv = entry.getValue();
+                            if (mv.isHold(last_pos_openGL)) {
+                                mv.setPosition(last_pos_openGL);
+                                // there can only be one movable to be hold at a time;
+                                // set a guess for the next time
+                                movable_guess = entry.getKey();
+                                movable_release_callback = mv.on_finger_release_callback;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     public interface CallBackOnFingerRelease{
         void onFingerRelease();
     }
@@ -320,6 +312,13 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     private Integer movables_id_counter = 0;
     private Map<Integer, Movable> movables = new HashMap<Integer, Movable>();
 
+    CMD analog_command = CMD.NULL;
+    Movable analog_movable = null;
+    Timer timer_touch_action = new Timer();
+    boolean on_finger_released_called = false;
+    boolean stop_touch_tread = false;
+    Timer timer_analog_action = new Timer();
+
     // this should scale everything
     final private float zoom = -4;
 
@@ -330,7 +329,4 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
     float screen_height_px;
     float screen_width_px;
-
-    boolean action_hold_down = false;
-    Thread touch_action_thread = null;
 }
