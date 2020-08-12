@@ -30,6 +30,7 @@ public class MovableCoordinateSystem extends Movable {
         static_axis_offset[1] = new Pos3d(margin, 0, 0);
         static_axis_offset[2] = new Pos3d(margin, margin, 0);
 
+        openGL_viewport = ViewPort.Zero();
         setViewPortOpenGL();
 
         // this will be changed according to the functions added later.
@@ -95,6 +96,10 @@ public class MovableCoordinateSystem extends Movable {
                     }
                 }
             }
+            //user clicked within coord but no point -> lock all points
+            for(MovableFunction mf : functions){
+                mf.setLocked(true);
+            }
         }
         active_function = INVALID_FUNCTION;
         return false;
@@ -125,6 +130,7 @@ public class MovableCoordinateSystem extends Movable {
             df.endTouch();
         }
         toggle_not = false;
+        scale();
     }
 
     private void removeZeroWidthFunctions(){
@@ -402,11 +408,13 @@ public class MovableCoordinateSystem extends Movable {
     /*!
      * \brief setViewportSystem Set the viewport of the Coordinate System according to the max and min Values needed to be displayed.
      */
-    private void setViewportSystem(){
-        system_viewport.min.x = getAllFunctionsMinX();
-        system_viewport.min.y = getAllFunctionsMinY();
-        system_viewport.max.x = getAllFunctionsMaxX();
-        system_viewport.max.y = getAllFunctionsMaxY();
+    private boolean setViewportSystem(){
+        ViewPort old = new ViewPort(system_viewport);
+        // always have 1 grid distance to the border
+        system_viewport.min.x = getAllFunctionsMinX() - current_grid_distance.x;
+        system_viewport.min.y = getAllFunctionsMinY() - current_grid_distance.y;
+        system_viewport.max.x = getAllFunctionsMaxX() + current_grid_distance.x;
+        system_viewport.max.y = getAllFunctionsMaxY() + current_grid_distance.y;
         double dif_x = system_viewport.max.x - system_viewport.min.x;
         double dif_y = system_viewport.max.y - system_viewport.min.y;
         // avoid no height if function is a constant
@@ -423,12 +431,15 @@ public class MovableCoordinateSystem extends Movable {
             system_viewport.min.x = center - SMOOL_NUMBER/2.0;
             system_viewport.max.x = center + SMOOL_NUMBER/2.0;
         }
+
+        return ViewPort.equals(old, system_viewport);
     }
 
     /*!
      * \brief setViewPortOpenGL Set the viewport of the Coordinate System in open GL coordinates according to position width and height.
      */
-    private void setViewPortOpenGL(){
+    private boolean setViewPortOpenGL(){
+        ViewPort old = new ViewPort(openGL_viewport);
         Pos3d position_ = getPosition();
         float width = getWidth();
         float height = getHeight();
@@ -439,6 +450,8 @@ public class MovableCoordinateSystem extends Movable {
         Pos3d view_port_left_bot = new Pos3d(position_);
         view_port_left_bot.add(static_axis_offset[2]);
         openGL_viewport = new ViewPort(view_port_left_bot, view_port_top_right);
+
+        return ViewPort.equals(old, openGL_viewport);
     }
 
     /*!
@@ -446,8 +459,12 @@ public class MovableCoordinateSystem extends Movable {
      * coordinates, calculates the grid and redraws all functions.
      */
     private void scale(){
-        setViewportSystem();
-        setViewPortOpenGL();
+        boolean new_system_view = setViewportSystem();
+        boolean new_gl_view = setViewPortOpenGL();
+        if(!new_system_view && !new_gl_view){
+            // no scaling needed
+            return;
+        }
 
         //Log.d("scale", "system_viewport: " + system_viewport.toString());
         //Log.d("scale", "openGL_viewport: " + openGL_viewport.toString());

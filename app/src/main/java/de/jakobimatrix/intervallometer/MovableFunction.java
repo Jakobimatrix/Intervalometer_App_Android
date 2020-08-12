@@ -354,6 +354,7 @@ public class MovableFunction extends Movable {
     public void setLocked(boolean l){
         for(int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].setLocked(l);
+            active_manipulator[i] = false;
         }
         super.setLocked(l);
     }

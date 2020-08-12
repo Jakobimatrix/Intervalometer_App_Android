@@ -12,6 +12,14 @@ public class ViewPort {
         this.min = screen.min;
     }
 
+    public static boolean equals(ViewPort a, ViewPort b) {
+        return Pos3d.equals(a.min, b.min) && Pos3d.equals(a.max, b.max);
+    }
+
+    public static ViewPort Zero() {
+        return new ViewPort(Pos3d.Zero(), Pos3d.Zero());
+    }
+
     public boolean isWithin(ViewPort v){
         if(v.min.x < min.x || v.min.y < min.y || v.max.x > max.x || v.max.y > max.y){
             return false;
