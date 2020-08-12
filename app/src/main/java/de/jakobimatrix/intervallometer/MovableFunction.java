@@ -212,11 +212,14 @@ public class MovableFunction extends Movable {
     }
 
     private void setFunctionGivenManipulators(){
-        // TODO edge case 2 manipulators have the same position
         java.util.Arrays.sort(manipulator);
         DrawableFunction df = (DrawableFunction) parent;
         Pos3d left = getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition()));
         Pos3d right = getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition()));
+
+        if(left.x == right.x){
+            return;
+        }
 
         Function f = getFunction();
         ArrayList<Pos3d> poses = new ArrayList<>();

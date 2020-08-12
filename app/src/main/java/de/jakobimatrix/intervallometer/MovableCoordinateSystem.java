@@ -102,6 +102,7 @@ public class MovableCoordinateSystem extends Movable {
         if(parent.isWithin(position_)) {
             if(isValidFunctionId(active_function)){
                 functions.get(active_function).setPosition(position_);
+                removeZeroWidthFunctions();
             }
         }
     }
@@ -115,6 +116,20 @@ public class MovableCoordinateSystem extends Movable {
     public void endTouch() {
         for(MovableFunction df: functions){
             df.endTouch();
+        }
+    }
+
+    private void removeZeroWidthFunctions(){
+        boolean removed = false;
+        for(int i = functions.size()-1; i > -1; i--){
+            MovableFunction mf = functions.get(i);
+            if(mf.getFunctionMaxX() == mf.getFunctionMinX()){
+                functions.remove(i);
+                removed = true;
+            }
+        }
+        if(removed){
+            synchronizeFunctions();
         }
     }
 
@@ -132,6 +147,7 @@ public class MovableCoordinateSystem extends Movable {
                 mf.executeCommand();
             }
         }
+        removeZeroWidthFunctions();
         scale();
     }
 
