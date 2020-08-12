@@ -83,9 +83,16 @@ public class MovableCoordinateSystem extends Movable {
     public boolean isWithin(Pos3d position_) {
         if(parent.isWithin(position_)) {
             for (int i = 0; i < functions.size(); i++) {
-                if (functions.get(i).isWithinToggle(position_)) {
-                    active_function = i;
-                    return true;
+                if(toggle_not){
+                    if (functions.get(i).isWithin(position_)) {
+                        active_function = i;
+                        return true;
+                    }
+                }else {
+                    if (functions.get(i).isWithinToggle(position_)) {
+                        active_function = i;
+                        return true;
+                    }
                 }
             }
         }
@@ -98,6 +105,7 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public void setPosition(Pos3d position_){
+        toggle_not = true;
         if(parent.isWithin(position_)) {
             if(isValidFunctionId(active_function)){
                 functions.get(active_function).setPosition(position_);
@@ -116,6 +124,7 @@ public class MovableCoordinateSystem extends Movable {
         for(MovableFunction df: functions){
             df.endTouch();
         }
+        toggle_not = false;
     }
 
     private void removeZeroWidthFunctions(){
@@ -576,7 +585,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private boolean isValidFunctionId(int id){
-        if(id < functions.size() && id > INVALID_FUNCTION){
+        if(id < functions.size() && id > -1){
             return true;
         }
         return false;
@@ -586,12 +595,19 @@ public class MovableCoordinateSystem extends Movable {
         for(int i = 0; i < functions.size() - 1; i++){
             MovableFunction.registerCoupledFunctionPair(functions.get(i), functions.get(i+1));
         }
+        if(isValidFunctionId(active_function + 1)){
+            functions.get(active_function + 1).synchronizeThis();
+        }
+        if(isValidFunctionId(active_function - 1)){
+            functions.get(active_function - 1).synchronizeThis();
+        }
     }
 
-    final static int INVALID_FUNCTION = -1;
+    final static int INVALID_FUNCTION = -10;
     int active_function = INVALID_FUNCTION;
     Vector<MovableFunction> functions = new Vector<>();
     boolean lock_function_access = false;
+    boolean toggle_not = false;
 
     // visual
     ViewPort openGL_viewport;

@@ -99,7 +99,6 @@ public class MovableFunction extends Movable {
     public void setPosition(Pos3d p){
         for (int i = 0; i < NUM_MANIPULATORS; i++) {
             if (manipulator[i].isWithin(p)) {
-                boolean l = manipulator[i].isLocked();
                 p.z = Globals.MANIPULATOR_Z_ELEVATION;
                 moveManipulatorManuallyAndSetFunction(i, p);
                 return;
@@ -217,16 +216,15 @@ public class MovableFunction extends Movable {
         Pos3d left = getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition()));
         Pos3d right = getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition()));
 
-        if(left.x == right.x){
-            return;
-        }
-
         Function f = getFunction();
         ArrayList<Pos3d> poses = new ArrayList<>();
         poses.add(left);
         poses.add(right);
 
-        f.setFunctionGivenPoints(poses);
+        if(Math.abs(left.x - right.x) > Utility.EPSILON_D){
+            f.setFunctionGivenPoints(poses);
+        }
+
         df.setFunction(f);
         df.setMax(right.x);
         df.setMin(left.x);
