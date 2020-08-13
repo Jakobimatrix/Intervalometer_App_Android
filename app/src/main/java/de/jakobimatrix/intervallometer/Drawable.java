@@ -201,11 +201,11 @@ public abstract class Drawable {
         children.add(child);
     }
 
-    void setColoringMethodFill(){
+    public void setColoringMethodFill(){
         triangle_coloring = GL10.GL_TRIANGLE_STRIP;
     }
 
-    void setColoringMethodLines(){
+    public void setColoringMethodLines(){
         triangle_coloring = GL10.GL_LINE_STRIP;
     }
 
@@ -213,7 +213,7 @@ public abstract class Drawable {
      * \brief forceReRender forces this drawable and all its child to re calculate
      * vertices, positions, etc
      */
-    void forceReRender(){
+    public void forceReRender(){
         needs_rendering = true;
         for (Drawable child : children) {
             child.forceReRender();

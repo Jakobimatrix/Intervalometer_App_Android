@@ -1,7 +1,9 @@
 package de.jakobimatrix.intervallometer;
 
-import android.content.Context;
-import android.util.Log;
+import android.app.Activity;
+import android.view.View;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -17,8 +19,12 @@ public class MovableCoordinateSystem extends Movable {
      * \param width The width in openGL scale of the coordinate system
      * \param height The height in openGL scale of the coordinate system
      */
-    public MovableCoordinateSystem(Context context_, Pos3d position_, float width, float height) {
-        super(new DrawableRectangle(context_, new Pos3d(position_), width, height));
+    public MovableCoordinateSystem(Activity activity, Pos3d position_, float width, float height) {
+        super(new DrawableRectangle(activity.getBaseContext(), new Pos3d(position_), width, height));
+        //// TODO
+        this.activity = activity;
+        this.rl = (RelativeLayout) activity.findViewById(R.id.relEditTemplate);
+        //// TODO
         DrawableRectangle bg = (DrawableRectangle) parent;
         bg.setBotLeftOrigin();
         bg.setColor(BG_DEFAULT_COLOR);
@@ -39,9 +45,9 @@ public class MovableCoordinateSystem extends Movable {
 
         final float arrow_body_width = 0.5f*AXIS_WIDTH/Utility.GOLDEN_RATIO;
 
-        x_axis = new DrawableArrow(context_,new Pos3d(position_), width - margin_left, AXIS_WIDTH);
+        x_axis = new DrawableArrow(activity.getBaseContext(),new Pos3d(position_), width - margin_left, AXIS_WIDTH);
         x_axis.setRotationRIGHT();
-        y_axis = new DrawableArrow(context_,new Pos3d(position_), height - margin_bot - arrow_body_width, AXIS_WIDTH);
+        y_axis = new DrawableArrow(activity.getBaseContext(),new Pos3d(position_), height - margin_bot - arrow_body_width, AXIS_WIDTH);
         y_axis.setRotationUP();
 
         parent.adChild(x_axis, new Pos3d(margin_bot-arrow_body_width/2, margin_left, 0));
@@ -51,8 +57,8 @@ public class MovableCoordinateSystem extends Movable {
         y_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ==
 
         for(int i = 0; i < NUM_GRID_STRIPES; i++){
-            y_grid.add(new DrawableRectangle(context_, new Pos3d(position_), (float) (width-margin_left-MARGIN_TOP_RIGHT), GRID_WIDTH));
-            x_grid.add(new DrawableRectangle(context_, new Pos3d(position_), GRID_WIDTH, (float) (height-margin_bot-MARGIN_TOP_RIGHT)));
+            y_grid.add(new DrawableRectangle(activity.getBaseContext(), new Pos3d(position_), (float) (width-margin_left-MARGIN_TOP_RIGHT), GRID_WIDTH));
+            x_grid.add(new DrawableRectangle(activity.getBaseContext(), new Pos3d(position_), GRID_WIDTH, (float) (height-margin_bot-MARGIN_TOP_RIGHT)));
             y_grid.get(i).setLeftCenterOrigin();
             x_grid.get(i).setBotCenterOrigin();
             x_grid.get(i).setColor(ColorRGBA.TRANSPARENT);
@@ -76,6 +82,21 @@ public class MovableCoordinateSystem extends Movable {
         y_axis.setColor(grid_color);
 
         is_locked = false;
+        placeAddFunctionButtons();
+    }
+
+    @Override
+    public void clean(){
+        super.clean();
+        removeAllButtons();
+        for(DrawableString ds : x_ticks){
+            ds.clean();
+        }
+        x_ticks.clear();
+        for(DrawableString ds : y_ticks){
+            ds.clean();
+        }
+        y_ticks.clear();
     }
 
     /*!
@@ -136,33 +157,28 @@ public class MovableCoordinateSystem extends Movable {
         scale();
     }
 
+    private void removeFunction(int id){
+        if(isValidFunctionId(id)){
+            function_access.LOCK(0);
+            functions.remove(id);
+            function_access.UNLOCK();
+        }
+    }
+
     private void removeZeroWidthFunctions(){
         boolean removed = false;
 
-        lock_function_access = false;
         for(int i = functions.size()-1; i > -1; i--){
             MovableFunction mf = functions.get(i);
             if(mf.getFunctionMaxX() == mf.getFunctionMinX()){
-                LOCK_FUNCTION_ACCESS();
-                functions.remove(i);
-                UNLOCK_FUNCTION_ACCESS();
+                removeFunction(i);
+                // TODO
                 removed = true;
             }
         }
         if(removed){
             synchronizeFunctions();
         }
-    }
-
-    private void LOCK_FUNCTION_ACCESS(){
-        while(lock_function_access){
-
-        }
-        lock_function_access = true;
-    }
-
-    private void UNLOCK_FUNCTION_ACCESS(){
-        lock_function_access = false;
     }
 
     /*!
@@ -209,8 +225,12 @@ public class MovableCoordinateSystem extends Movable {
         }
 
         // update the command for all functions
+        Pos3d command = stick_to_grid_distance;
+        if(stick_to_grid_distance.norm() < Utility.EPSILON_D){
+            command = current_grid_distance;
+        }
         for(MovableFunction mf : functions){
-            mf.setCommand(cmd, Pos3d.mul(current_grid_distance, multiply));
+            mf.setCommand(cmd, Pos3d.mul(command, multiply));
         }
 
         duration = now - active_tick_start;
@@ -229,11 +249,12 @@ public class MovableCoordinateSystem extends Movable {
     @Override
     public void draw(GL10 gl){
         parent.draw(gl);
-        LOCK_FUNCTION_ACCESS();
+        function_access.LOCK(1);
         for (MovableFunction f : functions) {
             f.draw(gl);
         }
-        UNLOCK_FUNCTION_ACCESS();
+        function_access.UNLOCK();
+
         for(DrawableString ds: x_ticks){
             ds.draw(gl);
         }
@@ -332,8 +353,10 @@ public class MovableCoordinateSystem extends Movable {
      * \param grid A 3D point where x and y denote the grid width.
      */
     public void stickToGrid(Pos3d grid){
+        stick_to_grid_distance = new Pos3d(grid);
+        stick_to_grid_distance.abs();
         for(MovableFunction mf : functions){
-            mf.stickToGrid(grid);
+            mf.stickToGrid(stick_to_grid_distance);
         }
     }
 
@@ -488,6 +511,7 @@ public class MovableCoordinateSystem extends Movable {
 
         adjustGrid();
         rescaleAllFunctions();
+        placeAddFunctionButtons();
     }
 
     private double getAllFunctionsMaxX(){
@@ -530,14 +554,15 @@ public class MovableCoordinateSystem extends Movable {
      * \return an index over which the function can be deleted/locked etc...
      */
     public int addFunction(Function f, double min, double max){
-        Pos3d grid = functions.size()>0? functions.get(0).grid:Pos3d.Zero();
 
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
         mf.setLocked(true);
-        mf.stickToGrid(grid);
+        mf.stickToGrid(stick_to_grid_distance);
+        function_access.LOCK(2);
         functions.add(mf);
+        function_access.UNLOCK();
 
         synchronizeFunctions();
 
@@ -552,9 +577,9 @@ public class MovableCoordinateSystem extends Movable {
         getMovableFunction(index); // throw if index is out of bounds
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
 
-        LOCK_FUNCTION_ACCESS();
+        function_access.LOCK(3);
         functions.set(index, mf);
-        UNLOCK_FUNCTION_ACCESS();
+        function_access.UNLOCK();
 
         synchronizeFunctions();
 
@@ -595,7 +620,7 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private MovableFunction getMovableFunction(int index){
-        if(functions.size() > index){
+        if(functions.size() > index && index > -1){
             return functions.get(index);
         }
         throw new IllegalArgumentException( "MovableCoordinateSystem::getMovableFunction: given index is not a function set prior");
@@ -634,16 +659,138 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    private void placeAddFunctionButtonsActivity(){
+        int num_functions = functions.size();
+        int num_buttons = add_function_button.size();
+        // we always have 1 button more than we have functions
+        int diff = num_buttons - num_functions - 1;
+        if(diff > 0){
+            // more buttons than needed
+            int id = add_function_button.size() - 1;
+            for(int i = 0; i < diff; i++){
+                // remove the last diff buttons
+                if(id > -1){
+                    add_function_button.get(id).delete();
+                    add_function_button.remove(id);
+                }
+                id--;
+            }
+        }else if(diff < 0){
+            // we have diff to less buttons
+            createAddFunctionButton(-diff);
+        }
+
+        //now set the correct positions
+        // we will always have the right amount of buttons
+        // The ButtonOrigin is center-top
+        if(num_functions == 0){
+            // no function, set the plus in the center of the coord system
+            Pos3d center = parent.getPosition();
+            center.x += getWidth()/2.;
+            center.y += getHeight()/2.;
+            Pos3d screen_pos = Utility.openGl2Screen(center);
+            add_function_button.get(0).place((int) Math.round(screen_pos.x), Math.round((int) screen_pos.y));
+        }else{
+            double y_pos = system_viewport.max.y;
+            for(int i = 0; i < num_functions; i++){
+                MovableFunction mf = functions.get(i);
+                double max_x = mf.getFunctionMaxX();
+                Pos3d max = new Pos3d(max_x, y_pos, 0);
+                Pos3d open_gl_pos = system_2_open_gl.transform(max);
+                Pos3d screen_pos = Utility.openGl2Screen(open_gl_pos);
+                add_function_button.get(i+1).place((int) Math.round(screen_pos.x), Math.round((int) screen_pos.y));
+            }
+            // the very first plus is at the first function min
+            MovableFunction mf = functions.get(0);
+            double min_x = mf.getFunctionMinX();
+            Pos3d min = new Pos3d(min_x, y_pos, 0);
+            Pos3d open_gl_pos = system_2_open_gl.transform(min);
+            Pos3d screen_pos = Utility.openGl2Screen(open_gl_pos);
+            add_function_button.get(0).place((int) Math.round(screen_pos.x), Math.round((int) screen_pos.y));
+        }
+    }
+
+    private void placeAddFunctionButtons(){
+        // all ui stuff must be done by activity
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                placeAddFunctionButtonsActivity();
+            }
+        });
+    }
+
+    private void createAddFunctionButtonActivity(int num_buttons_2_add){
+        while(num_buttons_2_add > 0){
+            DynamicButton dynBut = new DynamicButton(parent.context, rl, 0, 0, 0, 0);
+            dynBut.setColor(0xFFFFFFFF);
+            dynBut.setBackground(R.drawable.ic_plus_button);
+            dynBut.setTopCenterOrigin();
+            final int id = add_function_button.size();
+
+            dynBut.button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openAddFunctionDialog(id);
+                }
+            });
+            add_function_button.add(dynBut);
+            num_buttons_2_add--;
+        }
+    }
+
+    private void createAddFunctionButton(final int num_buttons_2_add){
+        // all ui stuff must be done by activity
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                createAddFunctionButtonActivity(num_buttons_2_add);
+            }
+        });
+    }
+
+    private void removeAllButtons(){
+        // all ui stuff must be done by activity
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for(DynamicButton db : add_function_button){
+                    db.delete();
+                }
+                add_function_button.clear();
+            }
+        });
+    }
+
+    private void openAddFunctionDialogActivity(final int id){
+        Toast toast=Toast. makeText(parent.context,"YOu added a function at " + id, Toast. LENGTH_SHORT);
+        toast.show();
+    }
+
+    private void openAddFunctionDialog(final int id){
+        // all ui stuff must be done by activity
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                openAddFunctionDialogActivity(id);
+            }
+        });
+    }
+
     final static int INVALID_FUNCTION = -10;
     int active_function = INVALID_FUNCTION;
     Vector<MovableFunction> functions = new Vector<>();
-    boolean lock_function_access = false;
+    Vector<DynamicButton> add_function_button = new Vector<>();
+    Lock function_access = new Lock("MovableCoordSys");
     boolean toggle_not = false;
 
     // visual
     ViewPort openGL_viewport;
     // values on axis
     ViewPort system_viewport;
+
+    Activity activity;
+    RelativeLayout rl;
 
     Pos3d current_grid_distance = Pos3d.Zero();
     long hold_start = FIRST_CONTACT;
@@ -684,6 +831,8 @@ public class MovableCoordinateSystem extends Movable {
     final static float MARGIN_TOP_RIGHT = 0.25f;
     float margin_bot = 0.55f;
     float margin_left = 0.65f;
+
+    Pos3d stick_to_grid_distance = Pos3d.Zero();
 
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0.2,0.2,0.2,1);

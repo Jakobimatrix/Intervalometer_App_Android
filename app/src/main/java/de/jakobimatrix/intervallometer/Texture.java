@@ -32,17 +32,21 @@ public class Texture extends DrawableRectangle {
      */
     @Override
     public void clean(){
+        lock.LOCK(1);
         if(bitmap != null){
             bitmap.recycle();
         }
+        lock.UNLOCK();
         super.clean();
     }
 
     public void setBitmap(Bitmap bitmap){
+        lock.LOCK(2);
         if(this.bitmap != null){
             this.bitmap.recycle();
         }
         this.bitmap = bitmap;
+        lock.UNLOCK();
         need_texture_reload = true;
     }
 
@@ -64,7 +68,9 @@ public class Texture extends DrawableRectangle {
 //		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T, GL10.GL_REPEAT);
 
         // Use Android GLUtils to specify a two-dimensional texture image from our bitmap
+        lock.LOCK(3);
         GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+        lock.UNLOCK();
         need_texture_reload = false;
     }
 
@@ -155,6 +161,8 @@ public class Texture extends DrawableRectangle {
     AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
     private final static int NUM_VERTICES = 4;
     private FloatBuffer texture_buffer;
+
+    Lock lock = new Lock("texture");
 
     private Bitmap bitmap = null;
     private int[] textures = new int[1];

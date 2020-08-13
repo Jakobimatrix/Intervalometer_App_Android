@@ -13,6 +13,11 @@ public class Globals {
         return mInstance;
     }
 
+    static int screen_width = 0;
+    static int screen_height = 0;
+    // this should scale everything
+    static float zoom = -4;
+
     final static public double GRID_Z_ELEVATION = 0.001;
     final static public double FUNCTION_Z_ELEVATION = 0.002;
     final static public double MANIPULATOR_Z_ELEVATION = 0.009;

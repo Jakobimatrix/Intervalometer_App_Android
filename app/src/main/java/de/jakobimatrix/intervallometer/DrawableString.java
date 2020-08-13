@@ -29,10 +29,12 @@ public class DrawableString extends Drawable {
      * like a destructor.
      */
     public void clean(){
+        lock.LOCK(1);
         for(DrawableChar dc: string){
             dc.clean();
         }
         string.clear();
+        lock.UNLOCK();
     }
 
     @Override
@@ -44,9 +46,11 @@ public class DrawableString extends Drawable {
 
     @Override
     public void draw(GL10 gl){
+        lock.LOCK(2);
         for(DrawableChar dc : string){
             dc.draw(gl);
         }
+        lock.UNLOCK();
     }
 
     @Override
@@ -79,7 +83,9 @@ public class DrawableString extends Drawable {
             Pos3d origin = new Pos3d(dc.getOrigin());
             dc.setCustomOrigin(Pos3d.add(origin, offset));
             dc.setRotation(rotation);
+            lock.LOCK(3);
             string.add(dc);
+            lock.UNLOCK();
             // calc offset for next char
             add.x = dc.width;
             offset.add(add);
@@ -124,6 +130,8 @@ public class DrawableString extends Drawable {
     float font_size;
     int font_height_pix;
     float rotation = 0;
+
+    Lock lock = new Lock("DrawableString");
 
     final static float CHAR_DIST_PERCENT = 0.1f;
 

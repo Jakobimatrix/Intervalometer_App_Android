@@ -26,11 +26,12 @@ public class EditTemplateActivity extends Activity {
         super.onCreate(savedInstanceState);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         charToBitmapConverter.init(getBaseContext());
+        setContentView(R.layout.activity_edit_template);
 
         Display display = getWindowManager().getDefaultDisplay();
         display.getSize(screen_size);
-
-        setContentView(R.layout.activity_edit_template);
+        Globals.screen_width = screen_size.x;
+        Globals.screen_height = screen_size.y;
 
         connectWithGUI();
         setGUIFunctions();
@@ -63,11 +64,13 @@ public class EditTemplateActivity extends Activity {
             layout.width = button_width;
             buttons[i].setLayoutParams(layout);
         }
-        // reduce the gl layout width about the button size since the button layout is right of gl.
-        ViewGroup.LayoutParams params = gl_view.getLayoutParams();
-        params.width = screen_size.x - button_width;
-        gl_view.setLayoutParams(params);
-
+        // Set negative margin (-button_width) to buttonLayout since it is to the right of the gl_view.
+        // That will bring it into the screen.
+        LinearLayout ll = (LinearLayout) findViewById(R.id.buttonLayout);
+        RelativeLayout.LayoutParams params_ll = (RelativeLayout.LayoutParams) ll.getLayoutParams();
+        params_ll.width = button_width;
+        params_ll.setMargins(-button_width, 0, 0, 0);
+        ll.setLayoutParams(params_ll);
 
         // DEBUG
         if(DEBUG_TOUCH) {
@@ -82,15 +85,12 @@ public class EditTemplateActivity extends Activity {
 
     private void setUpCoordSystem(){
         // for the symbols
-        // TODO somehow that is not the correct margin
-        int MARGIN_LEFT = getButtonWidth()/2;
-        double MARGIN_RIGHT = getButtonWidth()/2;
+        double MARGIN_RIGHT = getButtonWidth();
 
-        Pos3d bot_left_screen = new Pos3d(0 + MARGIN_LEFT, screen_size.y, 0);
+        Pos3d bot_left_screen = new Pos3d(0, screen_size.y, 0);
         Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0, 0);
-        Pos3d bot_left_view_gl  = renderer.screen2openGl(bot_left_screen);
-        Pos3d top_right_view_gl  = renderer.screen2openGl(top_right_screen);
-        Log.d("bot_left_view_gl", bot_left_view_gl.toString());
+        Pos3d bot_left_view_gl  = Utility.screen2openGl(bot_left_screen);
+        Pos3d top_right_view_gl  = Utility.screen2openGl(top_right_screen);
         float width = (float) Math.abs(top_right_view_gl.x - bot_left_view_gl.x);
         float height = (float) Math.abs(top_right_view_gl.y - bot_left_view_gl.y);
 
@@ -249,7 +249,7 @@ public class EditTemplateActivity extends Activity {
             seeker_x.setLayoutParams(params_x);
             seeker_y.setLayoutParams(params_y);
 
-            debug_seeker.setPosition(renderer.screen2openGl(new Pos3d(x, y, 0)));
+            debug_seeker.setPosition(Utility.screen2openGl(new Pos3d(x, y, 0)));
         }
 
         return renderer.onTouchEvent(event);

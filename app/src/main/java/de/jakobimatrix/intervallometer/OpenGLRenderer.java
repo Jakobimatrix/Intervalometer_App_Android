@@ -43,7 +43,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         // TODO THIS IS CALLED too WHEN ROTATEING THE PHONE so lock rotation!
         gl10.glShadeModel(GL10.GL_SMOOTH); // Enable Smooth Shading
 
-        //gl10.glClearColor(0.5f, 0.5f, 0.0f, 0.5f);
+        gl10.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         gl10.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
         gl10.glEnable(GL10.GL_DEPTH_TEST);
     }
@@ -59,7 +59,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         gl10.glLoadIdentity();
         // clipping distance from camera
         float near = 1.0f;
-        float far = -zoom+1;
+        float far = -Globals.zoom+1;
         float bottom = -1.0f;
         float top = 1.0f;
         float left = -ratio;
@@ -94,7 +94,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
 
         // zoom and rotation of the scene
         // zoom should be negative to render things at z=0x
-        gl10.glTranslatef(0.0f, 0.0f, zoom);
+        gl10.glTranslatef(0.0f, 0.0f, Globals.zoom);
         /* No rotation vor now
         float roll = 0;
         float pitch = 0;
@@ -121,7 +121,7 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         float x = e.getX();
         float y = e.getY();
         last_pos_screen = new Pos3d(x, y,0);
-        last_pos_openGL = screen2openGl(last_pos_screen);
+        last_pos_openGL = Utility.screen2openGl(last_pos_screen);
 
         switch (e.getAction()) {
             case MotionEvent.ACTION_UP:
@@ -222,36 +222,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
         return null;
     }
 
-    /*!
-     * \brief screen2openGl Given coordinates this function returns the corresponding coordinates in openGL view.
-     * \param screen_coordinate The screen coordinates
-     * \return Pos3d the converted coordinates
-     */
-    public Pos3d screen2openGl(Pos3d screen_coordinate){
-        Pos3d openGL_coordinate = new Pos3d(screen_coordinate);
-        final float scaling = Math.min(screen_width_px, screen_height_px);
-        //final float MAGIC_NUMBER = 1.125f;
-        // TODO this magic number works only on screens 1080*1920
-        final float MAGIC_NUMBER = 2f;
-        // TODO this magic number works only on screens 1920*1080
-        // I have no idea where I fucked up and I also don't care anymore.
-        // I mean this: https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glFrustum.xml
-        final float factor = (zoom*MAGIC_NUMBER) / (scaling);
-        openGL_coordinate.x = -(screen_coordinate.x - screen_width_px/2.f) * factor;
-        openGL_coordinate.y = (screen_coordinate.y - screen_height_px/2.f) * factor;
-        return openGL_coordinate;
-    }
-
-    public double screen2OpenGl(int pix){
-        return screen2openGl(new Pos3d(pix, 0, 0)).x;
-    }
-
-    public ViewPort screen2openGl(ViewPort screen){
-        Pos3d min = screen2openGl(screen.min);
-        Pos3d max = screen2openGl(screen.max);
-        return new ViewPort(min, max);
-    }
-
     private TimerTask createTimerTaskRunAnalogCmd() {
         return new TimerTask() {
             @Override
@@ -318,9 +288,6 @@ class OpenGLRenderer implements GLSurfaceView.Renderer {
     boolean on_finger_released_called = false;
     boolean stop_touch_tread = false;
     Timer timer_analog_action = new Timer();
-
-    // this should scale everything
-    final private float zoom = -4;
 
     // contains the id of the last moved movable for a first guess.
     final static int INVALID_KEY = -1;

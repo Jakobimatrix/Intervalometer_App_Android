@@ -160,6 +160,56 @@ public class Utility {
         return hex;
     }
 
+    /*!
+     * \brief screen2openGl Given coordinates this function returns the corresponding coordinates in openGL view.
+     * \param screen_coordinate The screen coordinates
+     * \return Pos3d the converted coordinates
+     */
+    public final static Pos3d screen2openGl(Pos3d screen_coordinate){
+        Pos3d openGL_coordinate = new Pos3d(screen_coordinate);
+        final float scaling = Math.min(Globals.screen_width, Globals.screen_height);
+        //final float MAGIC_NUMBER = 1.125f;
+        // TODO this magic number works only on screens 1080*1920
+        final float MAGIC_NUMBER = 2f;
+        // TODO this magic number works only on screens 1920*1080
+        // I have no idea where I fucked up and I also don't care anymore.
+        // I mean this: https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glFrustum.xml
+        final float factor = (Globals.zoom*MAGIC_NUMBER) / (scaling);
+        openGL_coordinate.x = -(screen_coordinate.x - Globals.screen_width/2.f) * factor;
+        openGL_coordinate.y = (screen_coordinate.y - Globals.screen_height/2.f) * factor;
+        return openGL_coordinate;
+    }
+
+    /*!
+     * \brief screen2openGl Given coordinates this function returns the corresponding coordinates in openGL view.
+     * \param screen_coordinate The screen coordinates
+     * \return Pos3d the converted coordinates
+     */
+    public final static Pos3d openGl2Screen(Pos3d openGL_coordinate){
+        Pos3d screen_coordinate = new Pos3d(openGL_coordinate);
+        final float scaling = Math.min(Globals.screen_width, Globals.screen_height);
+        //final float MAGIC_NUMBER = 1.125f;
+        // TODO this magic number works only on screens 1080*1920
+        final float MAGIC_NUMBER = 2f;
+        // TODO this magic number works only on screens 1920*1080
+        // I have no idea where I fucked up and I also don't care anymore.
+        // I mean this: https://www.khronos.org/registry/OpenGL-Refpages/es1.1/xhtml/glFrustum.xml
+        final float factor = (Globals.zoom*MAGIC_NUMBER) / (scaling);
+        screen_coordinate.x = -(openGL_coordinate.x / factor) + Globals.screen_width/2.f;
+        screen_coordinate.y = openGL_coordinate.y / factor + Globals.screen_height/2.f;
+        return screen_coordinate;
+    }
+
+    public final static double screen2OpenGl(int pix){
+        return screen2openGl(new Pos3d(pix, 0, 0)).x;
+    }
+
+    public final static ViewPort screen2openGl(ViewPort screen){
+        Pos3d min = screen2openGl(screen.min);
+        Pos3d max = screen2openGl(screen.max);
+        return new ViewPort(min, max);
+    }
+
 
     final static double EPSILON_D = Math.ulp(4.0);
     final static float EPSILON_F = Math.ulp(4.0f);
