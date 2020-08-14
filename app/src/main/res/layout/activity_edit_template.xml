@@ -5,6 +5,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:gravity="center_horizontal"
     android:background="@color/Primary">
 
     <android.opengl.GLSurfaceView
@@ -37,6 +38,7 @@
         android:layout_height="fill_parent"
         android:layout_marginLeft="-200px"
         android:layout_marginRight="-200px"
+        android:animateLayoutChanges="true"
         android:orientation="vertical">
 
         <Button
@@ -64,5 +66,55 @@
             android:id="@+id/info"
             android:background="@drawable/ic_baseline_info_24"/>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/editFunctionLayout"
+        android:layout_width="0px"
+        android:layout_height="0px"
+        android:background="@color/Primary_overlay"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TableLayout
+            style="@style/TableLayoutEditTemplate">
+            <TableRow style="@style/TableRowEditFunction">
+            <TextView
+                style="@style/EditFunctionLabel"
+                android:id="@+id/spinner_choose_function_label"
+                android:text="@string/choose_function" />
+
+            <Spinner
+                style="@style/EditFunctionAction"
+                android:id="@+id/spinnerChooseFunction"
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown" />
+            </TableRow>
+
+            <TableRow style="@style/TableRowEditFunction">
+            <TextView
+                style="@style/EditFunctionLabel"
+                android:id="@+id/chooseNumPicturesLabel"
+                android:text="@string/choose_number_pictures" />
+
+            <EditText
+                style="@style/EditFunctionAction"
+                android:id="@+id/chooseNumPictures"
+                android:ems="10"
+                android:inputType="number" />
+            </TableRow>
+
+            <TableRow style="@style/TableRowEditFunction">
+                <Button
+                    android:id="@+id/cancelFunctionEditBtn"
+                    android:text="@string/btn_cancel"/>
+
+                <Button
+                    android:id="@+id/applyFunctionEditBtn"
+                    android:text="@string/btn_apply"/>/>
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
+
+
 
 </RelativeLayout>

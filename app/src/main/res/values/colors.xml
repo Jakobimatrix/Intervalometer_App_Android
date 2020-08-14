@@ -9,6 +9,7 @@
     <color name="Connected">#1c783b</color>
     <color name="ERROR">#FF0000</color>
     <color name="transparent">#00000000</color>
+    <color name="Primary_overlay">#88363333</color>
     <color name="WARNING">#FFA500</color>
     <color name="debug1">#00FF00</color>
     <color name="debug2">#FF00FF</color>

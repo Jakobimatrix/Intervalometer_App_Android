@@ -2,7 +2,13 @@ package de.jakobimatrix.intervallometer;
 
 import android.app.Activity;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -10,6 +16,7 @@ import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
+enum SUPPORTED_FUNCTION{LINEAR,QUADRATIC,SIGMOID, UNKNOWN};
 public class MovableCoordinateSystem extends Movable {
 
     /*!
@@ -23,7 +30,7 @@ public class MovableCoordinateSystem extends Movable {
         super(new DrawableRectangle(activity.getBaseContext(), new Pos3d(position_), width, height));
         //// TODO
         this.activity = activity;
-        this.rl = (RelativeLayout) activity.findViewById(R.id.relEditTemplate);
+        this.rl = (RelativeLayout) activity.findViewById(Globals.EDIT_TEMPLATE_LAYOUT);
         //// TODO
         DrawableRectangle bg = (DrawableRectangle) parent;
         bg.setBotLeftOrigin();
@@ -120,10 +127,24 @@ public class MovableCoordinateSystem extends Movable {
                     }
                 }
             }
-            //user clicked within coord but no point -> lock all points
+            // Single tap: User clicked within coord but not on a point -> lock all points
             for(MovableFunction mf : functions){
                 mf.setLocked(true);
             }
+            // double tap: edit function
+            long now = System.currentTimeMillis();
+            // doubletap if time between two calls is small enough and endTouch() has been called in between.
+            if(now - last_tap < DOUBLE_TAP_DURATION_MS){
+                Pos3d func_pos = open_gl_2_system.transform(position_);
+                for(int i = 0; i < functions.size(); i++){
+                    MovableFunction mf = functions.get(i);
+                    if(mf.getFunctionMinX() < func_pos.x && func_pos.x < mf.getFunctionMaxX()){
+                        openAddFunctionDialog(i, true);
+                    }
+                }
+            }
+            last_tap = now;
+            lifted = false;
         }
         active_function = INVALID_FUNCTION;
         return false;
@@ -150,6 +171,7 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public void endTouch() {
+        lifted = true;
         for(MovableFunction df: functions){
             df.endTouch();
         }
@@ -553,7 +575,6 @@ public class MovableCoordinateSystem extends Movable {
      * \return an index over which the function can be deleted/locked etc...
      */
     public int addFunction(Function f, double min, double max){
-
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
         MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
@@ -564,24 +585,61 @@ public class MovableCoordinateSystem extends Movable {
         function_access.UNLOCK();
 
         synchronizeFunctions();
-
         scale();
         rescaleAllFunctions();
         return functions.size()-1;
     }
 
-    public void replaceFunction(int index, Function f, double min, double max){
+    public int insertFunction(int id, Function f, double length){
+        if(functions.size() <= id){
+            // add to the end
+            double min = 0;
+            if(functions.size() > 0) {
+                min = getMovableFunction(functions.size() - 1).getFunctionMinX();
+            }
+            addFunction(f, min, min+length);
+        }
+
+        double min = getMovableFunction(id).getFunctionMinX();
+        // first shift all functions about length
+        getMovableFunction(id).moveTail(length);
+
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
-        getMovableFunction(index); // throw if index is out of bounds
-        MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
-
-        function_access.LOCK(3);
-        functions.set(index, mf);
+        MovableFunction mf = new MovableFunction(parent.context, relative_position, f, min, min+length, system_2_open_gl);
+        mf.setLocked(true);
+        mf.stickToGrid(stick_to_grid_distance);
+        function_access.LOCK(2);
+        functions.insertElementAt(mf, id);
         function_access.UNLOCK();
 
         synchronizeFunctions();
+        scale();
+        rescaleAllFunctions();
+        return functions.size()-1;
+    }
 
+    private void replaceFunction(int index, Function f, double length){
+        Pos3d relative_position = new Pos3d(parent.getPosition());
+        relative_position.add(static_axis_offset[2]);
+        MovableFunction mf = getMovableFunction(index);
+        double min = mf.getFunctionMinX();
+        double max = min + length;
+        if(isValidFunctionId(index + 1)) {
+            // we have to move all functions to the right to fit length
+            double prev_max = mf.getFunctionMaxX();
+            double dx_function = max - prev_max;
+            getMovableFunction(index+1).moveTail(dx_function);
+        }
+
+        MovableFunction new_mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
+        new_mf.stickToGrid(stick_to_grid_distance);
+        new_mf.setLocked(true);
+        function_access.LOCK(3);
+        functions.set(index, new_mf);
+        function_access.UNLOCK();
+
+        synchronizeFunctions();
         scale();
         rescaleAllFunctions();
     }
@@ -667,6 +725,45 @@ public class MovableCoordinateSystem extends Movable {
         }
     }
 
+    private ArrayList<String> getSupportedFunctions(boolean add_delete){
+        ArrayList<String> supported = new ArrayList<String>(){{
+            add(activity.getString(R.string.linear_function));
+            add(activity.getString(R.string.quadratic_function));
+            add(activity.getString(R.string.sigmoid_function));
+        }};
+        if(add_delete){
+            supported.add(activity.getString(R.string.delete_function));
+        }
+        return supported;
+    }
+
+    private SUPPORTED_FUNCTION FunctionString2Enum(String function_class){
+        if(activity.getString(R.string.linear_function).equals(function_class)){
+            return SUPPORTED_FUNCTION.LINEAR;
+        }
+        if(activity.getString(R.string.quadratic_function).equals(function_class)){
+            return SUPPORTED_FUNCTION.QUADRATIC;
+        }
+        if(activity.getString(R.string.sigmoid_function).equals(function_class)){
+            return SUPPORTED_FUNCTION.LINEAR;
+        }
+        return SUPPORTED_FUNCTION.SIGMOID;
+    }
+
+    private SUPPORTED_FUNCTION FunctionClass2Enum(Object unknown_function_class){
+        // sigmoid must be checked for LinearFunction since all sigmoids are linear functions (see inheritance)
+        if (unknown_function_class instanceof SigmoidFunction) {
+            return SUPPORTED_FUNCTION.SIGMOID;
+        }
+        if (unknown_function_class instanceof LinearFunction) {
+            return SUPPORTED_FUNCTION.LINEAR;
+        }
+        if (unknown_function_class instanceof QuadraticFunction) {
+            return SUPPORTED_FUNCTION.QUADRATIC;
+        }
+        return SUPPORTED_FUNCTION.UNKNOWN;
+    }
+
     private void placeAddFunctionButtonsActivity(){
         int num_functions = functions.size();
         int num_buttons = add_function_button.size();
@@ -739,7 +836,7 @@ public class MovableCoordinateSystem extends Movable {
             dynBut.button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    openAddFunctionDialog(id);
+                    openAddFunctionDialog(id, false);
                 }
             });
             add_function_button.add(dynBut);
@@ -770,20 +867,161 @@ public class MovableCoordinateSystem extends Movable {
         });
     }
 
-    private void openAddFunctionDialogActivity(final int id){
-        Toast toast=Toast. makeText(parent.context,"YOu added a function at " + id, Toast. LENGTH_SHORT);
-        toast.show();
+    private void prepareAdFunctionDialogActivity(final int id, final boolean edit_function){
+
+        Button apply = (Button) activity.findViewById(Globals.EDIT_FUNCTION_APPLY_BTN);
+        Button cancel = (Button) activity.findViewById(Globals.EDIT_FUNCTION_CANCEL_BTN);
+
+        final Spinner function_chooser = (Spinner) activity.findViewById(Globals.EDIT_FUNCTION_CHOOSER);
+        final EditText num_pic_chooser = (EditText) activity.findViewById(Globals.EDIT_FUNCTION_NUM_PICS_INPUT);
+
+        ArrayList<String> spinner_array = getSupportedFunctions(edit_function);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>
+                (activity.getBaseContext(), android.R.layout.simple_spinner_item, spinner_array);
+        adapter.setDropDownViewResource(android.R.layout
+                .simple_spinner_dropdown_item);
+        function_chooser.setAdapter(adapter);
+
+        // Write either default values or current values in the function_chooser and the num_pic_chooser.
+        if(edit_function){
+            MovableFunction mf = getMovableFunction(id);
+            Integer num_pics = (int) Math.round(mf.getFunctionMaxX() - mf.getFunctionMinX());
+            num_pic_chooser.setText(num_pics.toString(), TextView.BufferType.EDITABLE);
+            SUPPORTED_FUNCTION current_function_type = FunctionClass2Enum(mf.getFunction());
+            int position = 0;
+            for(int i = 0; i < spinner_array.size(); i++){
+                SUPPORTED_FUNCTION sf = FunctionString2Enum(spinner_array.get(i));
+                if(sf == current_function_type){
+                    position = i;
+                    return;
+                }
+            }
+            function_chooser.setSelection(position,false);
+        }else{
+            // default number
+            num_pic_chooser.setText("500");
+            function_chooser.setSelection(0,false);
+        }
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                closeAddFunctionActivity();
+            }
+        });
+
+        apply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String function_string = (String) function_chooser.getSelectedItem();
+                SUPPORTED_FUNCTION selected_function = FunctionString2Enum(function_string);
+                int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
+                functionCreate(id, edit_function, selected_function,num_pictures );
+                closeAddFunctionActivity();
+            }
+        });
+
+        openAddFunctionDialogActivity();
     }
 
-    private void openAddFunctionDialog(final int id){
+    private void functionCreate(int id, boolean edit, SUPPORTED_FUNCTION type, int length){
+        Pos3d left = Pos3d.Zero();
+        Pos3d right = Pos3d.Zero();
+
+        if(edit){
+            if(!isValidFunctionId(id)){
+                Toast toast=Toast. makeText(activity.getApplicationContext(),activity.getString(R.string.something_went_wrong),Toast. LENGTH_SHORT);
+                toast.show();
+            }
+            MovableFunction mf = getMovableFunction(id);
+            left = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+            right = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+            Homography2d h = mf.getDrawableFunction().f2openGL;
+            left = h.invTransform(left);
+            right = h.invTransform(right);
+            right.x = left.x + length;
+        }else{
+            if(id == 0){
+                // new function at begin
+                if(functions.size() > 0){
+                    left.y = getMovableFunction(0).getFunction().f(0);
+                }else{
+                    left.y = 1000; // TODO DEFAULT 1 sec delay
+                }
+                right.y = left.y;
+                right.x = length;
+            }else if(id == functions.size()){
+                // new function at end
+                MovableFunction mf = getMovableFunction(functions.size()-1);
+                left = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+                Homography2d h = mf.getDrawableFunction().f2openGL;
+                left = h.invTransform(left);
+                right.y = left.y;
+                right.x = left.x + length;
+            }else {
+                // insert function between two other functions
+                MovableFunction mf = getMovableFunction(id);
+                left = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+                Homography2d h = mf.getDrawableFunction().f2openGL;
+                left = h.invTransform(left);
+                right = new Pos3d(left);
+                right.x = left.x + length;
+            }
+        }
+
+        Function new_function;
+        switch (type){
+            case LINEAR:
+                new_function = new LinearFunction(left,right);
+                break;
+            case QUADRATIC:
+                new_function = new LinearFunction(left,right);
+                throw new IllegalArgumentException( "Quadratic not implemented yet" );
+                //new_function = new QuadraticFunction(left,right);
+                //break;
+            case SIGMOID:
+                new_function = new SigmoidFunction(left,right);
+            case UNKNOWN:
+                // delete function
+                removeFunction(id);
+                return;
+            default:
+                // Why Java not able to see, that ENUM has no default?!
+                throw new IllegalStateException("Unexpected value: " + type);
+        }
+        if(edit){
+            replaceFunction(id, new_function, length);
+        }else{
+            insertFunction(id, new_function, length);
+        }
+    }
+
+    private void closeAddFunctionActivity(){
+        LinearLayout dialog_layout = (LinearLayout) activity.findViewById(Globals.EDIT_FUNCTION_LAYOUT);
+        RelativeLayout.LayoutParams params_dialog_layout = (RelativeLayout.LayoutParams) dialog_layout.getLayoutParams();
+        params_dialog_layout.width = 0;
+        params_dialog_layout.height = 0;
+        dialog_layout.setLayoutParams(params_dialog_layout);
+    }
+
+    private void openAddFunctionDialogActivity(){
+        LinearLayout dialog_layout = (LinearLayout) activity.findViewById(Globals.EDIT_FUNCTION_LAYOUT);
+        RelativeLayout.LayoutParams params_dialog_layout = (RelativeLayout.LayoutParams) dialog_layout.getLayoutParams();
+        params_dialog_layout.width = RelativeLayout.LayoutParams.MATCH_PARENT;
+        params_dialog_layout.height = RelativeLayout.LayoutParams.MATCH_PARENT;
+        dialog_layout.setLayoutParams(params_dialog_layout);
+    }
+
+    private void openAddFunctionDialog(final int id, final boolean edit_function){
         // all ui stuff must be done by activity
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                openAddFunctionDialogActivity(id);
+                prepareAdFunctionDialogActivity(id, edit_function);
             }
         });
     }
+
 
     final static int INVALID_FUNCTION = -10;
     int active_function = INVALID_FUNCTION;
@@ -808,6 +1046,10 @@ public class MovableCoordinateSystem extends Movable {
     final static long SLOW_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_MS;
     final static long MEDIUM_TICK_DURATION_MS = 200;
     final static long MEDIUM_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 10*MEDIUM_TICK_DURATION_MS;
+
+    long last_tap = 0;
+    boolean lifted = false;
+    final static long DOUBLE_TAP_DURATION_MS = 250;
 
     DrawableArrow x_axis;
     DrawableArrow y_axis;

@@ -22,6 +22,14 @@ public class Globals {
     final static public double FUNCTION_Z_ELEVATION = 0.002;
     final static public double MANIPULATOR_Z_ELEVATION = 0.009;
 
+    // layout ids
+    final static int EDIT_TEMPLATE_LAYOUT = R.id.relEditTemplate;
+    final static int EDIT_FUNCTION_LAYOUT = R.id.editFunctionLayout;
+    final static int EDIT_FUNCTION_APPLY_BTN = R.id.applyFunctionEditBtn;
+    final static int EDIT_FUNCTION_CANCEL_BTN = R.id.cancelFunctionEditBtn;
+    final static int EDIT_FUNCTION_CHOOSER = R.id.spinnerChooseFunction;
+    final static int EDIT_FUNCTION_NUM_PICS_INPUT = R.id.chooseNumPictures;
+
     // protocol for hardware program
     final static public byte SYMBOL_STOP = 0x00;
     final static public byte SYMBOL_STOP_SHUTDOWN = 0x0F;

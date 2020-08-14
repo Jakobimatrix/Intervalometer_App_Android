@@ -275,6 +275,22 @@ public class MovableFunction extends Movable {
         return coupled_function_left != null;
     }
 
+    public void moveTail(double dx_system){
+        DrawableFunction df = (DrawableFunction) parent;
+        for(int i = 0; i < NUM_MANIPULATORS; i++){
+            Pos3d open_gl = manipulator[i].getPosition();
+            Pos3d system = df.f2openGL.invTransform(open_gl);
+            system.x += dx_system;
+            open_gl = df.f2openGL.transform(system);
+            manipulator[i].setPosition(open_gl);
+
+        }
+        setFunctionGivenManipulators();
+        if(isCoupledRight()){
+            coupled_function_right.moveTail(dx_system);
+        }
+    }
+
     /*!
     * \brief synchronizeThis Will set the manipulators according to the coupled functions to match them.
     * */

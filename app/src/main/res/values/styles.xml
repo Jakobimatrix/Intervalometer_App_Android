@@ -81,5 +81,33 @@
         <item name="android:layout_column">3</item>
     </style>
 
+    <style name="TableRowEditFunction">
+        <item name="android:padding">5dp</item>
+        <item name="android:background">@color/Primary</item>
+    </style>
+
+    <style name="TableLayoutEditTemplate">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@color/Primary</item>
+    </style>
+
+    <style name="EditFunctionLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:background">@color/Primary</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_column">0</item>
+    </style>
+
+    <style name="EditFunctionAction">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_column">1</item>
+    </style>
+
 
 </resources>

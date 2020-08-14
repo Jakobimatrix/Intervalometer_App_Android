@@ -34,6 +34,15 @@
     <string name="msg_failed">failed. Please make sure that the Intervalometer is On and Bluetooth is enabled.</string>
     <string name="title_activity_settings">Settings</string>
 
+    <!-- edit template -->
+    <string name="choose_function">Choose Function: </string>
+    <string name="choose_number_pictures">Number of Pictures: </string>
+    <string name="linear_function">Linear</string>
+    <string name="quadratic_function">Quadratic</string>
+    <string name="sigmoid_function">Sigmoid</string>
+    <string name="delete_function">Delete Function</string>
+    <string name="something_went_wrong">Sorry something went wrong.</string>
+
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
     <string name="sync_header">Sync</string>
@@ -41,6 +50,8 @@
     <!-- Messages Preferences -->
     <string name="signature_title">Your signature</string>
     <string name="reply_title">Default reply action</string>
+    <string name="btn_apply">Apply</string>
+    <string name="btn_cancel">Cancel</string>
 
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
