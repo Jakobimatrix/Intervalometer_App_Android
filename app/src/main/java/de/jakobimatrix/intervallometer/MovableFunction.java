@@ -243,6 +243,14 @@ public class MovableFunction extends Movable {
         right.coupled_function_left = left;
     }
 
+    public void unregisterLeftCoupledFunction(){
+        coupled_function_left = null;
+    }
+
+    public void unregisterRightCoupledFunction(){
+        coupled_function_right = null;
+    }
+
     // tell the left coupled function to let loose too
     private void registerOpenFunctionLeft(){
         if(isCoupledLeft()){

@@ -172,7 +172,6 @@ public class MovableCoordinateSystem extends Movable {
             MovableFunction mf = functions.get(i);
             if(mf.getFunctionMaxX() == mf.getFunctionMinX()){
                 removeFunction(i);
-                // TODO
                 removed = true;
             }
         }
@@ -648,9 +647,18 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     public void synchronizeFunctions(){
+        if(functions.size() == 0){
+            return;
+        }
+        // decouple begin
+        functions.get(0).unregisterLeftCoupledFunction();
         for(int i = 0; i < functions.size() - 1; i++){
             MovableFunction.registerCoupledFunctionPair(functions.get(i), functions.get(i+1));
         }
+        // decouple end
+        functions.get(functions.size()-1).unregisterRightCoupledFunction();
+
+        // if a function moved (active_function), its coupled functions need adjustment.
         if(isValidFunctionId(active_function + 1)){
             functions.get(active_function + 1).synchronizeThis();
         }
