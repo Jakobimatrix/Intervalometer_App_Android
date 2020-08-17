@@ -298,11 +298,17 @@ public class MovableCoordinateSystem extends Movable {
     @Override
     public void draw(GL10 gl){
         parent.draw(gl);
+
+        // we have to split the drawing from function and manipulator since the
+        // drawing order needs to be from far to near
         function_access.LOCK(1);
         for (MovableFunction f : functions) {
-            f.draw(gl);
+            f.drawFunction(gl);
         }
         function_access.UNLOCK();
+        for (MovableFunction f : functions) {
+            f.drawManipulators(gl);
+        }
 
         for(DrawableString ds: x_ticks){
             ds.draw(gl);

@@ -73,7 +73,15 @@ public class MovableFunction extends Movable {
 
     @Override
     public void draw(GL10 gl){
+        drawFunction(gl);
+        drawManipulators(gl);
+    }
+
+    public void drawFunction(GL10 gl){
         parent.draw(gl);
+    }
+
+    public void drawManipulators(GL10 gl){
         for (int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].draw(gl);
         }
