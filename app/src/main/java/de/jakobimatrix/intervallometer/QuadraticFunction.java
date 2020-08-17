@@ -36,7 +36,8 @@ public class QuadraticFunction extends Function {
 
     }
 
-    public void setFunctionGivenExtrema(Pos3d extrema, Pos3d p){
+    protected void setFunctionGivenExtrema(Pos3d extrema, Pos3d p){
+        df = null;
         /*
         e := extrema
         y_p = a*x_p^2 + b*x_p + c     (I)

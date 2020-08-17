@@ -38,7 +38,8 @@
     <string name="choose_function">Choose Function: </string>
     <string name="choose_number_pictures">Number of Pictures: </string>
     <string name="linear_function">Linear</string>
-    <string name="quadratic_function">Quadratic</string>
+    <string name="quadratic_function_left">Quadratic left</string>
+    <string name="quadratic_function_right">Quadratic right</string>
     <string name="sigmoid_function">Sigmoid</string>
     <string name="delete_function">Delete Function</string>
     <string name="something_went_wrong">Sorry something went wrong.</string>

@@ -17,7 +17,14 @@ import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
-enum SUPPORTED_FUNCTION{LINEAR,QUADRATIC,SIGMOID, UNKNOWN};
+enum SUPPORTED_FUNCTION{
+    LINEAR,
+    QUADRATIC_EXTREMA_LEFT,
+    QUADRATIC_EXTREMA_RIGHT,
+    SIGMOID,
+    UNKNOWN
+};
+
 public class MovableCoordinateSystem extends Movable {
 
     /*!
@@ -770,7 +777,8 @@ public class MovableCoordinateSystem extends Movable {
     private ArrayList<String> getSupportedFunctions(boolean add_delete){
         ArrayList<String> supported = new ArrayList<String>(){{
             add(activity.getString(R.string.linear_function));
-            add(activity.getString(R.string.quadratic_function));
+            add(activity.getString(R.string.quadratic_function_left));
+            add(activity.getString(R.string.quadratic_function_right));
             add(activity.getString(R.string.sigmoid_function));
         }};
         if(add_delete){
@@ -783,8 +791,11 @@ public class MovableCoordinateSystem extends Movable {
         if(activity.getString(R.string.linear_function).equals(function_class)){
             return SUPPORTED_FUNCTION.LINEAR;
         }
-        if(activity.getString(R.string.quadratic_function).equals(function_class)){
-            return SUPPORTED_FUNCTION.QUADRATIC;
+        if(activity.getString(R.string.quadratic_function_left).equals(function_class)){
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
+        }
+        if(activity.getString(R.string.quadratic_function_right).equals(function_class)){
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
         }
         if(activity.getString(R.string.sigmoid_function).equals(function_class)){
             return SUPPORTED_FUNCTION.SIGMOID;
@@ -801,8 +812,11 @@ public class MovableCoordinateSystem extends Movable {
                 unknown_function_class instanceof de.jakobimatrix.intervallometer.ConstantFunction) {
             return SUPPORTED_FUNCTION.LINEAR;
         }
-        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunction) {
-            return SUPPORTED_FUNCTION.QUADRATIC;
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaRight) {
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
+        }
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaLeft) {
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
         }
         return SUPPORTED_FUNCTION.UNKNOWN;
     }
@@ -1036,13 +1050,11 @@ public class MovableCoordinateSystem extends Movable {
             case LINEAR:
                 new_function = new LinearFunction(left,right);
                 break;
-            case QUADRATIC:
-                new_function = new LinearFunction(left,right);
-                throw new IllegalArgumentException( "Quadratic not implemented yet" );
-                //new_function = new QuadraticFunction(left,right);
-                //break;
-            case SIGMOID:
-                new_function = new SigmoidFunction(left,right);
+            case QUADRATIC_EXTREMA_LEFT:
+                new_function = new QuadraticFunctionExtremaLeft(left,right);
+                break;
+            case QUADRATIC_EXTREMA_RIGHT:
+                new_function = new QuadraticFunctionExtremaRight(left,right);
                 break;
             case UNKNOWN:
                 // delete function

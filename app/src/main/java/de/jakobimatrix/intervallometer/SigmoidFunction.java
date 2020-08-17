@@ -14,8 +14,8 @@ public class SigmoidFunction extends LinearFunction{
 
     public SigmoidFunction(SigmoidFunction f) {
         super(f); // copy the polyomnomnom
-        left_parabola = new QuadraticFunction(f.left_parabola);
-        right_parabola = new QuadraticFunction(f.right_parabola);
+        left_parabola = new QuadraticFunctionExtremaLeft(f.left_parabola);
+        right_parabola = new QuadraticFunctionExtremaRight(f.right_parabola);
         max_x = f.max_x;
         min_x = f.min_x;
     }
@@ -48,10 +48,7 @@ public class SigmoidFunction extends LinearFunction{
         Pos3d center = Pos3d.div(Pos3d.sub(right,left),2);
         center.add(left);
         left_parabola.setFunctionGivenExtrema(left, center);
-        right_parabola.setFunctionGivenExtrema(right, center);
-
-        left_parabola.df = null;
-        right_parabola.df = null;
+        right_parabola.setFunctionGivenExtrema(center, right);
     }
 
     double getMid(){
@@ -145,6 +142,6 @@ public class SigmoidFunction extends LinearFunction{
 
     double min_x;
     double max_x;
-    private QuadraticFunction left_parabola = new QuadraticFunction();
-    private QuadraticFunction right_parabola = new QuadraticFunction();
+    private QuadraticFunctionExtremaLeft left_parabola = new QuadraticFunctionExtremaLeft();
+    private QuadraticFunctionExtremaRight right_parabola = new QuadraticFunctionExtremaRight();
 }
