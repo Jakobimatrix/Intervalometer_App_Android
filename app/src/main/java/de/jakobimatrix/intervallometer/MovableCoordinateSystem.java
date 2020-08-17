@@ -305,10 +305,10 @@ public class MovableCoordinateSystem extends Movable {
         for (MovableFunction f : functions) {
             f.drawFunction(gl);
         }
-        function_access.UNLOCK();
         for (MovableFunction f : functions) {
             f.drawManipulators(gl);
         }
+        function_access.UNLOCK();
 
         for(DrawableString ds: x_ticks){
             ds.draw(gl);
