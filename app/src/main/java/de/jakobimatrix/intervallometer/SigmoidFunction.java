@@ -27,7 +27,8 @@ public class SigmoidFunction extends LinearFunction{
 
     public void constructSigmoid(Pos3d left_, Pos3d right_){
         if(left_.x == right_.x){
-            throw new IllegalArgumentException( "SigmoidFunction::constructSigmoid: Both points (left and right) have the same x value." );
+            left_.x -= 0.0001;
+            right_.x += 0.0001;
         }
         Pos3d left = new Pos3d(left_);
         Pos3d right = new Pos3d(right_);

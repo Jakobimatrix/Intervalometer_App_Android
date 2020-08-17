@@ -10,6 +10,14 @@ public class Pos3d {
         return (p1.x == p2.x && p1.y == p2.y && p1.z == p2.z);
     }
 
+    public static Pos3d center(Pos3d p1, Pos3d p2) {
+        Pos3d center = new Pos3d(p1);
+        Pos3d dif = Pos3d.sub(p2,p1);
+        dif.div(2.);
+        center.add(dif);
+        return center;
+    }
+
     /*!
      * \brief get Returns one dimension depending on given i:
      * 0 -> x

@@ -1,6 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -113,6 +114,9 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public boolean isWithin(Pos3d position_) {
+        if(is_locked){
+            return false;
+        }
         if(parent.isWithin(position_)) {
             for (int i = 0; i < functions.size(); i++) {
                 if(toggle_not){
@@ -131,20 +135,26 @@ public class MovableCoordinateSystem extends Movable {
             for(MovableFunction mf : functions){
                 mf.setLocked(true);
             }
-            // double tap: edit function
-            long now = System.currentTimeMillis();
-            // doubletap if time between two calls is small enough and endTouch() has been called in between.
-            if(now - last_tap < DOUBLE_TAP_DURATION_MS){
-                Pos3d func_pos = open_gl_2_system.transform(position_);
-                for(int i = 0; i < functions.size(); i++){
-                    MovableFunction mf = functions.get(i);
-                    if(mf.getFunctionMinX() < func_pos.x && func_pos.x < mf.getFunctionMaxX()){
-                        openAddFunctionDialog(i, true);
+            // long tap: edit function
+
+            if(lifted){
+                lifted = false;
+                last_tap_edit_function = System.currentTimeMillis();
+            }else{
+                long now = System.currentTimeMillis();
+                if(now - last_tap_edit_function > HOLD_TO_EDIT_FUNC_DURATION_MS){
+                    Pos3d func_pos = open_gl_2_system.transform(position_);
+                    for(int i = 0; i < functions.size(); i++){
+                        MovableFunction mf = functions.get(i);
+                        if(mf.getFunctionMinX() < func_pos.x && func_pos.x < mf.getFunctionMaxX()){
+                            openAddFunctionDialog(i, true);
+                            break;
+                        }
                     }
                 }
             }
-            last_tap = now;
-            lifted = false;
+            active_function = INVALID_FUNCTION;
+            return true;
         }
         active_function = INVALID_FUNCTION;
         return false;
@@ -155,6 +165,9 @@ public class MovableCoordinateSystem extends Movable {
      */
     @Override
     public void setPosition(Pos3d position_){
+        if(is_locked){
+            return;
+        }
         toggle_not = true;
         if(parent.isWithin(position_)) {
             if(isValidFunctionId(active_function)){
@@ -171,6 +184,7 @@ public class MovableCoordinateSystem extends Movable {
 
     @Override
     public void endTouch() {
+        active_function = INVALID_FUNCTION;
         lifted = true;
         for(MovableFunction df: functions){
             df.endTouch();
@@ -179,20 +193,34 @@ public class MovableCoordinateSystem extends Movable {
         scale();
     }
 
-    private void removeFunction(int id){
-        if(isValidFunctionId(id)){
-            function_access.LOCK(0);
-            functions.remove(id);
-            function_access.UNLOCK();
-        }
-    }
-
     private void removeZeroWidthFunctions(){
         boolean removed = false;
 
         for(int i = functions.size()-1; i > -1; i--){
             MovableFunction mf = functions.get(i);
-            if(mf.getFunctionMaxX() == mf.getFunctionMinX()){
+            if(Math.abs(mf.getFunctionMaxX() - mf.getFunctionMinX()) < stick_to_grid_distance.x/3.){
+
+                if(i == active_function){
+                    int right = i+1;
+                    int left = i-1;
+                    if (isValidFunctionId(left) && isValidFunctionId(right)) {
+                        // expect left to adjust since we moved right
+                        Pos3d manipulator_pos = getMovableFunction(right).manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+                        getMovableFunction(left).manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].setPosition(manipulator_pos);
+                        getMovableFunction(left).setFunctionGivenManipulators();
+                    }
+                }
+                if(i-1 == active_function){
+                    int right = i+1;
+                    int left = i-1;
+                    if (isValidFunctionId(left) && isValidFunctionId(right)) {
+                        // expect right to adjust since we moved left
+                        Pos3d manipulator_pos = getMovableFunction(left).manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+                        getMovableFunction(right).manipulator[MovableFunction.LEFT_MANIPULATOR_ID].setPosition(manipulator_pos);
+                        getMovableFunction(right).setFunctionGivenManipulators();
+                    }
+                }
+
                 removeFunction(i);
                 removed = true;
             }
@@ -314,7 +342,10 @@ public class MovableCoordinateSystem extends Movable {
             // For fine grids, only display every tenth grid, else display every grid.
 
             double tick_power = (span/grid_power > NUM_TICK_LABELS)?10*grid_power:grid_power;
-
+            double modulo_integer_multiplicator = 1;
+            if(tick_power < 1){
+                modulo_integer_multiplicator = 1./tick_power;
+            }
             /* truncates e.g.
             // min = 123.456
             // power = 0.1
@@ -342,7 +373,9 @@ public class MovableCoordinateSystem extends Movable {
                 double d_tick = pos_iterator.x * is_x_d + pos_iterator.y * is_y_d;
                 d_tick = Utility.roundAtDecimal(d_tick, grid_power);
 
-                boolean draw_tick = (tick_id_counter < NUM_TICK_LABELS && Math.abs(d_tick)%tick_power < Utility.EPSILON_D);
+                // Modulo is not very precise: using doubles the results precision is a bit better than float.
+                float remainder = (float) (Math.abs(d_tick*modulo_integer_multiplicator)%(tick_power*modulo_integer_multiplicator));
+                boolean draw_tick = (tick_id_counter < NUM_TICK_LABELS && remainder < Utility.EPSILON_F);
 
                 if(inside){
                     grid_line.setColor(grid_color);
@@ -567,6 +600,22 @@ public class MovableCoordinateSystem extends Movable {
         return min;
     }
 
+    private void removeFunction(int id){
+        if(isValidFunctionId(id)){
+            function_access.LOCK(0);
+            functions.remove(id);
+            function_access.UNLOCK();
+            if(isValidFunctionId(id) && isValidFunctionId(id-1)){
+                Pos3d new_pos = getMovableFunction(id-1).manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+                Pos3d old_pos = getMovableFunction(id).manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+                Pos3d dp = Pos3d.sub(new_pos,old_pos);
+                getMovableFunction(id).moveTail(dp, true);
+            }
+            synchronizeFunctions();
+            scale();
+        }
+    }
+
     /*!
      * \brief addFunction Adds a function to be displayed
      * \param f The function
@@ -586,7 +635,7 @@ public class MovableCoordinateSystem extends Movable {
 
         synchronizeFunctions();
         scale();
-        rescaleAllFunctions();
+
         return functions.size()-1;
     }
 
@@ -595,14 +644,15 @@ public class MovableCoordinateSystem extends Movable {
             // add to the end
             double min = 0;
             if(functions.size() > 0) {
-                min = getMovableFunction(functions.size() - 1).getFunctionMinX();
+                min = getMovableFunction(functions.size() - 1).getFunctionMaxX();
             }
-            addFunction(f, min, min+length);
+            return addFunction(f, min, min+length);
         }
 
         double min = getMovableFunction(id).getFunctionMinX();
         // first shift all functions about length
-        getMovableFunction(id).moveTail(length);
+        Pos3d dp = new Pos3d(length,0,0);
+        getMovableFunction(id).moveTail(dp, false);
 
         Pos3d relative_position = new Pos3d(parent.getPosition());
         relative_position.add(static_axis_offset[2]);
@@ -615,7 +665,6 @@ public class MovableCoordinateSystem extends Movable {
 
         synchronizeFunctions();
         scale();
-        rescaleAllFunctions();
         return functions.size()-1;
     }
 
@@ -629,7 +678,8 @@ public class MovableCoordinateSystem extends Movable {
             // we have to move all functions to the right to fit length
             double prev_max = mf.getFunctionMaxX();
             double dx_function = max - prev_max;
-            getMovableFunction(index+1).moveTail(dx_function);
+            Pos3d dp = new Pos3d(dx_function,0,0);
+            getMovableFunction(index+1).moveTail(dp, false);
         }
 
         MovableFunction new_mf = new MovableFunction(parent.context, relative_position, f, min, max, system_2_open_gl);
@@ -641,7 +691,6 @@ public class MovableCoordinateSystem extends Movable {
 
         synchronizeFunctions();
         scale();
-        rescaleAllFunctions();
     }
 
     /*!
@@ -692,11 +741,6 @@ public class MovableCoordinateSystem extends Movable {
         getMovableFunction(function_index).setLocked(l);
     }
 
-    @Override
-    public void setLocked(boolean l){
-        throw new IllegalArgumentException( "MovableCoordinateSystem::setLocked: Don't use this function. Lock individual functions with setFunctionLocked().");
-    }
-
     private boolean isValidFunctionId(int id){
         if(id < functions.size() && id > -1){
             return true;
@@ -715,14 +759,6 @@ public class MovableCoordinateSystem extends Movable {
         }
         // decouple end
         functions.get(functions.size()-1).unregisterRightCoupledFunction();
-
-        // if a function moved (active_function), its coupled functions need adjustment.
-        if(isValidFunctionId(active_function + 1)){
-            functions.get(active_function + 1).synchronizeThis();
-        }
-        if(isValidFunctionId(active_function - 1)){
-            functions.get(active_function - 1).synchronizeThis();
-        }
     }
 
     private ArrayList<String> getSupportedFunctions(boolean add_delete){
@@ -745,20 +781,21 @@ public class MovableCoordinateSystem extends Movable {
             return SUPPORTED_FUNCTION.QUADRATIC;
         }
         if(activity.getString(R.string.sigmoid_function).equals(function_class)){
-            return SUPPORTED_FUNCTION.LINEAR;
+            return SUPPORTED_FUNCTION.SIGMOID;
         }
-        return SUPPORTED_FUNCTION.SIGMOID;
+        return SUPPORTED_FUNCTION.UNKNOWN;
     }
 
     private SUPPORTED_FUNCTION FunctionClass2Enum(Object unknown_function_class){
         // sigmoid must be checked for LinearFunction since all sigmoids are linear functions (see inheritance)
-        if (unknown_function_class instanceof SigmoidFunction) {
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.SigmoidFunction) {
             return SUPPORTED_FUNCTION.SIGMOID;
         }
-        if (unknown_function_class instanceof LinearFunction) {
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.LinearFunction ||
+                unknown_function_class instanceof de.jakobimatrix.intervallometer.ConstantFunction) {
             return SUPPORTED_FUNCTION.LINEAR;
         }
-        if (unknown_function_class instanceof QuadraticFunction) {
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunction) {
             return SUPPORTED_FUNCTION.QUADRATIC;
         }
         return SUPPORTED_FUNCTION.UNKNOWN;
@@ -794,6 +831,7 @@ public class MovableCoordinateSystem extends Movable {
             center.x += getWidth()/2.;
             center.y += getHeight()/2.;
             Pos3d screen_pos = Utility.openGl2Screen(center);
+            screen_pos.y -= add_function_button.get(0).height/2; // origin is top/center
             add_function_button.get(0).place((int) Math.round(screen_pos.x), Math.round((int) screen_pos.y));
         }else{
             double y_pos = system_viewport.max.y;
@@ -837,10 +875,27 @@ public class MovableCoordinateSystem extends Movable {
                 @Override
                 public void onClick(View v) {
                     openAddFunctionDialog(id, false);
+                    hideAllButtons();
                 }
             });
             add_function_button.add(dynBut);
             num_buttons_2_add--;
+        }
+    }
+
+    private void hideAllButtons(){
+        // all ui stuff must be done by activity
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                hideAllButtonsActivity();
+            }
+        });
+    }
+
+    private void hideAllButtonsActivity(){
+        for(DynamicButton db :add_function_button){
+            db.place(-1000, -1000); // somewhere far away
         }
     }
 
@@ -893,7 +948,7 @@ public class MovableCoordinateSystem extends Movable {
                 SUPPORTED_FUNCTION sf = FunctionString2Enum(spinner_array.get(i));
                 if(sf == current_function_type){
                     position = i;
-                    return;
+                    break;
                 }
             }
             function_chooser.setSelection(position,false);
@@ -907,6 +962,7 @@ public class MovableCoordinateSystem extends Movable {
             @Override
             public void onClick(View v) {
                 closeAddFunctionActivity();
+                placeAddFunctionButtons();
             }
         });
 
@@ -916,7 +972,7 @@ public class MovableCoordinateSystem extends Movable {
                 String function_string = (String) function_chooser.getSelectedItem();
                 SUPPORTED_FUNCTION selected_function = FunctionString2Enum(function_string);
                 int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
-                functionCreate(id, edit_function, selected_function,num_pictures );
+                functionCreate(id, edit_function, selected_function, num_pictures);
                 closeAddFunctionActivity();
             }
         });
@@ -953,7 +1009,7 @@ public class MovableCoordinateSystem extends Movable {
             }else if(id == functions.size()){
                 // new function at end
                 MovableFunction mf = getMovableFunction(functions.size()-1);
-                left = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+                left = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
                 Homography2d h = mf.getDrawableFunction().f2openGL;
                 left = h.invTransform(left);
                 right.y = left.y;
@@ -981,6 +1037,7 @@ public class MovableCoordinateSystem extends Movable {
                 //break;
             case SIGMOID:
                 new_function = new SigmoidFunction(left,right);
+                break;
             case UNKNOWN:
                 // delete function
                 removeFunction(id);
@@ -997,6 +1054,8 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private void closeAddFunctionActivity(){
+        setLocked(false);
+
         LinearLayout dialog_layout = (LinearLayout) activity.findViewById(Globals.EDIT_FUNCTION_LAYOUT);
         RelativeLayout.LayoutParams params_dialog_layout = (RelativeLayout.LayoutParams) dialog_layout.getLayoutParams();
         params_dialog_layout.width = 0;
@@ -1017,6 +1076,7 @@ public class MovableCoordinateSystem extends Movable {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                setLocked(true);
                 prepareAdFunctionDialogActivity(id, edit_function);
             }
         });
@@ -1047,9 +1107,9 @@ public class MovableCoordinateSystem extends Movable {
     final static long MEDIUM_TICK_DURATION_MS = 200;
     final static long MEDIUM_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 10*MEDIUM_TICK_DURATION_MS;
 
-    long last_tap = 0;
-    boolean lifted = false;
-    final static long DOUBLE_TAP_DURATION_MS = 250;
+    boolean lifted = true;
+    long last_tap_edit_function = 0;
+    final static long HOLD_TO_EDIT_FUNC_DURATION_MS = 750;
 
     DrawableArrow x_axis;
     DrawableArrow y_axis;

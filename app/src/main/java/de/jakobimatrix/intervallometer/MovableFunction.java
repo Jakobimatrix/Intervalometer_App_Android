@@ -210,7 +210,7 @@ public class MovableFunction extends Movable {
         return true;
     }
 
-    private void setFunctionGivenManipulators(){
+    public void setFunctionGivenManipulators(){
         java.util.Arrays.sort(manipulator);
         DrawableFunction df = (DrawableFunction) parent;
         Pos3d left = getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition()));
@@ -241,6 +241,15 @@ public class MovableFunction extends Movable {
     public static void registerCoupledFunctionPair(MovableFunction left, MovableFunction right){
         left.coupled_function_right = right;
         right.coupled_function_left = left;
+        /*
+        Pos3d left_p = left.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+        Pos3d right_p = right.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+        Pos3d center = left.getNextGridPoint(Pos3d.center(left_p, right_p));
+        left.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].setPosition(center);
+        right.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].setPosition(center);
+        left.setFunctionGivenManipulators();
+        right.setFunctionGivenManipulators();
+        */
     }
 
     public void unregisterLeftCoupledFunction(){
@@ -275,19 +284,23 @@ public class MovableFunction extends Movable {
         return coupled_function_left != null;
     }
 
-    public void moveTail(double dx_system){
+    public void moveTail(Pos3d dp, boolean in_gl){
         DrawableFunction df = (DrawableFunction) parent;
         for(int i = 0; i < NUM_MANIPULATORS; i++){
             Pos3d open_gl = manipulator[i].getPosition();
-            Pos3d system = df.f2openGL.invTransform(open_gl);
-            system.x += dx_system;
-            open_gl = df.f2openGL.transform(system);
+            if(in_gl){
+                open_gl.add(dp);
+            }else {
+                Pos3d system = df.f2openGL.invTransform(open_gl);
+                system.add(dp);
+                open_gl = df.f2openGL.transform(system);
+            }
             manipulator[i].setPosition(open_gl);
 
         }
         setFunctionGivenManipulators();
         if(isCoupledRight()){
-            coupled_function_right.moveTail(dx_system);
+            coupled_function_right.moveTail(dp, in_gl);
         }
     }
 
@@ -347,7 +360,7 @@ public class MovableFunction extends Movable {
     void setManipulatorsBasedOnFunction(){
         DrawableFunction df = (DrawableFunction) parent;
         Function f = getFunction();
-        double mid = (df.max_x - df.min_x)/2.0 + df.min_x;
+
         Pos3d [] ff = new Pos3d[NUM_MANIPULATORS];
         ff[LEFT_MANIPULATOR_ID] = new Pos3d(df.min_x, f.f(df.min_x), Globals.MANIPULATOR_Z_ELEVATION);
         ff[RIGHT_MANIPULATOR_ID] = new Pos3d(df.max_x, f.f(df.max_x), Globals.MANIPULATOR_Z_ELEVATION);
