@@ -205,7 +205,8 @@ public class MovableCoordinateSystem extends Movable {
 
         for(int i = functions.size()-1; i > -1; i--){
             MovableFunction mf = functions.get(i);
-            if(Math.abs(mf.getFunctionMaxX() - mf.getFunctionMinX()) < stick_to_grid_distance.x/3.){
+            double manipulator_dif = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition().x - mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition().x;
+            if(manipulator_dif < stick_to_grid_distance.x/3.){
 
                 if(i == active_function){
                     int right = i+1;
@@ -216,6 +217,7 @@ public class MovableCoordinateSystem extends Movable {
                         getMovableFunction(left).manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].setPosition(manipulator_pos);
                         getMovableFunction(left).setFunctionGivenManipulators();
                     }
+                    active_function = INVALID_FUNCTION;
                 }
                 if(i-1 == active_function){
                     int right = i+1;
@@ -504,6 +506,12 @@ public class MovableCoordinateSystem extends Movable {
      * \brief setViewportSystem Set the viewport of the Coordinate System according to the max and min Values needed to be displayed.
      */
     private boolean setViewportSystem(){
+        double margin_top = 0;
+        if(add_function_button.size() > 1){
+            int button_height = (int) add_function_button.get(0).height;
+            margin_top = Utility.screen2OpenGly(button_height) + static_axis_offset[3].y + MovableFunction.DEFAULT_MANIPULATOR_RADIUS;
+        }
+
         ViewPort old = new ViewPort(system_viewport);
         // always have 1 grid distance to the border
         system_viewport.min.x = getAllFunctionsMinX();
@@ -512,6 +520,14 @@ public class MovableCoordinateSystem extends Movable {
         system_viewport.max.y = getAllFunctionsMaxY();
         double dif_x = system_viewport.max.x - system_viewport.min.x;
         double dif_y = system_viewport.max.y - system_viewport.min.y;
+
+        if(margin_top > 0){
+            double y_open_gl_dif = openGL_viewport.max.y - openGL_viewport.min.y;
+            // cross-multiplication
+            double additional_height = ((y_open_gl_dif + margin_top)/y_open_gl_dif)*dif_y - dif_y;
+            system_viewport.max.y += additional_height;
+            dif_y += additional_height;
+        }
         // avoid function at border
         system_viewport.min.x -= dif_x/20;
         system_viewport.max.x += dif_x/20;

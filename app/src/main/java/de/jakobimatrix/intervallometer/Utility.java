@@ -200,8 +200,20 @@ public class Utility {
         return screen_coordinate;
     }
 
-    public final static double screen2OpenGl(int pix){
-        return screen2openGl(new Pos3d(pix, 0, 0)).x;
+    public final static double screen2OpenGlx(int pix){
+        Pos3d zero_screen = openGl2Screen(Pos3d.Zero());
+        Pos3d zero_screen_add = Pos3d.add(zero_screen, new Pos3d(pix, 0, 0));
+        Pos3d open_gl_add = screen2openGl(zero_screen_add);
+        return open_gl_add.x;
+    }
+
+    public final static double screen2OpenGly(int pix){
+        Pos3d zero_screen = openGl2Screen(Pos3d.Zero());
+        // we have to invert pixel since screen y direction is top->bot while
+        // open gl y direction is bot(center)->top
+        Pos3d zero_screen_add = Pos3d.add(zero_screen, new Pos3d(0, -pix, 0));
+        Pos3d open_gl_add = screen2openGl(zero_screen_add);
+        return open_gl_add.y;
     }
 
     public final static ViewPort screen2openGl(ViewPort screen){

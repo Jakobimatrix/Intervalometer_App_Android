@@ -219,7 +219,6 @@ public class MovableFunction extends Movable {
     }
 
     public void setFunctionGivenManipulators(){
-        java.util.Arrays.sort(manipulator);
         DrawableFunction df = (DrawableFunction) parent;
         Pos3d left = getNextGridPoint(df.f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition()));
         Pos3d right = getNextGridPoint(df.f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition()));
@@ -236,9 +235,6 @@ public class MovableFunction extends Movable {
         df.setFunction(f);
         df.setMax(right.x);
         df.setMin(left.x);
-
-        // to sync things up
-        setManipulatorsBasedOnFunction();
     }
 
     /*!
