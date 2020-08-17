@@ -48,6 +48,9 @@ public class DrawableFunction extends Drawable {
         ArrayList<Float> vertices_v = new ArrayList<Float>(num_vertices);
 
 
+        double x_scale = f2openGL.h[0];
+        double y_scale = f2openGL.h[4];
+
         /*
         * We want to sample num_samples of that function. To get a line with a line_thickness
         * We actually need one point above and one point below the actual sample.
@@ -72,7 +75,7 @@ public class DrawableFunction extends Drawable {
         * (VI) in (III)
         * -> dy = dx*g
         * */
-        double d = line_thickness/2.;
+        double d = 1;
 
         double x = min_x;
         double eq_step = (max_x-min_x) / (num_samples-1);
@@ -89,18 +92,30 @@ public class DrawableFunction extends Drawable {
             }
             double vz = (grad > 0)?1:-1;
 
-            Pos3d func = new Pos3d(x, y, Globals.FUNCTION_Z_ELEVATION);
-            Pos3d draw_func = f2openGL.transform(func);
-            Pos3d draw_thick = new Pos3d(vz*dx,vz*dy,0);
-            Pos3d draw_pos_over = Pos3d.add(draw_func, draw_thick);
-            Pos3d draw_pos_under = Pos3d.sub(draw_func, draw_thick);
+            Pos3d func_center = new Pos3d(x, y, Globals.FUNCTION_Z_ELEVATION);
+            Pos3d func_center_gl = f2openGL.transform(func_center);
+            Pos3d func_orth_width_wrong_length_gl = new Pos3d(vz*dx*y_scale,vz*dy*x_scale,0);
+            Pos3d func_over_gl_wrong_length = Pos3d.add(func_center_gl, func_orth_width_wrong_length_gl);
 
-            vertices_v.add((float) draw_pos_over.x);
-            vertices_v.add((float) draw_pos_over.y);
-            vertices_v.add((float) draw_pos_over.z);
-            vertices_v.add((float) draw_pos_under.x);
-            vertices_v.add((float) draw_pos_under.y);
-            vertices_v.add((float) draw_pos_under.z);
+            // calculate dx, dy in open GL such that
+            // (line_thickness/2)^2 = c^2 = dx^2 + dy^2
+            // first norm ->
+            // 1 = c^2 = dx_n^2 + dy_n^2 -> c = 1
+            Pos3d func_orth_width_gl = Pos3d.sub(func_over_gl_wrong_length, func_center_gl);
+            func_orth_width_gl.z = 0;
+            func_orth_width_gl.div(func_orth_width_gl.norm());
+            // now (line_thickness/2)^2 = [sqrt(line_thickness/2 *c]^2 = [sqrt(line_thickness/2 *dx]^2 * [sqrt(line_thickness/2 *dy]^2
+            func_orth_width_gl.mul(line_thickness/2.);
+
+            Pos3d func_gl_over = Pos3d.add(func_center_gl, func_orth_width_gl);
+            Pos3d func_gl_under = Pos3d.sub(func_center_gl, func_orth_width_gl);
+
+            vertices_v.add((float) func_gl_over.x);
+            vertices_v.add((float) func_gl_over.y);
+            vertices_v.add((float) func_gl_over.z);
+            vertices_v.add((float) func_gl_under.x);
+            vertices_v.add((float) func_gl_under.y);
+            vertices_v.add((float) func_gl_under.z);
 
             if(i < num_samples-1) { // not the last two pints
                 vertices_ids_v.add((short) (vertex_id + 2)); // // next over

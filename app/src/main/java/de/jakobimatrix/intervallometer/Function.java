@@ -12,6 +12,9 @@ public class Function {
      * f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...
      */
     public Function(ArrayList<Double> poly){
+        if(poly.size() > 3){
+            throw new IllegalArgumentException( "No polynomial of order 3 or greater supported");
+        }
         this.polynomial = poly;
     }
 
