@@ -66,6 +66,7 @@
     </ScrollView>
     <LinearLayout
         android:layout_below="@id/scroll_view_templates"
+        android:id="@+id/templates_layout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

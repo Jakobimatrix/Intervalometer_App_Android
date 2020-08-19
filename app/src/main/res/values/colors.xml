@@ -2,6 +2,7 @@
 <resources>
     <color name="Primary">#363333</color>
     <color name="Secondary">#454745</color>
+    <color name="Selected">#4547FF</color>
     <color name="Letters">#DED2BA</color>
     <color name="Editable">#ECF5DB</color>
     <color name="Gold"></color>

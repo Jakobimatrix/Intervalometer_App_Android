@@ -2,6 +2,10 @@ package de.jakobimatrix.intervallometer;
 
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -222,6 +226,20 @@ public class Utility {
         return new ViewPort(min, max);
     }
 
+    //https://stackoverflow.com/questions/80476/how-can-i-concatenate-two-arrays-in-java
+    public static byte[] concatAll(byte[] first, byte[]... rest) {
+        int totalLength = first.length;
+        for (byte[] array : rest) {
+            totalLength += array.length;
+        }
+        byte[] result = Arrays.copyOf(first, totalLength);
+        int offset = first.length;
+        for (byte[] array : rest) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
+    }
 
     final static double EPSILON_D = Math.ulp(4.0);
     final static float EPSILON_F = Math.ulp(4.0f);

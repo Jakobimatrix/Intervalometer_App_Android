@@ -1,6 +1,16 @@
 package de.jakobimatrix.intervallometer;
 
+import android.content.res.Resources;
+
 import java.util.ArrayList;
+
+enum SUPPORTED_FUNCTION{
+    LINEAR,
+    QUADRATIC_EXTREMA_LEFT,
+    QUADRATIC_EXTREMA_RIGHT,
+    SIGMOID,
+    UNKNOWN
+};
 
 public class Function {
 
@@ -221,6 +231,75 @@ public class Function {
         byte[] num_pics = new byte[4];
         Utility.int2Bytes(max-min, num_pics);
         return num_pics;
+    }
+
+
+    public static SUPPORTED_FUNCTION FunctionString2Enum(String function_class){
+        if(Resources.getSystem().getString(R.string.linear_function).equals(function_class)){
+            return SUPPORTED_FUNCTION.LINEAR;
+        }
+        if(Resources.getSystem().getString(R.string.quadratic_function_left).equals(function_class)){
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
+        }
+        if(Resources.getSystem().getString(R.string.quadratic_function_right).equals(function_class)){
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
+        }
+        if(Resources.getSystem().getString(R.string.sigmoid_function).equals(function_class)){
+            return SUPPORTED_FUNCTION.SIGMOID;
+        }
+        return SUPPORTED_FUNCTION.UNKNOWN;
+    }
+
+    public static Function create(Pos3d left, Pos3d right, SUPPORTED_FUNCTION sf){
+        switch (sf){
+            case LINEAR:
+                return new LinearFunction(left,right);
+            case QUADRATIC_EXTREMA_LEFT:
+                return new QuadraticFunctionExtremaLeft(left,right);
+            case QUADRATIC_EXTREMA_RIGHT:
+                return new QuadraticFunctionExtremaRight(left,right);
+            case SIGMOID:
+                return new SigmoidFunction(left, right);
+            case UNKNOWN:
+                return null;
+            default:
+                // Why Java not able to see, that ENUM has no default?!
+                throw new IllegalStateException("Unexpected value: " + sf);
+        }
+    }
+
+    public static String FunctionEnum2String(SUPPORTED_FUNCTION function_class){
+        switch (function_class){
+            case LINEAR:
+                return Resources.getSystem().getString(R.string.linear_function);
+            case QUADRATIC_EXTREMA_LEFT:
+                return Resources.getSystem().getString(R.string.quadratic_function_left);
+            case QUADRATIC_EXTREMA_RIGHT:
+                return Resources.getSystem().getString(R.string.quadratic_function_right);
+            case SIGMOID:
+                return Resources.getSystem().getString(R.string.sigmoid_function);
+            case UNKNOWN:
+                return Resources.getSystem().getString(R.string.unknown_function);
+        }
+        return "";// this never happens
+    }
+
+    public static SUPPORTED_FUNCTION FunctionClass2Enum(Object unknown_function_class){
+        // sigmoid must be checked for LinearFunction since all sigmoids are linear functions (see inheritance)
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.SigmoidFunction) {
+            return SUPPORTED_FUNCTION.SIGMOID;
+        }
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.LinearFunction ||
+                unknown_function_class instanceof de.jakobimatrix.intervallometer.ConstantFunction) {
+            return SUPPORTED_FUNCTION.LINEAR;
+        }
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaRight) {
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
+        }
+        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaLeft) {
+            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
+        }
+        return SUPPORTED_FUNCTION.UNKNOWN;
     }
 
     // f(x) = poly[0] + poly[1]*x + poly[2]*x^2 + ...

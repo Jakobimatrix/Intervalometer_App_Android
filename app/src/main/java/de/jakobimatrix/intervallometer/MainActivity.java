@@ -13,14 +13,18 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -32,20 +36,14 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        db = new DB(this);
+
+        loadSettings();
         connectWithGUI();
         setButtonFunctions();
-        loadSettings();
+        loadTemplates();
         //setUpBluetooth();
 
-        //PrintInfoMsg("Hallo WELT", MSG.DISMISS, do_nothing);
-        //PrintInfoMsg("Hallo WELT1", MSG.FIX, restart_bluetooth);
-        //PrintInfoMsg("Hallo WELT2", MSG.ERROR, shut_down);
-
-        PrintInfoMsg("Try Sample", MSG.DISMISS, send_sample);
-        PrintInfoMsg("Read", MSG.DISMISS, read);
-
-
-        startEditTemplateActivity(true);
     }
 
     /*!
@@ -54,6 +52,72 @@ public class MainActivity extends Activity {
     private void loadSettings(){
         // Todo save and load settings
         settings = new Settings();
+    }
+
+    private void loadTemplates(){
+        List<String> available_templates = db.getAllFunctionNames();
+        LinearLayout ll = (LinearLayout) findViewById(R.id.templates_layout);
+        for(int i = 0; i < available_templates.size(); i++){
+            String s = available_templates.get(i);
+            selected.add(false);
+            TextView tv = getTextViewTemplate(s, i);
+            ll.addView(tv, new
+                    RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+
+        enableGuiElementsIf();
+    }
+
+    private TextView getTextViewTemplate(String s, final int id){
+        TextView tv = new TextView(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            tv.setBackgroundColor(getColor(R.color.Secondary));
+        }else{
+            tv.setBackgroundColor(0x454745);
+        }
+        tv.setText(s);
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"you choose Template nr. " + id,Toast.LENGTH_SHORT).show();
+                selected.set(id, !selected.get(id));
+                enableGuiElementsIf();
+                if(selected.get(id)){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        v.setBackgroundColor(getColor(R.color.Selected));
+                    }else{
+                        v.setBackgroundColor(0x4547FF);
+                    }
+                    selected_view.add(v);
+                    selected_id.add(id);
+                }else{
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        v.setBackgroundColor(getColor(R.color.Secondary));
+                    }else{
+                        v.setBackgroundColor(0x454745);
+                    }
+                    selected_view.remove(v);
+                    selected_id.remove(id);
+                }
+            }
+        });
+
+        return tv;
+    }
+
+    int getNumSelected(){
+        return Collections.frequency(selected, true);
+    }
+
+    void enableGuiElementsIf(){
+        int num_selected = getNumSelected();
+        boolean enable_copy_and_delete = num_selected > 0;
+        boolean enable_execute = num_selected == 1;
+
+        copy_template_button.setEnabled(enable_copy_and_delete);
+        delete_template_button.setEnabled(enable_copy_and_delete);
+        run_selected_template_button.setEnabled(enable_execute);
     }
 
     /*!
@@ -80,40 +144,29 @@ public class MainActivity extends Activity {
         delete_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Vector <Integer> del = getAllSelectedTemplates();
-                for (int id: del) {
-                    if(!deleteTemplate(id)){
-                        // todo
-                    }
-                }
+                deleteSelectedTemplates();
             }
         });
 
         add_new_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startEditTemplateActivity(true);
+                startEditTemplateActivity(-1);
             }
         });
 
         copy_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Vector <Integer> del = getAllSelectedTemplates();
-                for (int id: del) {
-                    if(!copyTemplate(id)){
-                        // todo
-                    }
-                }
+                copySelectedTemplates();
             }
         });
 
         run_selected_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Vector <Integer> ids = getAllSelectedTemplates();
-                if(ids.size() == 1){
-                    // todo get function and send via bt
+                if (selected_id.size() > 0) {
+                    //TODO
                 }
             }
         });
@@ -124,34 +177,33 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 
-    private void startEditTemplateActivity(boolean new_template){
-        int selected_id = -1;
-        if(!new_template){
-            // todo 1 selected? -> get id
-            // 0 selected -> id = -1 (new)
-        }
+    private void startEditTemplateActivity(int selected){
         Intent intent = new Intent(this, EditTemplateActivity.class);
         Bundle b = new Bundle();
-        b.putInt(ActivityParameters.selectedTemplate, selected_id);
+        b.putInt(ActivityParameters.selectedTemplate, selected);
         intent.putExtras(b);
         startActivity(intent);
     }
 
-    private boolean deleteTemplate(int id){
-        // todo
-        return false;
+    private void deleteSelectedTemplates(){
+        for(int i = selected.size()-1; i > -1; i--){
+            if(!selected.get(i)){
+                db.deleteFunctionDescription(i);
+                selected.remove(i);
+            }
+        }
+        LinearLayout ll = (LinearLayout) findViewById(R.id.templates_layout);
+        for( View v: selected_view){
+            ll.removeView(v);
+        }
+        selected_view.clear();
+        selected_id.clear();
     }
 
-    private Vector<Integer> getAllSelectedTemplates(){
-        // todo
-        Vector<Integer> v = new Vector<Integer>();
-
-        return v;
-    }
-
-    private boolean copyTemplate(int id){
-        // todo
-        return false;
+    private void copySelectedTemplates(){
+        for(Integer id: selected_id){
+            db.copyFunctionDescription(id);
+        }
     }
 
     private void setUpBluetooth(){
@@ -274,15 +326,17 @@ public class MainActivity extends Activity {
         msg_id++;
         msgs.put(new_id, tv);
         // Needed since I dont know when the text is really written and displayed.
-        tv.addOnLayoutChangeListener( new View.OnLayoutChangeListener()
-        {
-            public void onLayoutChange( View v,
-                                        int left,    int top,    int right,    int bottom,
-                                        int leftWas, int topWas, int rightWas, int bottomWas )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            tv.addOnLayoutChangeListener( new View.OnLayoutChangeListener()
             {
-                moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe();
-            }
-        });
+                public void onLayoutChange( View v,
+                                            int left,    int top,    int right,    int bottom,
+                                            int leftWas, int topWas, int rightWas, int bottomWas )
+                {
+                    moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe();
+                }
+            });
+        }
         switch (type){
             case FIX:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -397,7 +451,7 @@ public class MainActivity extends Activity {
                     buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
                     buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
             byte[] buffer_fEnd = {0x00};
-            byte[] combined = concatAll(buffer_f1, buffer_f2, buffer_f3, buffer_fEnd);
+            byte[] combined = Utility.concatAll(buffer_f1, buffer_f2, buffer_f3, buffer_fEnd);
             try {
                 if(bluetooth_manager.send(combined)){
                     PrintInfoMsg("Transmittion successful", MSG.DISMISS, send_sample);
@@ -410,21 +464,6 @@ public class MainActivity extends Activity {
             }
         }
     };
-
-    //https://stackoverflow.com/questions/80476/how-can-i-concatenate-two-arrays-in-java
-    public static  byte[] concatAll(byte[] first, byte[]... rest) {
-        int totalLength = first.length;
-        for (byte[] array : rest) {
-            totalLength += array.length;
-        }
-        byte[] result = Arrays.copyOf(first, totalLength);
-        int offset = first.length;
-        for (byte[] array : rest) {
-            System.arraycopy(array, 0, result, offset, array.length);
-            offset += array.length;
-        }
-        return result;
-    }
 
     /*!
      * \brief getMessageHeight Calculates the height of all messages and returns the sum.
@@ -475,4 +514,8 @@ public class MainActivity extends Activity {
     private Spinner spinner_bluetooth_device;
     private boolean user_is_interacting;
 
+    private DB db;
+    private ArrayList<Boolean> selected = new ArrayList<>();
+    private ArrayList<View> selected_view = new ArrayList<>();
+    private ArrayList<Integer> selected_id = new ArrayList<>();
 }

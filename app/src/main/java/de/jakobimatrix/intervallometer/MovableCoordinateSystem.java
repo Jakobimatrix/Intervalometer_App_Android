@@ -17,14 +17,6 @@ import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
 
-enum SUPPORTED_FUNCTION{
-    LINEAR,
-    QUADRATIC_EXTREMA_LEFT,
-    QUADRATIC_EXTREMA_RIGHT,
-    SIGMOID,
-    UNKNOWN
-};
-
 public class MovableCoordinateSystem extends Movable {
 
     /*!
@@ -803,40 +795,6 @@ public class MovableCoordinateSystem extends Movable {
         return supported;
     }
 
-    private SUPPORTED_FUNCTION FunctionString2Enum(String function_class){
-        if(activity.getString(R.string.linear_function).equals(function_class)){
-            return SUPPORTED_FUNCTION.LINEAR;
-        }
-        if(activity.getString(R.string.quadratic_function_left).equals(function_class)){
-            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
-        }
-        if(activity.getString(R.string.quadratic_function_right).equals(function_class)){
-            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
-        }
-        if(activity.getString(R.string.sigmoid_function).equals(function_class)){
-            return SUPPORTED_FUNCTION.SIGMOID;
-        }
-        return SUPPORTED_FUNCTION.UNKNOWN;
-    }
-
-    private SUPPORTED_FUNCTION FunctionClass2Enum(Object unknown_function_class){
-        // sigmoid must be checked for LinearFunction since all sigmoids are linear functions (see inheritance)
-        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.SigmoidFunction) {
-            return SUPPORTED_FUNCTION.SIGMOID;
-        }
-        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.LinearFunction ||
-                unknown_function_class instanceof de.jakobimatrix.intervallometer.ConstantFunction) {
-            return SUPPORTED_FUNCTION.LINEAR;
-        }
-        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaRight) {
-            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
-        }
-        if (unknown_function_class instanceof de.jakobimatrix.intervallometer.QuadraticFunctionExtremaLeft) {
-            return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
-        }
-        return SUPPORTED_FUNCTION.UNKNOWN;
-    }
-
     private void placeAddFunctionButtonsActivity(){
         int num_functions = functions.size();
         int num_buttons = add_function_button.size();
@@ -978,10 +936,10 @@ public class MovableCoordinateSystem extends Movable {
             MovableFunction mf = getMovableFunction(id);
             Integer num_pics = (int) Math.round(mf.getFunctionMaxX() - mf.getFunctionMinX());
             num_pic_chooser.setText(num_pics.toString(), TextView.BufferType.EDITABLE);
-            SUPPORTED_FUNCTION current_function_type = FunctionClass2Enum(mf.getFunction());
+            SUPPORTED_FUNCTION current_function_type = Function.FunctionClass2Enum(mf.getFunction());
             int position = 0;
             for(int i = 0; i < spinner_array.size(); i++){
-                SUPPORTED_FUNCTION sf = FunctionString2Enum(spinner_array.get(i));
+                SUPPORTED_FUNCTION sf = Function.FunctionString2Enum(spinner_array.get(i));
                 if(sf == current_function_type){
                     position = i;
                     break;
@@ -1006,7 +964,7 @@ public class MovableCoordinateSystem extends Movable {
             @Override
             public void onClick(View v) {
                 String function_string = (String) function_chooser.getSelectedItem();
-                SUPPORTED_FUNCTION selected_function = FunctionString2Enum(function_string);
+                SUPPORTED_FUNCTION selected_function = Function.FunctionString2Enum(function_string);
                 int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
                 functionCreate(id, edit_function, selected_function, num_pictures);
                 closeAddFunctionActivity();
@@ -1017,6 +975,10 @@ public class MovableCoordinateSystem extends Movable {
     }
 
     private void functionCreate(int id, boolean edit, SUPPORTED_FUNCTION type, int length){
+        if(type == SUPPORTED_FUNCTION.UNKNOWN){
+            removeFunction(id);
+        }
+
         Pos3d left = Pos3d.Zero();
         Pos3d right = Pos3d.Zero();
 
@@ -1061,25 +1023,8 @@ public class MovableCoordinateSystem extends Movable {
             }
         }
 
-        Function new_function;
-        switch (type){
-            case LINEAR:
-                new_function = new LinearFunction(left,right);
-                break;
-            case QUADRATIC_EXTREMA_LEFT:
-                new_function = new QuadraticFunctionExtremaLeft(left,right);
-                break;
-            case QUADRATIC_EXTREMA_RIGHT:
-                new_function = new QuadraticFunctionExtremaRight(left,right);
-                break;
-            case UNKNOWN:
-                // delete function
-                removeFunction(id);
-                return;
-            default:
-                // Why Java not able to see, that ENUM has no default?!
-                throw new IllegalStateException("Unexpected value: " + type);
-        }
+        Function new_function = Function.create(left, right, type);
+
         if(edit){
             replaceFunction(id, new_function, length);
         }else{
