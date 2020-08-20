@@ -939,7 +939,7 @@ public class MovableCoordinateSystem extends Movable {
             SUPPORTED_FUNCTION current_function_type = Function.FunctionClass2Enum(mf.getFunction());
             int position = 0;
             for(int i = 0; i < spinner_array.size(); i++){
-                SUPPORTED_FUNCTION sf = Function.FunctionString2Enum(spinner_array.get(i));
+                SUPPORTED_FUNCTION sf = Function.FunctionString2Enum(activity, spinner_array.get(i));
                 if(sf == current_function_type){
                     position = i;
                     break;
@@ -964,7 +964,7 @@ public class MovableCoordinateSystem extends Movable {
             @Override
             public void onClick(View v) {
                 String function_string = (String) function_chooser.getSelectedItem();
-                SUPPORTED_FUNCTION selected_function = Function.FunctionString2Enum(function_string);
+                SUPPORTED_FUNCTION selected_function = Function.FunctionString2Enum(activity, function_string);
                 int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
                 functionCreate(id, edit_function, selected_function, num_pictures);
                 closeAddFunctionActivity();
@@ -1061,6 +1061,9 @@ public class MovableCoordinateSystem extends Movable {
         });
     }
 
+    public final Vector<MovableFunction> getFunctions(){
+        return functions;
+    }
 
     final static int INVALID_FUNCTION = -10;
     int active_function = INVALID_FUNCTION;

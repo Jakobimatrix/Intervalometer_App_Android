@@ -1,4 +1,5 @@
 package de.jakobimatrix.intervallometer;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -10,7 +11,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Vector;
 
 
 public class DB extends SQLiteOpenHelper{
@@ -18,15 +21,14 @@ public class DB extends SQLiteOpenHelper{
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "intervallometerDB";
     private static final String TABLE_NAME = "functionDescription";
-    private static final int ID_COL = 0;
     private static final String KEY_ID = "id";
-    private static final int NAME_COL = 2;
     private static final String KEY_NAME = "name";
-    private static final int DESCRIPTION_COL = 3;
     private static final String KEY_DESCRIPTION = "description";
+    Activity activity;
 
-    public DB(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    public DB(Activity activity) {
+        super(activity, DATABASE_NAME, null, DATABASE_VERSION);
+        this.activity = activity;
         //3rd argument to be passed is CursorFactory instance
     }
 
@@ -48,7 +50,7 @@ public class DB extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public static void Json2Function(ArrayList<Function> fs, ArrayList<Double> start, ArrayList<Double>stop, JSONArray json_array) throws JSONException {
+    public static void Json2Function(Activity activity, ArrayList<Function> fs, ArrayList<Double> start, ArrayList<Double>stop, JSONArray json_array) throws JSONException {
         fs.clear();
         start.clear();
         start.clear();
@@ -63,9 +65,10 @@ public class DB extends SQLiteOpenHelper{
             Pos3d left = new Pos3d(x1,y1,0);
             Pos3d right = new Pos3d(x2,y2, 0);
             String function = json_obj.getString("function_type");
-            SUPPORTED_FUNCTION sf = Function.FunctionString2Enum(function);
+            SUPPORTED_FUNCTION sf = Function.FunctionString2Enum(activity, function);
             Function f = Function.create(left, right, sf);
             if(f == null){
+                // todo just do a linear function
                 throw new IllegalArgumentException( "DB::Json2Function: could not create Function." );
             }
             fs.add(f);
@@ -77,9 +80,9 @@ public class DB extends SQLiteOpenHelper{
     private JSONObject function2Json(MovableFunction mf) {
         Function f = mf.getFunction();
         SUPPORTED_FUNCTION sp = Function.FunctionClass2Enum(f);
-        String function_type = Function.FunctionEnum2String(sp);
-        Pos3d p1 = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
-        Pos3d p2 = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+        String function_type = Function.FunctionEnum2String(activity,  sp);
+        Pos3d p1 = new Pos3d(mf.getFunctionMinX(), f.f(mf.getFunctionMinX()), 0);
+        Pos3d p2 = new Pos3d(mf.getFunctionMaxX(), f.f(mf.getFunctionMaxX()), 0);
 
         JSONObject json_function = new JSONObject();
         try {
@@ -97,7 +100,7 @@ public class DB extends SQLiteOpenHelper{
         return json_function;
     }
 
-    public void addFunctionDescription(ArrayList<MovableFunction> movable_functions, String name) {
+    public void addFunctionDescription(Vector<MovableFunction> movable_functions, String name) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -133,13 +136,19 @@ public class DB extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(TABLE_NAME, new String[] { KEY_ID,
-                        KEY_NAME}, KEY_ID + "=?",
+                        KEY_DESCRIPTION}, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
-        if (cursor != null)
-            cursor.moveToFirst();
+        if (cursor == null){
+            return null;
+        }
+        if(cursor.getCount() == 0){
+            return null;
+        }
 
+        cursor.moveToFirst();
         try {
-            return new JSONArray(cursor.getString(DESCRIPTION_COL));
+            int index = cursor.getColumnIndex(KEY_DESCRIPTION);
+            return new JSONArray(cursor.getString(index));
         } catch (JSONException e) {
             e.printStackTrace();
             return  null;
@@ -155,11 +164,11 @@ public class DB extends SQLiteOpenHelper{
         if (cursor != null)
             cursor.moveToFirst();
 
-        return cursor.getString(NAME_COL);
+        return cursor.getString(cursor.getColumnIndex(KEY_NAME));
     }
 
-    public List<JSONArray> getAllFunctionDescriptions() {
-        List<JSONArray> arrayList = new ArrayList<JSONArray>();
+    public LinkedHashMap<Integer, JSONArray> getAllFunctionDescriptions() {
+        LinkedHashMap<Integer, JSONArray> map = new LinkedHashMap<Integer, JSONArray>();
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -167,39 +176,48 @@ public class DB extends SQLiteOpenHelper{
         if (cursor.moveToFirst()) {
             do {
                 JSONArray ja = null;
+                int id = -1;
                 try {
-                    ja = new JSONArray(cursor.getString(DESCRIPTION_COL));
+                    ja = new JSONArray(cursor.getString(cursor.getColumnIndex(KEY_DESCRIPTION)));
+                    id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 if(ja != null){
-                    arrayList.add(ja);
+                    map.put(id, ja);
                 }
             } while (cursor.moveToNext());
         }
-        return arrayList;
+        return map;
     }
 
-    public List<String> getAllFunctionNames() {
-        List<String> arrayList = new ArrayList<String>();
+    public LinkedHashMap<Integer, String> getAllFunctionNames() {
+        LinkedHashMap<Integer, String> map = new LinkedHashMap<Integer, String>();
         String selectQuery = "SELECT  * FROM " + TABLE_NAME;
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor.moveToFirst()) {
             do {
-                String s = cursor.getString(NAME_COL);
-                arrayList.add(s);
+                String s = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+                int id = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+                map.put(id,s);
             } while (cursor.moveToNext());
         }
-        return arrayList;
+        return map;
     }
 
-    public int updateFunctionDescription(MovableFunction mf, int id) {
+    public int updateFunctionDescription(int id, Vector<MovableFunction> movable_functions, String name) {
         SQLiteDatabase db = this.getWritableDatabase();
+        JSONArray jsonArray = new JSONArray();
+        for(MovableFunction mf: movable_functions) {
+            jsonArray.put(function2Json(mf));
+        }
+        String function_description = jsonArray.toString();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_DESCRIPTION, function2Json(mf).toString());
+        values.put(KEY_DESCRIPTION, function_description);
+        values.put(KEY_NAME, name);
 
         // updating row
         return db.update(TABLE_NAME, values, KEY_ID + " = ?",

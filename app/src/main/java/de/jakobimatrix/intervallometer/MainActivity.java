@@ -2,9 +2,11 @@ package de.jakobimatrix.intervallometer;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,8 +26,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 enum MSG{FIX,DISMISS,ERROR};
@@ -35,6 +40,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // to trigger the rotation
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
         db = new DB(this);
 
@@ -46,6 +54,12 @@ public class MainActivity extends Activity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTemplates();
+    }
+
     /*!
      * \brief loadSettings Load the settings from a DB.
      */
@@ -55,17 +69,19 @@ public class MainActivity extends Activity {
     }
 
     private void loadTemplates(){
-        List<String> available_templates = db.getAllFunctionNames();
-        LinearLayout ll = (LinearLayout) findViewById(R.id.templates_layout);
-        for(int i = 0; i < available_templates.size(); i++){
-            String s = available_templates.get(i);
-            selected.add(false);
-            TextView tv = getTextViewTemplate(s, i);
-            ll.addView(tv, new
-                    RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinkedHashMap<Integer, String> available_templates = db.getAllFunctionNames();
+        LinearLayout ll = (LinearLayout) findViewById(R.id.scroll_view_templates_layout);
+        for (Map.Entry<Integer, String> entry : available_templates.entrySet()) {
+            if(!selected.containsKey(entry.getKey())){
+                // new template
+                selected.put(entry.getKey(), false);
+                TextView tv = getTextViewTemplate(entry.getValue(), entry.getKey());
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.setMargins(10, 5, 10, 5);
+                ll.addView(tv, params);
+            }
         }
-
         enableGuiElementsIf();
     }
 
@@ -77,37 +93,40 @@ public class MainActivity extends Activity {
             tv.setBackgroundColor(0x454745);
         }
         tv.setText(s);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            tv.setTextColor(getColor(R.color.Letters));
+        }else{
+            tv.setTextColor(0xDED2BA);
+        }
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),"you choose Template nr. " + id,Toast.LENGTH_SHORT).show();
-                selected.set(id, !selected.get(id));
-                enableGuiElementsIf();
+                selected.put(id, !selected.get(id));
                 if(selected.get(id)){
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         v.setBackgroundColor(getColor(R.color.Selected));
                     }else{
                         v.setBackgroundColor(0x4547FF);
                     }
-                    selected_view.add(v);
-                    selected_id.add(id);
+                    selected_view.put(id, v);
                 }else{
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         v.setBackgroundColor(getColor(R.color.Secondary));
                     }else{
                         v.setBackgroundColor(0x454745);
                     }
-                    selected_view.remove(v);
-                    selected_id.remove(id);
+                    selected_view.remove(id);
                 }
+                enableGuiElementsIf();
             }
         });
 
         return tv;
     }
 
-    int getNumSelected(){
-        return Collections.frequency(selected, true);
+    private int getNumSelected(){
+        return selected_view.size();
     }
 
     void enableGuiElementsIf(){
@@ -118,6 +137,8 @@ public class MainActivity extends Activity {
         copy_template_button.setEnabled(enable_copy_and_delete);
         delete_template_button.setEnabled(enable_copy_and_delete);
         run_selected_template_button.setEnabled(enable_execute);
+
+        // Todo visualize
     }
 
     /*!
@@ -151,7 +172,7 @@ public class MainActivity extends Activity {
         add_new_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startEditTemplateActivity(-1);
+                startEditTemplateActivity(getSelectedTemplate());
             }
         });
 
@@ -165,11 +186,21 @@ public class MainActivity extends Activity {
         run_selected_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (selected_id.size() > 0) {
+                if (getNumSelected() > 0) {
+                    getSelectedTemplate();
                     //TODO
                 }
             }
         });
+    }
+
+    private int getSelectedTemplate(){
+        Iterator it = selected_view.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            return (int) pair.getKey();
+        }
+        return -1;
     }
 
     private void startSettingsActivity(){
@@ -186,24 +217,27 @@ public class MainActivity extends Activity {
     }
 
     private void deleteSelectedTemplates(){
-        for(int i = selected.size()-1; i > -1; i--){
-            if(!selected.get(i)){
-                db.deleteFunctionDescription(i);
-                selected.remove(i);
+        Iterator it = selected.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if((boolean) pair.getValue()){
+                db.deleteFunctionDescription((Integer) pair.getKey());
+                it.remove();
             }
         }
-        LinearLayout ll = (LinearLayout) findViewById(R.id.templates_layout);
-        for( View v: selected_view){
+
+        LinearLayout ll = (LinearLayout) findViewById(R.id.scroll_view_templates_layout);
+        for (View v : selected_view.values()) {
             ll.removeView(v);
         }
         selected_view.clear();
-        selected_id.clear();
     }
 
     private void copySelectedTemplates(){
-        for(Integer id: selected_id){
+        for (int id : selected_view.keySet()) {
             db.copyFunctionDescription(id);
         }
+        loadTemplates();
     }
 
     private void setUpBluetooth(){
@@ -515,7 +549,6 @@ public class MainActivity extends Activity {
     private boolean user_is_interacting;
 
     private DB db;
-    private ArrayList<Boolean> selected = new ArrayList<>();
-    private ArrayList<View> selected_view = new ArrayList<>();
-    private ArrayList<Integer> selected_id = new ArrayList<>();
+    private LinkedHashMap<Integer, Boolean> selected = new LinkedHashMap<>();
+    private LinkedHashMap<Integer, View> selected_view = new LinkedHashMap<>();
 }

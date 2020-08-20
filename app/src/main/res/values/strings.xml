@@ -44,6 +44,10 @@
     <string name="unknown_function">Unknown</string>
     <string name="delete_function">Delete Function</string>
     <string name="something_went_wrong">Sorry something went wrong.</string>
+    <string name="choose_frame_rate">Frame Rate:</string>
+    <string name="total_number_frames">Number of Frame:</string>
+    <string name="total_clip_duration">Video Duration:</string>
+    <string name="total_recording_time">Recording Time:</string>
 
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>

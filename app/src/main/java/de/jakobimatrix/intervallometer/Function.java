@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+import android.app.Activity;
 import android.content.res.Resources;
 
 import java.util.ArrayList;
@@ -234,17 +235,17 @@ public class Function {
     }
 
 
-    public static SUPPORTED_FUNCTION FunctionString2Enum(String function_class){
-        if(Resources.getSystem().getString(R.string.linear_function).equals(function_class)){
+    public static SUPPORTED_FUNCTION FunctionString2Enum(Activity activity, String function_class){
+        if(activity.getString(R.string.linear_function).equals(function_class)){
             return SUPPORTED_FUNCTION.LINEAR;
         }
-        if(Resources.getSystem().getString(R.string.quadratic_function_left).equals(function_class)){
+        if(activity.getString(R.string.quadratic_function_left).equals(function_class)){
             return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_LEFT;
         }
-        if(Resources.getSystem().getString(R.string.quadratic_function_right).equals(function_class)){
+        if(activity.getString(R.string.quadratic_function_right).equals(function_class)){
             return SUPPORTED_FUNCTION.QUADRATIC_EXTREMA_RIGHT;
         }
-        if(Resources.getSystem().getString(R.string.sigmoid_function).equals(function_class)){
+        if(activity.getString(R.string.sigmoid_function).equals(function_class)){
             return SUPPORTED_FUNCTION.SIGMOID;
         }
         return SUPPORTED_FUNCTION.UNKNOWN;
@@ -268,18 +269,18 @@ public class Function {
         }
     }
 
-    public static String FunctionEnum2String(SUPPORTED_FUNCTION function_class){
+    public static String FunctionEnum2String(Activity activity, SUPPORTED_FUNCTION function_class){
         switch (function_class){
             case LINEAR:
-                return Resources.getSystem().getString(R.string.linear_function);
+                return activity.getString(R.string.linear_function);
             case QUADRATIC_EXTREMA_LEFT:
-                return Resources.getSystem().getString(R.string.quadratic_function_left);
+                return activity.getString(R.string.quadratic_function_left);
             case QUADRATIC_EXTREMA_RIGHT:
-                return Resources.getSystem().getString(R.string.quadratic_function_right);
+                return activity.getString(R.string.quadratic_function_right);
             case SIGMOID:
-                return Resources.getSystem().getString(R.string.sigmoid_function);
+                return activity.getString(R.string.sigmoid_function);
             case UNKNOWN:
-                return Resources.getSystem().getString(R.string.unknown_function);
+                return activity.getString(R.string.unknown_function);
         }
         return "";// this never happens
     }

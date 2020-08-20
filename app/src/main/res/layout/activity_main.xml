@@ -55,8 +55,7 @@
         android:layout_below="@id/spinner_bluetooth_device"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="5sp"
-        android:paddingBottom="50sp">
+        android:layout_marginBottom="@dimen/min_clickable_button_size">
 
         <LinearLayout
             android:id="@+id/scroll_view_templates_layout"
@@ -64,9 +63,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
     </ScrollView>
+
     <LinearLayout
         android:layout_below="@id/scroll_view_templates"
-        android:id="@+id/templates_layout"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

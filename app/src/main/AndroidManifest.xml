@@ -22,6 +22,7 @@
         <activity
             android:name=".EditTemplateActivity"
             android:label="EditTemplate"
+            android:screenOrientation="sensorLandscape"
             android:theme="@style/AppTheme">
         </activity>
         <activity

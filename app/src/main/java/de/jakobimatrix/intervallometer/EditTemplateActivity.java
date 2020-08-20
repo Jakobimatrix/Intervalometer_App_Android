@@ -9,25 +9,40 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Vector;
 
 public class EditTemplateActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         charToBitmapConverter.init(getBaseContext());
         setContentView(R.layout.activity_edit_template);
 
+        settings = new Settings();
+        db = new DB(this);
         Display display = getWindowManager().getDefaultDisplay();
         display.getSize(screen_size);
         Globals.screen_width = screen_size.x;
@@ -72,6 +87,13 @@ public class EditTemplateActivity extends Activity {
         params_ll.setMargins(-button_width, 0, 0, 0);
         ll.setLayoutParams(params_ll);
 
+        //Info
+        total_number_frames_output = (TextView) findViewById(R.id.total_number_frames_output);
+        total_clip_duration_output = (TextView) findViewById(R.id.total_clip_duration_output);
+        total_recording_time_output = (TextView) findViewById(R.id.total_recording_time_output);
+        function_name = (EditText) findViewById(R.id.function_name);
+        choose_frame_rate = (Spinner) findViewById(R.id.choose_frame_rate);
+
         // DEBUG
         if(DEBUG_TOUCH) {
             seeker_y = (TextView) findViewById(R.id.seeker_y);
@@ -83,41 +105,6 @@ public class EditTemplateActivity extends Activity {
         }
     }
 
-    private void setUpCoordSystem(){
-        // for the symbols
-        double MARGIN_RIGHT = getButtonWidth();
-
-        Pos3d bot_left_screen = new Pos3d(0, screen_size.y, 0);
-        Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0, 0);
-        Pos3d bot_left_view_gl  = Utility.screen2openGl(bot_left_screen);
-        Pos3d top_right_view_gl  = Utility.screen2openGl(top_right_screen);
-        float width = (float) Math.abs(top_right_view_gl.x - bot_left_view_gl.x);
-        float height = (float) Math.abs(top_right_view_gl.y - bot_left_view_gl.y);
-
-        coord_overview = new MovableCoordinateSystem(this, bot_left_view_gl, width, height);
-
-        int index;
-
-        Function f1 = new ConstantFunction(2);
-        index = coord_overview.addFunction(f1, 0., 4.);
-
-        Function f2 = new LinearFunction(-2, 1);
-        index = coord_overview.addFunction(f2, 4., 8.);
-
-        Function f3 = new ConstantFunction(6);
-        index = coord_overview.addFunction(f3, 8., 12.);
-
-        Pos3d  left = new Pos3d(12,6,0);
-        Pos3d  right = new Pos3d(16,0,0);
-        Function f4 = new SigmoidFunction(left, right);
-        index = coord_overview.addFunction(f4, left.x, right.x);
-
-        Function f5 = new LinearFunction(-right.x, 1);
-        index = coord_overview.addFunction(f5, right.x, right.x+4);
-
-        coord_overview.stickToGrid(new Pos3d(1,1,0));
-        coord_view_id = renderer.addMovable(coord_overview);
-    }
 
     /*!
      * \brief getButtonWidth
@@ -196,30 +183,87 @@ public class EditTemplateActivity extends Activity {
         buttons[INFO_BTN].setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO show how many photos, how long the video (depend on fps) and how long it takes to take all pictures.
+                if(info_open){
+                    closeFunctionInfo();
+                    info_open = false;
+                }else{
+                    openFunctionInfo();
+                    info_open = true;
+                }
             }
         });
 
-        /*
-        // example for on slider listeners
-        slider.seekbar.setOnSeekBarChangeListener(
-                new SeekBar.OnSeekBarChangeListener()
-                {
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {}
+        ArrayList<String> spinner_array = new ArrayList<String>(frame_rates_lookup.keySet());
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>
+                (this, R.layout.spinner_layout, spinner_array);
+        adapter.setDropDownViewResource(android.R.layout
+                .simple_spinner_dropdown_item);
+        choose_frame_rate.setAdapter(adapter);
+        choose_frame_rate.setSelection(settings.getEditTemplateFpsId() > -1?settings.getEditTemplateFpsId():DEFAULT_FPS_ID);
 
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {}
+        choose_frame_rate.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                String fps_s = (String) choose_frame_rate.getSelectedItem();
+                settings.setEditTemplateFpsId(position);
+                updateFunctionInfo();
+            }
 
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int progress,
-                                                  boolean fromUser)
-                    {
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
-                    }
+    }
+
+    private void openFunctionInfo(){
+        updateFunctionInfo();
+        LinearLayout dialog_layout = (LinearLayout) findViewById(R.id.infoLayout);
+        RelativeLayout.LayoutParams params_dialog_layout = (RelativeLayout.LayoutParams) dialog_layout.getLayoutParams();
+        params_dialog_layout.width = screen_size.x - getButtonWidth();
+        params_dialog_layout.height = RelativeLayout.LayoutParams.MATCH_PARENT;
+        dialog_layout.setLayoutParams(params_dialog_layout);
+    }
+
+    private void closeFunctionInfo(){
+        LinearLayout dialog_layout = (LinearLayout) findViewById(R.id.infoLayout);
+        RelativeLayout.LayoutParams params_dialog_layout = (RelativeLayout.LayoutParams) dialog_layout.getLayoutParams();
+        params_dialog_layout.width = 0;
+        params_dialog_layout.height = RelativeLayout.LayoutParams.MATCH_PARENT;
+        dialog_layout.setLayoutParams(params_dialog_layout);
+    }
+
+    private void updateFunctionInfo() {
+        Vector<MovableFunction> functions = coord_overview.getFunctions();
+        String total_number_frames_s = "-";
+        String total_clip_duration_s = "-";
+        String total_recording_time_s = "-";
+        if(functions.size() > 0){
+            double min_x = functions.get(0).getFunctionMinX();
+            double max_x = functions.get(functions.size()-1).getFunctionMaxX();
+            double Frames = Math.round(max_x - min_x) + 1;
+            total_number_frames_s = (int) Frames + "";
+            String fps_s = (String) choose_frame_rate.getSelectedItem();
+            if(frame_rates_lookup.containsKey(fps_s)){
+                double clip_duration = Frames / frame_rates_lookup.get(fps_s);
+                total_clip_duration_s = Math.round(clip_duration*10)/10 + getString(R.string.section_input_duration_s);
+            }
+            long duration = 0;
+            for(MovableFunction mf: functions){
+                double x_max = mf.getFunctionMaxX();
+                double x = mf.getFunctionMinX() + 1;
+                Function f = mf.getFunction();
+                while(x < x_max){
+                    duration += f.f(x);
+                    x++;
                 }
-        );
-        */
+                duration += f.f(x_max);
+            }
+            total_recording_time_s = Utility.millis2hms(duration);
+        }
+        total_number_frames_output.setText(total_number_frames_s);
+        total_clip_duration_output.setText(total_clip_duration_s);
+        total_recording_time_output.setText(total_recording_time_s);
     }
 
     @Override
@@ -255,12 +299,25 @@ public class EditTemplateActivity extends Activity {
         return renderer.onTouchEvent(event);
     }
 
+    private String getFunctionName(){
+        String name = function_name.getText().toString();
+        if(name.equals("")){
+            Vector<MovableFunction> vmf = coord_overview.getFunctions();
+            for(MovableFunction mf: vmf){
+                SUPPORTED_FUNCTION sf = Function.FunctionClass2Enum(mf.getFunction());
+                name += Function.FunctionEnum2String(this, sf) + "-";
+            }
+            name = name.substring(0,name.length()-1);
+        }
+        return name;
+    }
+
     private void save(){
-        // TODO
-        if(is_new_template){
-
+        String name = getFunctionName();
+        if(db_function_id > -1){
+            db.updateFunctionDescription(db_function_id, coord_overview.getFunctions(), name);
         }else{
-
+            db.addFunctionDescription(coord_overview.getFunctions(), name);
         }
     }
 
@@ -298,22 +355,55 @@ public class EditTemplateActivity extends Activity {
      */
     private void loadTemplate(){
         Bundle b = getIntent().getExtras();
-        int value = -1;
+        db_function_id = -1;
         if(b != null) {
-            value = b.getInt(ActivityParameters.selectedTemplate);
-        }
-        if(value == -1){
-            is_new_template = true;
-        }else{
-            is_new_template = false;
+            db_function_id = b.getInt(ActivityParameters.selectedTemplate);
         }
 
+        // for the symbols
+        double MARGIN_RIGHT = getButtonWidth();
 
-        setUpCoordSystem();
+        Pos3d bot_left_screen = new Pos3d(0, screen_size.y, 0);
+        Pos3d top_right_screen = new Pos3d(screen_size.x - MARGIN_RIGHT, 0, 0);
+        Pos3d bot_left_view_gl  = Utility.screen2openGl(bot_left_screen);
+        Pos3d top_right_view_gl  = Utility.screen2openGl(top_right_screen);
+        float width = (float) Math.abs(top_right_view_gl.x - bot_left_view_gl.x);
+        float height = (float) Math.abs(top_right_view_gl.y - bot_left_view_gl.y);
+        coord_overview = new MovableCoordinateSystem(this, bot_left_view_gl, width, height);
+        coord_overview.stickToGrid(new Pos3d(1,1,0));
+        coord_view_id = renderer.addMovable(coord_overview);
+
+        if(db_function_id > -1){
+            JSONArray functions_description = db.getFunctionDescription(db_function_id);
+            int size = functions_description.length();
+            ArrayList<Function> fs = new ArrayList<>(size);
+            ArrayList<Double> start = new ArrayList<>(size);
+            ArrayList<Double> stop = new ArrayList<>(size);
+            try {
+                DB.Json2Function(this, fs,  start, stop, functions_description);
+                for(int i = 0; i < size; i++){
+                    Function f = fs.get(i);
+                    double x_min = start.get(i);
+                    double x_max = stop.get(i);
+                    coord_overview.addFunction(f, x_min, x_max);
+                }
+                String name = db.getFunctionName(db_function_id);
+                function_name.setText(name);
+            } catch (JSONException e) {
+                // todo inform user
+                e.printStackTrace();
+            }
+        }
     }
+
     // UI stuff
     private GLSurfaceView gl_view;
     private OpenGLRenderer renderer;
+    private TextView total_number_frames_output;
+    private TextView total_clip_duration_output;
+    private TextView total_recording_time_output;
+    private EditText function_name;
+    private Spinner choose_frame_rate;
 
     final static int NUM_BUTTONS = 6;
     final static int SAVE_BTN = 0;
@@ -324,18 +414,37 @@ public class EditTemplateActivity extends Activity {
     final static int INFO_BTN = 5;
     private Button[] buttons = new Button[NUM_BUTTONS];
 
-    boolean is_new_template;
+    int db_function_id = -1;
+
+    boolean info_open = false;
 
     MovableCoordinateSystem coord_overview;
     int coord_view_id = -1;
 
     AlphabetDatabase charToBitmapConverter = AlphabetDatabase.getInstance();
+    DB db;
+    Settings settings;
 
-    Point screen_size = new Point();;
+    Point screen_size = new Point();
 
     // DEBUG
     private TextView seeker_y;
     private TextView seeker_x;
     final boolean DEBUG_TOUCH = false;
     MovableDot debug_seeker;
+
+    private final static Map<String,Double> frame_rates_lookup = new LinkedHashMap<String,Double>()
+    {{ // LinkedHashMap keeps the keys in the order they were inserted.
+        put("16 fps",16.);
+        put("23.976 fps",23.976);
+        put("24 fps",24.);
+        put("25 fps",25.);
+        put("29.97 fps",29.97);
+        put("30 fps",30.);
+        put("60 fps",60.);
+        put("119.9 fps",119.9);
+        put("120 fps",120.);
+    }};
+
+    private final static int DEFAULT_FPS_ID = 3;
 }

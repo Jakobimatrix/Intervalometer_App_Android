@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 public class Utility {
 
@@ -239,6 +240,16 @@ public class Utility {
             offset += array.length;
         }
         return result;
+    }
+
+    public static String millis2hms(long millis){
+        // https://stackoverflow.com/questions/9027317/how-to-convert-milliseconds-to-hhmmss-format
+        return String.format("%02dh %02dm %02ds",
+                TimeUnit.MILLISECONDS.toHours(millis),
+                TimeUnit.MILLISECONDS.toMinutes(millis) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+                TimeUnit.MILLISECONDS.toSeconds(millis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
     final static double EPSILON_D = Math.ulp(4.0);

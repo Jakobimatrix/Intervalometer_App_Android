@@ -23,7 +23,7 @@ public class Globals {
     final static public double MANIPULATOR_Z_ELEVATION = 0.009;
 
     // layout ids
-    final static int EDIT_TEMPLATE_LAYOUT = R.id.relEditTemplate;
+    final static int EDIT_TEMPLATE_LAYOUT = R.id.button_add_function_layout;
     final static int EDIT_FUNCTION_LAYOUT = R.id.editFunctionLayout;
     final static int EDIT_FUNCTION_APPLY_BTN = R.id.applyFunctionEditBtn;
     final static int EDIT_FUNCTION_CANCEL_BTN = R.id.cancelFunctionEditBtn;
