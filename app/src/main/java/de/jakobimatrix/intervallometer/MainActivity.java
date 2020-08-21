@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
      */
     private void loadSettings(){
         // Todo save and load settings
-        settings = new Settings();
+        settings = Settings.getInstance(this);
     }
 
     private void loadTemplates(){

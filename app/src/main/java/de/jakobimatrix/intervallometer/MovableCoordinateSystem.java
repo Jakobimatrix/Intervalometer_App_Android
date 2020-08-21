@@ -28,6 +28,7 @@ public class MovableCoordinateSystem extends Movable {
      */
     public MovableCoordinateSystem(Activity activity, Pos3d position_, float width, float height) {
         super(new DrawableRectangle(activity.getBaseContext(), new Pos3d(position_), width, height));
+        settings = Settings.getInstance(activity);
         //// TODO
         this.activity = activity;
         this.rl = (RelativeLayout) activity.findViewById(Globals.EDIT_TEMPLATE_LAYOUT);
@@ -189,6 +190,7 @@ public class MovableCoordinateSystem extends Movable {
             df.endTouch();
         }
         toggle_not = false;
+        sanitize();
         scale();
     }
 
@@ -237,6 +239,8 @@ public class MovableCoordinateSystem extends Movable {
      */
     public void manuelEndTouch() {
         hold_start = FIRST_CONTACT;
+        sanitize();
+        scale();
     }
 
     public void executeCommand(CMD cmd){
@@ -244,9 +248,9 @@ public class MovableCoordinateSystem extends Movable {
             for(MovableFunction mf : functions){
                 mf.executeCommand();
             }
-        }
-        removeZeroWidthFunctions();
-        scale();
+            removeZeroWidthFunctions();
+            scale();
+        };
     }
 
     /*!
@@ -782,6 +786,31 @@ public class MovableCoordinateSystem extends Movable {
         functions.get(functions.size()-1).unregisterRightCoupledFunction();
     }
 
+    private void sanitize(){
+        // first function starts at 0
+        if(functions.size() == 0){
+            return;
+        }
+        MovableFunction mf0 = functions.get(0);
+        Homography2d f2openGL = mf0.getDrawableFunction().f2openGL;
+        Pos3d current_gl = mf0.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+        Pos3d current_f = f2openGL.invTransform(current_gl);
+        double x_min = current_f.x;
+        Pos3d target_f = new Pos3d(0, current_f.y, 0);
+        if(x_min > 0){
+            Pos3d dp_f = Pos3d.sub(target_f,current_f);
+            mf0.moveTail(dp_f,false);
+        }else if(x_min < 0){
+            Pos3d target_gl =  f2openGL.transform(target_f);
+            mf0.moveManipulatorManuallyAndSetFunction(MovableFunction.LEFT_MANIPULATOR_ID, target_gl);
+        }
+
+        double min_y = settings.getMinPeriodMs();
+        for(MovableFunction mf:functions){
+            mf.moveManipulatorIfSmallerY(min_y);
+        }
+    }
+
     private ArrayList<String> getSupportedFunctions(boolean add_delete){
         ArrayList<String> supported = new ArrayList<String>(){{
             add(activity.getString(R.string.linear_function));
@@ -966,6 +995,10 @@ public class MovableCoordinateSystem extends Movable {
                 String function_string = (String) function_chooser.getSelectedItem();
                 SUPPORTED_FUNCTION selected_function = Function.FunctionString2Enum(activity, function_string);
                 int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
+                if(id == 0){
+                    // the first function has the zero frame (which will be done without delay)
+                    num_pictures--;
+                }
                 functionCreate(id, edit_function, selected_function, num_pictures);
                 closeAddFunctionActivity();
             }
@@ -1064,6 +1097,8 @@ public class MovableCoordinateSystem extends Movable {
     public final Vector<MovableFunction> getFunctions(){
         return functions;
     }
+
+    Settings settings;
 
     final static int INVALID_FUNCTION = -10;
     int active_function = INVALID_FUNCTION;

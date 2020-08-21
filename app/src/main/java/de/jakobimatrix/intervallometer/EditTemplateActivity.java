@@ -25,6 +25,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -41,7 +42,7 @@ public class EditTemplateActivity extends Activity {
         charToBitmapConverter.init(getBaseContext());
         setContentView(R.layout.activity_edit_template);
 
-        settings = new Settings();
+        settings = Settings.getInstance(this);
         db = new DB(this);
         Display display = getWindowManager().getDefaultDisplay();
         display.getSize(screen_size);
@@ -91,6 +92,11 @@ public class EditTemplateActivity extends Activity {
         total_number_frames_output = (TextView) findViewById(R.id.total_number_frames_output);
         total_clip_duration_output = (TextView) findViewById(R.id.total_clip_duration_output);
         total_recording_time_output = (TextView) findViewById(R.id.total_recording_time_output);
+        number_frames_output = (TextView) findViewById(R.id.number_frames_output);
+        clip_duration_output = (TextView) findViewById(R.id.clip_duration_output);
+        recording_time_output = (TextView) findViewById(R.id.recording_time_output);
+        functions_output = (TextView) findViewById(R.id.functions_output);
+
         function_name = (EditText) findViewById(R.id.function_name);
         choose_frame_rate = (Spinner) findViewById(R.id.choose_frame_rate);
 
@@ -238,32 +244,64 @@ public class EditTemplateActivity extends Activity {
         String total_number_frames_s = "-";
         String total_clip_duration_s = "-";
         String total_recording_time_s = "-";
+        String number_frames_s = "";
+        String clip_duration_s = "";
+        String recording_time_s = "";
+        String function_s = "";
+        DecimalFormat format_seconds = new DecimalFormat("#.#");
         if(functions.size() > 0){
             double min_x = functions.get(0).getFunctionMinX();
             double max_x = functions.get(functions.size()-1).getFunctionMaxX();
             double Frames = Math.round(max_x - min_x) + 1;
             total_number_frames_s = (int) Frames + "";
             String fps_s = (String) choose_frame_rate.getSelectedItem();
-            if(frame_rates_lookup.containsKey(fps_s)){
-                double clip_duration = Frames / frame_rates_lookup.get(fps_s);
-                total_clip_duration_s = Math.round(clip_duration*10)/10 + getString(R.string.section_input_duration_s);
-            }
+            double clip_duration = Frames / frame_rates_lookup.get(fps_s);
+            total_clip_duration_s = format_seconds.format(clip_duration) + getString(R.string.section_input_duration_s);
+
             long duration = 0;
-            for(MovableFunction mf: functions){
+
+            for(int i = 0; i < functions.size(); i++){
+                MovableFunction mf = functions.get(i);
                 double x_max = mf.getFunctionMaxX();
+                double x_min = mf.getFunctionMinX();
+                int f_frames = (int) Math.round(x_max - x_min);
+                if(i == 0){
+                    f_frames++;
+                }
                 double x = mf.getFunctionMinX() + 1;
                 Function f = mf.getFunction();
+                double f_duration = 0;
                 while(x < x_max){
-                    duration += f.f(x);
+                    f_duration += f.f(x);
                     x++;
                 }
-                duration += f.f(x_max);
+                f_duration += f.f(x_max);
+
+                double f_clip_duration = f_frames / frame_rates_lookup.get(fps_s);
+                String f_clip_duration_s = format_seconds.format(f_clip_duration) + getString(R.string.section_input_duration_s);
+                duration += f_duration;
+                function_s += "f"+(i+1)+":";
+                recording_time_s += Utility.millis2hms((long) f_duration);
+                clip_duration_s += f_clip_duration_s;
+                number_frames_s += f_frames;
+
+                if(i < functions.size()-1){
+                    function_s += "\n";
+                    number_frames_s += "\n";
+                    recording_time_s += "\n";
+                    clip_duration_s += "\n";
+                }
             }
             total_recording_time_s = Utility.millis2hms(duration);
         }
         total_number_frames_output.setText(total_number_frames_s);
         total_clip_duration_output.setText(total_clip_duration_s);
         total_recording_time_output.setText(total_recording_time_s);
+
+        number_frames_output.setText(number_frames_s);
+        clip_duration_output.setText(clip_duration_s);
+        recording_time_output.setText(recording_time_s);
+        functions_output.setText(function_s);
     }
 
     @Override
@@ -399,9 +437,14 @@ public class EditTemplateActivity extends Activity {
     // UI stuff
     private GLSurfaceView gl_view;
     private OpenGLRenderer renderer;
+    private TextView number_frames_output;
+    private TextView clip_duration_output;
+    private TextView recording_time_output;
+    private TextView functions_output;
     private TextView total_number_frames_output;
     private TextView total_clip_duration_output;
     private TextView total_recording_time_output;
+
     private EditText function_name;
     private Spinner choose_frame_rate;
 

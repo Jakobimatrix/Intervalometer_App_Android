@@ -78,13 +78,17 @@ public class MovableFunction extends Movable {
     }
 
     public void drawFunction(GL10 gl){
+        lock_draw_and_move.LOCK(0);
         parent.draw(gl);
+        lock_draw_and_move.UNLOCK();
     }
 
     public void drawManipulators(GL10 gl){
+        lock_draw_and_move.LOCK(1);
         for (int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i].draw(gl);
         }
+        lock_draw_and_move.UNLOCK();
     }
 
     @Override
@@ -108,7 +112,9 @@ public class MovableFunction extends Movable {
         for (int i = 0; i < NUM_MANIPULATORS; i++) {
             if (manipulator[i].isWithin(p)) {
                 p.z = Globals.MANIPULATOR_Z_ELEVATION;
+                lock_draw_and_move.LOCK(3);
                 moveManipulatorManuallyAndSetFunction(i, p);
+                lock_draw_and_move.UNLOCK();
                 return;
             }
         }
@@ -122,12 +128,14 @@ public class MovableFunction extends Movable {
     public void executeCommand(){
         for(int i = 0; i < NUM_MANIPULATORS; i++) {
             if(active_manipulator[i]) {
+                lock_draw_and_move.LOCK(4);
                 moveManipulatorAndSetFunction(i, dpos_command_openGL);
+                lock_draw_and_move.UNLOCK();
             }
         }
     }
 
-    private void moveManipulatorManuallyAndSetFunction(int manipulator_id, Pos3d p ){
+    public void moveManipulatorManuallyAndSetFunction(int manipulator_id, Pos3d p ){
         if(!lock_chain) {
             lock_chain = true;
 
@@ -280,6 +288,28 @@ public class MovableFunction extends Movable {
         }
     }
 
+    public void moveManipulatorIfSmallerY(double y_min){
+        if(y_min > getNextGridPointY(y_min)){
+            y_min = getNextGridPointY(y_min)+grid.y;
+        }else{
+            y_min = getNextGridPointY(y_min);
+        }
+
+        Homography2d f2openGL = getDrawableFunction().f2openGL;
+        Pos3d left_f = f2openGL.invTransform(manipulator[LEFT_MANIPULATOR_ID].getPosition());
+        Pos3d right_f = f2openGL.invTransform(manipulator[RIGHT_MANIPULATOR_ID].getPosition());
+        if(left_f.y < y_min){
+            left_f.y = y_min;
+            Pos3d left_gl = f2openGL.transform(left_f);
+            moveManipulatorManuallyAndSetFunction(LEFT_MANIPULATOR_ID, left_gl);
+        }
+        if(right_f.y < y_min){
+            right_f.y = y_min;
+            Pos3d right_gl = f2openGL.transform(right_f);
+            moveManipulatorManuallyAndSetFunction(RIGHT_MANIPULATOR_ID, right_gl);
+        }
+    }
+
     public boolean isCoupledRight(){
         return coupled_function_right != null;
     }
@@ -300,7 +330,6 @@ public class MovableFunction extends Movable {
                 open_gl = df.f2openGL.transform(system);
             }
             manipulator[i].setPosition(open_gl);
-
         }
         setFunctionGivenManipulators();
         if(isCoupledRight()){
@@ -444,6 +473,7 @@ public class MovableFunction extends Movable {
     // lock a movable function if it is coupled
     // to avoid loops. (No destructors == no scoped look guards, me sad)
     private boolean lock_chain = false;
+    Lock lock_draw_and_move = new Lock("lock_draw_and_move");
 
     Pos3d grid = Pos3d.Zero();
 

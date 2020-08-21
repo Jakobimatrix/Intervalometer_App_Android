@@ -30,6 +30,8 @@ public class Function {
     }
 
     public Function(Function f){
+        this.polynomial.clear();
+        // copy
         this.polynomial.addAll(f.polynomial);
     }
 
@@ -85,7 +87,7 @@ public class Function {
                     }
                     // 0 = ax + b
                     double x = -df.polynomial.get(0)/df.polynomial.get(1);
-                    l = Math.min(l,x);
+                    l = Math.min(l,f(x));
                 }
                 return Math.min(l,r);
             default:
