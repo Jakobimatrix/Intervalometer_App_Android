@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 
 public class Settings {
 
-    private static Settings mInstance= null;
+    private static Settings mInstance = null;
 
     private Settings(){}
 
@@ -30,10 +30,13 @@ public class Settings {
         if (!sharedpreferences.contains(MIN_PERIOD_MS_KEY)) {
             editor.putFloat(MIN_PERIOD_MS_KEY, MIN_PERIOD_MS);
         }
+
+        editor.apply();
     }
 
     public void setLastConnectedDeviceName(String name){
         editor.putString(LAST_CONNECTED_DEVICE_KEY, name);
+        editor.apply();
     }
 
     public String getLastConnectedDeviceName(){
@@ -46,6 +49,7 @@ public class Settings {
 
     public void setEditTemplateFpsId(int id) {
         editor.putInt(EDIT_TEMPLATE_FPS_ID_KEY, id);
+        editor.apply();
     }
 
     public float getMinPeriodMs(){
@@ -54,6 +58,7 @@ public class Settings {
 
     public void setMinPeriodMs(float min_ms){
         editor.putFloat(MIN_PERIOD_MS_KEY, min_ms);
+        editor.apply();
     }
 
     SharedPreferences sharedpreferences;
