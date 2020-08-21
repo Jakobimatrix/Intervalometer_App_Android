@@ -341,21 +341,25 @@ public class EditTemplateActivity extends Activity {
         String name = function_name.getText().toString();
         if(name.equals("")){
             Vector<MovableFunction> vmf = coord_overview.getFunctions();
-            for(MovableFunction mf: vmf){
-                SUPPORTED_FUNCTION sf = Function.FunctionClass2Enum(mf.getFunction());
-                name += Function.FunctionEnum2String(this, sf) + "-";
+            if(vmf.size()> 0) {
+                for (MovableFunction mf : vmf) {
+                    SUPPORTED_FUNCTION sf = Function.FunctionClass2Enum(mf.getFunction());
+                    name += Function.FunctionEnum2String(this, sf) + "-";
+                }
+                name = name.substring(0, name.length() - 1);
             }
-            name = name.substring(0,name.length()-1);
         }
         return name;
     }
 
     private void save(){
-        String name = getFunctionName();
-        if(db_function_id > -1){
-            db.updateFunctionDescription(db_function_id, coord_overview.getFunctions(), name);
-        }else{
-            db.addFunctionDescription(coord_overview.getFunctions(), name);
+        if(coord_overview.getFunctions().size() > 0) {
+            String name = getFunctionName();
+            if (db_function_id > -1) {
+                db.updateFunctionDescription(db_function_id, coord_overview.getFunctions(), name);
+            } else {
+                db.addFunctionDescription(coord_overview.getFunctions(), name);
+            }
         }
     }
 
