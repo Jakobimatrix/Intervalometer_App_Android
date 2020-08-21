@@ -17,6 +17,7 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:windowSoftInputMode="stateUnchanged"
             android:theme="@style/AppTheme">
         </activity>
         <activity

@@ -3,6 +3,9 @@ package de.jakobimatrix.intervallometer;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class Settings {
 
     private static Settings mInstance = null;
@@ -28,7 +31,7 @@ public class Settings {
             editor.putString(LAST_CONNECTED_DEVICE_KEY, LAST_CONNECTED_DEVICE);
         }
         if (!sharedpreferences.contains(MIN_PERIOD_MS_KEY)) {
-            editor.putFloat(MIN_PERIOD_MS_KEY, MIN_PERIOD_MS);
+            editor.putInt(MIN_PERIOD_MS_KEY, MIN_PERIOD_MS);
         }
 
         editor.apply();
@@ -52,11 +55,11 @@ public class Settings {
         editor.apply();
     }
 
-    public float getMinPeriodMs(){
-        return sharedpreferences.getFloat(MIN_PERIOD_MS_KEY, MIN_PERIOD_MS);
+    public int getMinPeriodMs(){
+        return sharedpreferences.getInt(MIN_PERIOD_MS_KEY, MIN_PERIOD_MS);
     }
 
-    public void setMinPeriodMs(float min_ms){
+    public void setMinPeriodMs(int min_ms){
         editor.putFloat(MIN_PERIOD_MS_KEY, min_ms);
         editor.apply();
     }
@@ -72,5 +75,20 @@ public class Settings {
 
     private static int EDIT_TEMPLATE_FPS_ID = -1;
     private static String LAST_CONNECTED_DEVICE = "HC-05";
-    private static float MIN_PERIOD_MS = 300f;
+    private static int MIN_PERIOD_MS = 300;
+
+    public final static Map<String,Double> frame_rates_lookup = new LinkedHashMap<String,Double>()
+    {{ // LinkedHashMap keeps the keys in the order they were inserted.
+        put("16 fps",16.);
+        put("23.976 fps",23.976);
+        put("24 fps",24.);
+        put("25 fps",25.);
+        put("29.97 fps",29.97);
+        put("30 fps",30.);
+        put("60 fps",60.);
+        put("119.9 fps",119.9);
+        put("120 fps",120.);
+    }};
+
+    public final static int DEFAULT_FPS_ID = 3;
 }

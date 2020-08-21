@@ -1,9 +1,80 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<?xml version="1.0" encoding="utf-8"?>
 
-    <FrameLayout
-        android:id="@+id/settings"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="@color/Primary">
+
+    <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</LinearLayout>
+        android:layout_height="@dimen/min_clickable_button_size"
+        android:minHeight="@dimen/H1"
+        android:paddingLeft="10sp"
+        android:paddingTop="7sp"
+        android:background="@color/Secondary"
+        android:textColor="@color/Letters"
+        android:textSize="@dimen/H1"
+        android:text="@string/app_name" />
+
+    <Button
+        style="@style/clickableButton"
+        android:id="@+id/button_home"
+        android:background="@drawable/ic_home_black_24dp"
+        android:layout_alignParentRight="true"
+        android:text="" />
+
+    <ScrollView
+        android:layout_marginTop="@dimen/min_clickable_button_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:id="@+id/scroll_view_templates_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/SettingsH1"
+                android:text="@string/title_activity_settings" />
+
+            <RelativeLayout style="@style/SettingsRelLayout">
+
+                <TextView
+                    style="@style/SettingsLeft"
+                    android:text="@string/final_video_fps"
+                />
+
+                <Spinner
+                    android:id="@+id/spinner_fps"
+                    style="@style/SettingsRight"/>
+            </RelativeLayout>
+
+            <RelativeLayout style="@style/SettingsRelLayout">
+
+                <TextView
+                    style="@style/SettingsLeft"
+                    android:text="@string/minimal_delay"
+                    />
+
+                <EditText
+                    android:id="@+id/editShutterDelay"
+                    style="@style/SettingsRight"
+                    android:ems="3"
+                    android:inputType="number" />
+            </RelativeLayout>
+
+            <TextView
+                style="@style/SettingsH1"
+                android:text="@string/App_information"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/Letters"
+                android:layout_marginTop="4dp"
+                android:id="@+id/app_info"/>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

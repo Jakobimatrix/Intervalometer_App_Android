@@ -42,4 +42,8 @@ public class Globals {
     final static public byte NUM_VALUES_F_QUAD = 4;
 
     final static long HOLD_DELAY_MS = 33;
+
+    final static String ANDROID_CODE_URL = "https://github.com/Jakobimatrix/Intervalometer_App_Android";
+    final static String HARDWARE_CODE_URL = "https://github.com/Jakobimatrix/Intervalometer_Hardware";
+    final static String AUTHOR = "Jakob Wandel";
 }

@@ -199,13 +199,13 @@ public class EditTemplateActivity extends Activity {
             }
         });
 
-        ArrayList<String> spinner_array = new ArrayList<String>(frame_rates_lookup.keySet());
+        ArrayList<String> spinner_array = new ArrayList<String>(Settings.frame_rates_lookup.keySet());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>
                 (this, R.layout.spinner_layout, spinner_array);
         adapter.setDropDownViewResource(android.R.layout
                 .simple_spinner_dropdown_item);
         choose_frame_rate.setAdapter(adapter);
-        choose_frame_rate.setSelection(settings.getEditTemplateFpsId() > -1?settings.getEditTemplateFpsId():DEFAULT_FPS_ID);
+        choose_frame_rate.setSelection(settings.getEditTemplateFpsId() > -1?settings.getEditTemplateFpsId():Settings.DEFAULT_FPS_ID);
 
         choose_frame_rate.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -255,7 +255,7 @@ public class EditTemplateActivity extends Activity {
             double Frames = Math.round(max_x - min_x) + 1;
             total_number_frames_s = (int) Frames + "";
             String fps_s = (String) choose_frame_rate.getSelectedItem();
-            double clip_duration = Frames / frame_rates_lookup.get(fps_s);
+            double clip_duration = Frames / Settings.frame_rates_lookup.get(fps_s);
             total_clip_duration_s = format_seconds.format(clip_duration) + getString(R.string.section_input_duration_s);
 
             long duration = 0;
@@ -277,7 +277,7 @@ public class EditTemplateActivity extends Activity {
                 }
                 f_duration += f.f(x_max);
 
-                double f_clip_duration = f_frames / frame_rates_lookup.get(fps_s);
+                double f_clip_duration = f_frames / Settings.frame_rates_lookup.get(fps_s);
                 String f_clip_duration_s = format_seconds.format(f_clip_duration) + getString(R.string.section_input_duration_s);
                 duration += f_duration;
                 function_s += "f"+(i+1)+":";
@@ -479,19 +479,4 @@ public class EditTemplateActivity extends Activity {
     private TextView seeker_x;
     final boolean DEBUG_TOUCH = false;
     MovableDot debug_seeker;
-
-    private final static Map<String,Double> frame_rates_lookup = new LinkedHashMap<String,Double>()
-    {{ // LinkedHashMap keeps the keys in the order they were inserted.
-        put("16 fps",16.);
-        put("23.976 fps",23.976);
-        put("24 fps",24.);
-        put("25 fps",25.);
-        put("29.97 fps",29.97);
-        put("30 fps",30.);
-        put("60 fps",60.);
-        put("119.9 fps",119.9);
-        put("120 fps",120.);
-    }};
-
-    private final static int DEFAULT_FPS_ID = 3;
 }

@@ -121,4 +121,37 @@
         <item name="android:layout_weight">1</item>
     </style>
 
+    <style name="SettingsH1">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:textSize">@dimen/H1</item>
+    </style>
+
+    <style name="SettingsLeft">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/Letters</item>
+        <item name="android:textSize">@dimen/H2</item>
+        <item name="android:layout_centerVertical">true</item>
+    </style>
+
+    <style name="SettingsRight">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/Editable</item>
+        <item name="android:textSize">@dimen/H2</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_alignParentRight">true</item>
+    </style>
+
+    <style name="SettingsRelLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">5dp</item>
+        <item name="android:background">@color/Secondary</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
 </resources>

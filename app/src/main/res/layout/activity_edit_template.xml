@@ -170,8 +170,7 @@
                     <TextView
                         style="@style/functionInfoLabel"
                         android:layout_column="3"
-                        android:id="@+id/clip_duration"
-                        android:text="@string/clip_duration" />
+                        android:id="@+id/clip_duration"/>
 
                     <Spinner
                         android:id="@+id/choose_frame_rate"
