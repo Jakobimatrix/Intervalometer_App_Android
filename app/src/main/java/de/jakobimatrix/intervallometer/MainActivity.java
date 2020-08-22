@@ -20,6 +20,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +54,6 @@ public class MainActivity extends Activity {
         setButtonFunctions();
         loadTemplates();
         //setUpBluetooth();
-
     }
 
     @Override
@@ -187,11 +189,47 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (getNumSelected() > 0) {
-                    getSelectedTemplate();
-                    //TODO
+                    sendFunction2Device();
                 }
             }
         });
+    }
+
+    private void sendFunction2Device(){
+        int id = getSelectedTemplate();
+        if(id > 0){
+            JSONArray ja = db.getFunctionDescription(id);
+            ArrayList<Function> fs = new ArrayList<>();
+            ArrayList<Double> start = new ArrayList<>();
+            ArrayList<Double> stop = new ArrayList<>();
+            try {
+                db.Json2Function(this, fs, start, stop, ja);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                //todo tell user
+            }
+
+            byte[] buffer = {};
+
+            for(int i = 0; i < fs.size(); i++){
+                Function f = fs.get(i);
+                double begin = start.get(i);
+                double end = start.get(i);
+                buffer = Utility.concatAll(buffer,f.toByteStream((int) Math.round(begin), (int) Math.round(end)));
+            }
+            buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
+
+            try {
+                if(bluetooth_manager.send(buffer)){
+                    Toast.makeText(this, "Successful Transmission", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(this, "Transmission failed", Toast.LENGTH_LONG).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                PrintInfoMsg("Transmittion failed with exeption throw", MSG.ERROR, send_sample);
+            }
+        }
     }
 
     private int getSelectedTemplate(){

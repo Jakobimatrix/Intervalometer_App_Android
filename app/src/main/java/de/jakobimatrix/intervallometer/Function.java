@@ -230,7 +230,7 @@ public class Function {
         }
     }
 
-    public byte[] toByteStream(int min, int max){
+    protected byte[] toByteStream(int min, int max){
         byte[] num_pics = new byte[4];
         Utility.int2Bytes(max-min, num_pics);
         return num_pics;
