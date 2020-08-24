@@ -13,6 +13,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -51,15 +53,14 @@ public class MovableCoordinateSystem extends Movable {
         // this will be changed according to the functions added later.
         system_viewport = new ViewPort(Pos3d.Zero(), new Pos3d(0,0, Globals.FUNCTION_Z_ELEVATION));
 
-        final float arrow_body_width = 0.5f*AXIS_WIDTH/Utility.GOLDEN_RATIO;
-
         x_axis = new DrawableArrow(activity.getBaseContext(),new Pos3d(position_), width - margin_left, AXIS_WIDTH);
         x_axis.setRotationRIGHT();
-        y_axis = new DrawableArrow(activity.getBaseContext(),new Pos3d(position_), height - margin_bot - arrow_body_width, AXIS_WIDTH);
+        y_axis = new DrawableArrow(activity.getBaseContext(),new Pos3d(position_), height - margin_bot - MARGIN_TOP_RIGHT, AXIS_WIDTH);
         y_axis.setRotationUP();
 
+        final float arrow_body_width = 0.5f*AXIS_WIDTH/Utility.GOLDEN_RATIO;
         parent.adChild(x_axis, new Pos3d(margin_bot-arrow_body_width/2, margin_left, 0));
-        parent.adChild(y_axis, new Pos3d(margin_bot, margin_left, 0));
+        parent.adChild(y_axis, static_axis_offset[2]);
 
         x_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ||
         y_grid = new ArrayList <DrawableRectangle>(NUM_GRID_STRIPES); // ==
@@ -270,12 +271,28 @@ public class MovableCoordinateSystem extends Movable {
         long wait = MEDIUM_TICK_DURATION_MS;
         double multiply = 1.;
 
-        // depending on how long the user holds down, we wait x ms until we let the next change happen.
+        // Depending on how long the user holds down, we wait x ms until we let the next change happen.
+        // This is also an example for bad code.
         if(duration < SLOW_TICK_DURATION_HOLD_MS){
             wait = SLOW_TICK_DURATION_MS;
         }
         if(duration > MEDIUM_TICK_DURATION_HOLD_MS){
             multiply = 10.;
+        }
+        if(duration > FAST_TICK_DURATION_HOLD_MS){
+            multiply = 100.;
+        }
+        if(duration > VERY_FAST_TICK_DURATION_HOLD_MS){
+            multiply = 1000.;
+        }
+        if(duration > UBER_FAST_TICK_DURATION_HOLD_MS){
+            multiply = 10000.;
+        }
+        if(duration > MOPSGESCHWINDIGKEIT_TICK_DURATION_HOLD_MS){
+            multiply = 100000.;
+        }
+        if(duration > ILLEGAL_FAST_TICK_DURATION_HOLD_MS){
+            multiply = 1000000.;
         }
 
         // update the command for all functions
@@ -331,6 +348,9 @@ public class MovableCoordinateSystem extends Movable {
      * \brief adjustGrid Calculates the grid and sets the ticks.
      */
     private void adjustGrid(){
+        if(system_viewport.width() < Utility.EPSILON_D || system_viewport.height() < Utility.EPSILON_D){
+            return;
+        }
         current_grid_distance = Pos3d.Zero();
         for(int i = 0; i < 2; i++){
             int tick_id_counter = 0;
@@ -395,6 +415,9 @@ public class MovableCoordinateSystem extends Movable {
                         grid_line.setWidth((float) (GRID_WIDTH_TICK*is_x_d + grid_line.getWidth()*is_y_d));
                         grid_line.setHeight((float) (GRID_WIDTH_TICK*is_y_d + grid_line.getHeight()*is_x_d));
 
+                        if(is_y){
+                            d_tick *= y_multiplier;
+                        }
                         setAxisTick(translation_openGL, prepareTick(d_tick), i, tick_id_counter++ );
                     }else{
                         grid_line.setWidth((float) (GRID_WIDTH*is_x_d + grid_line.getWidth()*is_y_d));
@@ -1094,6 +1117,16 @@ public class MovableCoordinateSystem extends Movable {
         });
     }
 
+    public Y_UNIT getY_UNIT(){
+        return y_unit;
+    }
+
+    public void setYUnit(Y_UNIT unit){
+        y_multiplier = Y_UNIT_LOOKUP.get(unit);
+        y_unit = unit;
+        adjustGrid();
+    }
+
     public final Vector<MovableFunction> getFunctions(){
         return functions;
     }
@@ -1119,10 +1152,15 @@ public class MovableCoordinateSystem extends Movable {
     long hold_start = FIRST_CONTACT;
     long active_tick_start = 0;
     final static long FIRST_CONTACT = -1;
-    final static long SLOW_TICK_DURATION_MS = 750;
+    final static long SLOW_TICK_DURATION_MS = 650;
     final static long SLOW_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_MS;
     final static long MEDIUM_TICK_DURATION_MS = 200;
     final static long MEDIUM_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 10*MEDIUM_TICK_DURATION_MS;
+    final static long FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 25*MEDIUM_TICK_DURATION_MS;
+    final static long VERY_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 50*MEDIUM_TICK_DURATION_MS;
+    final static long UBER_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 75*MEDIUM_TICK_DURATION_MS;
+    final static long MOPSGESCHWINDIGKEIT_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 100*MEDIUM_TICK_DURATION_MS;
+    final static long ILLEGAL_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 125*MEDIUM_TICK_DURATION_MS;
 
     boolean lifted = true;
     long last_tap_edit_function = 0;
@@ -1152,11 +1190,14 @@ public class MovableCoordinateSystem extends Movable {
     final static float GRID_WIDTH = 0.01f;
     final static float GRID_WIDTH_TICK = 0.04f;
 
-    final static float MIN_WIDTH = 1.f;
-    final static float MIN_HEIGHT= 10.f;
+    double y_multiplier = Y_UNIT_LOOKUP.get(DEFAULT_Y_UNIT);
+    Y_UNIT y_unit = DEFAULT_Y_UNIT;
+    final static Y_UNIT DEFAULT_Y_UNIT = Y_UNIT.S;
+
+    final static float MIN_HEIGHT= 500.f;
 
     final static float MARGIN_TOP_RIGHT = 0.25f;
-    float margin_bot = 0.55f;
+    float margin_bot = 0.65f;
     float margin_left = 0.65f;
 
     Pos3d stick_to_grid_distance = Pos3d.Zero();
@@ -1164,4 +1205,12 @@ public class MovableCoordinateSystem extends Movable {
     final static ColorRGBA BG_DEFAULT_COLOR = new ColorRGBA(0.7,0.7,0.7,1);
     final static ColorRGBA BG_DEFAULT_GRID_COLOR = new ColorRGBA(0.2,0.2,0.2,1);
     ColorRGBA grid_color = BG_DEFAULT_GRID_COLOR;
+
+    public final static Map<Y_UNIT,Double> Y_UNIT_LOOKUP = new LinkedHashMap<Y_UNIT,Double>()
+    {{ // LinkedHashMap keeps the keys in the order they were inserted.
+        put(Y_UNIT.MS,1.);
+        put(Y_UNIT.S,0.001);
+        put(Y_UNIT.M,0.001/60.);
+        put(Y_UNIT.H,0.001/(60.*60));
+    }};
 }

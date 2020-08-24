@@ -77,7 +77,7 @@ public class Settings {
     private static String LAST_CONNECTED_DEVICE = "HC-05";
     private static int MIN_PERIOD_MS = 300;
 
-    public final static Map<String,Double> frame_rates_lookup = new LinkedHashMap<String,Double>()
+    public final static Map<String,Double> FRAME_RATES_LOOKUP = new LinkedHashMap<String,Double>()
     {{ // LinkedHashMap keeps the keys in the order they were inserted.
         put("16 fps",16.);
         put("23.976 fps",23.976);

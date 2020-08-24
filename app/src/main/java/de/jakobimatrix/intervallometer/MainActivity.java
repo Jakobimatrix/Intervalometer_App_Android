@@ -159,8 +159,6 @@ public class MainActivity extends Activity {
                 add_new_template_button.setBackground(getDrawable(R.drawable.ic_unselect_templates));
             }
         }
-        // Todo visualize
-        // .setBackground(getDrawable(R.drawable.));
     }
 
     /*!

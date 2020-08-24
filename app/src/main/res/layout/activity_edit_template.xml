@@ -129,6 +129,7 @@
         android:background="@color/Primary"
         android:layout_height="fill_parent"
         android:orientation="vertical">
+
         <EditText
             android:layout_marginTop="15dp"
             android:layout_marginBottom="5dp"
@@ -137,11 +138,22 @@
             android:id="@+id/function_name"
             android:textColor="@color/Editable" />
 
+        <RelativeLayout style="@style/SettingsRelLayout">
+
+            <TextView
+                style="@style/SettingsLeft"
+                android:text="@string/shutter_delay_unit"
+                />
+
+            <Spinner
+                android:id="@+id/spinner_shutter_delay_unit"
+                style="@style/SettingsRight"/>
+        </RelativeLayout>
+
             <ScrollView
                 android:background="@color/Primary"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content">
-
 
             <TableLayout
                 android:stretchColumns="1,2,3,4,5"

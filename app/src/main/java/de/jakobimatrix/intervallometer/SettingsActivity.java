@@ -13,10 +13,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.PreferenceFragmentCompat;
-
 import java.util.ArrayList;
 
 public class SettingsActivity extends Activity {
@@ -58,7 +54,7 @@ public class SettingsActivity extends Activity {
             }
         });
 
-        ArrayList<String> spinner_array = new ArrayList<String>(Settings.frame_rates_lookup.keySet());
+        ArrayList<String> spinner_array = new ArrayList<String>(Settings.FRAME_RATES_LOOKUP.keySet());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>
                 (this, R.layout.spinner_layout, spinner_array);
         adapter.setDropDownViewResource(android.R.layout

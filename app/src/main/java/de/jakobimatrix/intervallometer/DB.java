@@ -18,11 +18,12 @@ import java.util.Vector;
 
 public class DB extends SQLiteOpenHelper{
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "intervallometerDB";
     private static final String TABLE_NAME = "functionDescription";
     private static final String KEY_ID = "id";
     private static final String KEY_NAME = "name";
+    private static final String KEY_Y_UNIT = "yunit";
     private static final String KEY_DESCRIPTION = "description";
     Activity activity;
 
@@ -36,7 +37,7 @@ public class DB extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_CONTACTS_TABLE = "CREATE TABLE " + TABLE_NAME + "("
-                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NAME + " TEXT," + KEY_DESCRIPTION + " TEXT" + ")";
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_NAME + " TEXT," + KEY_Y_UNIT + " TEXT, " + KEY_DESCRIPTION + " TEXT" + ")";
         db.execSQL(CREATE_CONTACTS_TABLE);
     }
 
@@ -100,7 +101,7 @@ public class DB extends SQLiteOpenHelper{
         return json_function;
     }
 
-    public void addFunctionDescription(Vector<MovableFunction> movable_functions, String name) {
+    public void addFunctionDescription(Vector<MovableFunction> movable_functions, String name, Y_UNIT y_unit) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -112,6 +113,7 @@ public class DB extends SQLiteOpenHelper{
 
         values.put(KEY_DESCRIPTION, function_description);
         values.put(KEY_NAME, name);
+        values.put(KEY_Y_UNIT, Utility.Y_UNIT2String(activity, y_unit));
 
         db.insert(TABLE_NAME, null, values);
         db.close();
@@ -126,6 +128,7 @@ public class DB extends SQLiteOpenHelper{
             String function_description = ja.toString();
             values.put(KEY_DESCRIPTION, function_description);
             values.put(KEY_NAME, getFunctionName(id) + "_c");
+            values.put(KEY_Y_UNIT, getY_UNIT_S(id));
 
             db.insert(TABLE_NAME, null, values);
             db.close();
@@ -165,6 +168,22 @@ public class DB extends SQLiteOpenHelper{
             cursor.moveToFirst();
 
         return cursor.getString(cursor.getColumnIndex(KEY_NAME));
+    }
+
+    public String getY_UNIT_S(int id){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_NAME, new String[] { KEY_ID,
+                        KEY_Y_UNIT}, KEY_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        return cursor.getString(cursor.getColumnIndex(KEY_Y_UNIT));
+    }
+
+    public Y_UNIT getY_UNIT(int id){
+        return Utility.String2Y_UNIT(activity, getY_UNIT_S(id));
     }
 
     public LinkedHashMap<Integer, JSONArray> getAllFunctionDescriptions() {
@@ -207,7 +226,7 @@ public class DB extends SQLiteOpenHelper{
         return map;
     }
 
-    public int updateFunctionDescription(int id, Vector<MovableFunction> movable_functions, String name) {
+    public int updateFunctionDescription(int id, Vector<MovableFunction> movable_functions, String name, Y_UNIT y_unit) {
         SQLiteDatabase db = this.getWritableDatabase();
         JSONArray jsonArray = new JSONArray();
         for(MovableFunction mf: movable_functions) {
@@ -218,6 +237,7 @@ public class DB extends SQLiteOpenHelper{
         ContentValues values = new ContentValues();
         values.put(KEY_DESCRIPTION, function_description);
         values.put(KEY_NAME, name);
+        values.put(KEY_Y_UNIT, Utility.Y_UNIT2String(activity, y_unit));
 
         // updating row
         return db.update(TABLE_NAME, values, KEY_ID + " = ?",

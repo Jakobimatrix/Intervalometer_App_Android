@@ -1,5 +1,6 @@
 package de.jakobimatrix.intervallometer;
 
+import android.app.Activity;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -11,6 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
+
+enum Y_UNIT{
+    MS,S,M,H
+}
 
 public class Utility {
 
@@ -250,6 +255,33 @@ public class Utility {
                         TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
                 TimeUnit.MILLISECONDS.toSeconds(millis) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+    }
+
+    public static String Y_UNIT2String(Activity activity, Y_UNIT unit){
+        switch (unit){
+            case MS:
+                return activity.getString(R.string._ms);
+            case S:
+                return activity.getString(R.string._s);
+            case M:
+                return activity.getString(R.string._m);
+            case H:
+                return activity.getString(R.string._h);
+        }
+        throw new IllegalArgumentException( "Utility::Y_UNIT2String: unknown Unit given.");
+    }
+
+    public static Y_UNIT String2Y_UNIT(Activity activity, String unit){
+        if (unit.equals(activity.getString(R.string._ms))) {
+            return Y_UNIT.MS;
+        }else if(unit.equals(activity.getString(R.string._s))){
+            return Y_UNIT.S;
+        }else if(unit.equals(activity.getString(R.string._m))){
+            return Y_UNIT.M;
+        }else if(unit.equals(activity.getString(R.string._h))){
+            return Y_UNIT.H;
+        }
+        throw new IllegalArgumentException( "Utility::String2Y_UNIT: unknown Unit given:" + unit);
     }
 
     final static double EPSILON_D = Math.ulp(4.0);

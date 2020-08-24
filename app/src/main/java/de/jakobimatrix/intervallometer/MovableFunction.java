@@ -16,8 +16,10 @@ public class MovableFunction extends Movable {
         for (int i = 0; i < NUM_MANIPULATORS; i++){
             manipulator[i] = new Manipulator(context,position, manipulator_radius);
             active_manipulator[i] = false;
+            manipulator_timestamp_activation[i] = 0;
         }
         setManipulatorsBasedOnFunction();
+
     }
 
     @Override
@@ -33,6 +35,14 @@ public class MovableFunction extends Movable {
     public boolean isWithinToggle(Pos3d position_) {
         for (int i = 0; i < NUM_MANIPULATORS; i++) {
             if (manipulator[i].isWithin(position_)) {
+                if(new_touch){
+                    new_touch = false;
+                    manipulator_timestamp_activation[i] = System.currentTimeMillis();
+                }else{
+                    if(delay(i)){
+                        return false;
+                    }
+                }
                 active_manipulator[i] = !active_manipulator[i];
                 manipulator[i].setLocked(!active_manipulator[i]);
                 return true;
@@ -105,12 +115,16 @@ public class MovableFunction extends Movable {
     public void endTouch() {
         // snap the function to the grid
         setFunctionGivenManipulators();
+        new_touch = true;
     }
 
     @Override
     public void setPosition(Pos3d p){
         for (int i = 0; i < NUM_MANIPULATORS; i++) {
             if (manipulator[i].isWithin(p)) {
+                if(delay(i)){
+                    return;
+                }
                 p.z = Globals.MANIPULATOR_Z_ELEVATION;
                 lock_draw_and_move.LOCK(3);
                 moveManipulatorManuallyAndSetFunction(i, p);
@@ -118,6 +132,19 @@ public class MovableFunction extends Movable {
                 return;
             }
         }
+    }
+
+    /*!
+     * \brief delay Returns true if actions should be delayed. To prevent moving the manipulator at first contact.
+     * \param manip_id The manipulator id to check if delay is necessary.
+     * return True if a delay of further action is necessary.
+     */
+    private boolean delay(int manip_id){
+        long now = System.currentTimeMillis();
+        if(now - manipulator_timestamp_activation[manip_id] > ACTIVATION_DURATION_MS){
+            return false;
+        }
+        return true;
     }
 
     public void executeCommand(CMD cmd, Pos3d step_width){
@@ -461,8 +488,11 @@ public class MovableFunction extends Movable {
     final static int NUM_MANIPULATORS = 2;
     Manipulator [] manipulator = new Manipulator[NUM_MANIPULATORS];
     boolean [] active_manipulator = new boolean[NUM_MANIPULATORS];
+    long [] manipulator_timestamp_activation = new long[NUM_MANIPULATORS];
     static final int LEFT_MANIPULATOR_ID = 0;
     static final int RIGHT_MANIPULATOR_ID = 1;
+    static final long ACTIVATION_DURATION_MS = 250;
+    boolean new_touch = true;
 
     Pos3d dpos_command_system = Pos3d.Zero();
     Pos3d dpos_command_openGL = Pos3d.Zero();

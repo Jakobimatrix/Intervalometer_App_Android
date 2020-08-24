@@ -24,9 +24,10 @@
     <string name="section_input_interval_function_constant">Constant</string>
     <string name="section_input_interval_function_linear">Linear</string>
     <string name="section_input_interval_function_quadratic">Quadratic</string>
-    <string name="section_input_duration_h">h</string>
-    <string name="section_input_duration_m">m</string>
-    <string name="section_input_duration_s">s</string>
+    <string name="_h">h</string>
+    <string name="_m">m</string>
+    <string name="_s">s</string>
+    <string name="_ms">ms</string>
 
     <!-- Text msgs -->
     <string name="msg_click_to_dismiss">Click here to Dismiss Info.</string>
@@ -76,5 +77,6 @@
     <string name="final_video_fps">Video FPS:</string>
     <string name="minimal_delay">Min. Shutter Delay [ms]:</string>
     <string name="App_information">App Information</string>
+    <string name="shutter_delay_unit">Shutter Delay Unit:</string>
 
 </resources>

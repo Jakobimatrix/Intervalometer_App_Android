@@ -27,10 +27,8 @@ import org.json.JSONException;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Vector;
 
 public class EditTemplateActivity extends Activity {
@@ -49,10 +47,16 @@ public class EditTemplateActivity extends Activity {
         Globals.screen_width = screen_size.x;
         Globals.screen_height = screen_size.y;
 
-        connectWithGUI();
-        setGUIFunctions();
+        Iterator it = MovableCoordinateSystem.Y_UNIT_LOOKUP.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            Y_UNIT y_unit = (Y_UNIT) pair.getKey();
+            y_units_s.add(Utility.Y_UNIT2String(this, y_unit));
+        }
 
-        loadTemplate();
+        connectWithGUI();
+        loadTemplate(); // before setGUIFunctions!
+        setGUIFunctions();
     }
 
     /*!
@@ -99,6 +103,7 @@ public class EditTemplateActivity extends Activity {
 
         function_name = (EditText) findViewById(R.id.function_name);
         choose_frame_rate = (Spinner) findViewById(R.id.choose_frame_rate);
+        shutter_delay_spinner = (Spinner) findViewById(R.id.spinner_shutter_delay_unit);
 
         // DEBUG
         if(DEBUG_TOUCH) {
@@ -199,7 +204,7 @@ public class EditTemplateActivity extends Activity {
             }
         });
 
-        ArrayList<String> spinner_array = new ArrayList<String>(Settings.frame_rates_lookup.keySet());
+        ArrayList<String> spinner_array = new ArrayList<String>(Settings.FRAME_RATES_LOOKUP.keySet());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>
                 (this, R.layout.spinner_layout, spinner_array);
         adapter.setDropDownViewResource(android.R.layout
@@ -211,7 +216,6 @@ public class EditTemplateActivity extends Activity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
-                String fps_s = (String) choose_frame_rate.getSelectedItem();
                 settings.setEditTemplateFpsId(position);
                 updateFunctionInfo();
             }
@@ -220,6 +224,36 @@ public class EditTemplateActivity extends Activity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        adapter = new ArrayAdapter<String>
+                (this, R.layout.spinner_layout, y_units_s);
+        adapter.setDropDownViewResource(android.R.layout
+                .simple_spinner_dropdown_item);
+        shutter_delay_spinner.setAdapter(adapter);
+        Y_UNIT selected = coord_overview.getY_UNIT();
+        String selected_s = Utility.Y_UNIT2String(this, selected);
+        int selected_id = 0;
+        for(int i = 0; i < y_units_s.size(); i++){
+            if(selected_s.equals(y_units_s.get(i))){
+                selected_id = i;
+                break;
+            }
+        }
+        shutter_delay_spinner.setSelection(selected_id);
+        shutter_delay_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                String y_unit_s = (String) shutter_delay_spinner.getSelectedItem();
+                setY_Unit(y_unit_s);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void setY_Unit(String y_unit_s){
+        coord_overview.setYUnit(Utility.String2Y_UNIT(this, y_unit_s));
     }
 
     private void openFunctionInfo(){
@@ -255,8 +289,8 @@ public class EditTemplateActivity extends Activity {
             double Frames = Math.round(max_x - min_x) + 1;
             total_number_frames_s = (int) Frames + "";
             String fps_s = (String) choose_frame_rate.getSelectedItem();
-            double clip_duration = Frames / Settings.frame_rates_lookup.get(fps_s);
-            total_clip_duration_s = format_seconds.format(clip_duration) + getString(R.string.section_input_duration_s);
+            double clip_duration = Frames / Settings.FRAME_RATES_LOOKUP.get(fps_s);
+            total_clip_duration_s = format_seconds.format(clip_duration) + getString(R.string._s);
 
             long duration = 0;
 
@@ -277,8 +311,8 @@ public class EditTemplateActivity extends Activity {
                 }
                 f_duration += f.f(x_max);
 
-                double f_clip_duration = f_frames / Settings.frame_rates_lookup.get(fps_s);
-                String f_clip_duration_s = format_seconds.format(f_clip_duration) + getString(R.string.section_input_duration_s);
+                double f_clip_duration = f_frames / Settings.FRAME_RATES_LOOKUP.get(fps_s);
+                String f_clip_duration_s = format_seconds.format(f_clip_duration) + getString(R.string._s);
                 duration += f_duration;
                 function_s += "f"+(i+1)+":";
                 recording_time_s += Utility.millis2hms((long) f_duration);
@@ -356,9 +390,9 @@ public class EditTemplateActivity extends Activity {
         if(coord_overview.getFunctions().size() > 0) {
             String name = getFunctionName();
             if (db_function_id > -1) {
-                db.updateFunctionDescription(db_function_id, coord_overview.getFunctions(), name);
+                db.updateFunctionDescription(db_function_id, coord_overview.getFunctions(), name, coord_overview.getY_UNIT());
             } else {
-                db.addFunctionDescription(coord_overview.getFunctions(), name);
+                db.addFunctionDescription(coord_overview.getFunctions(), name, coord_overview.getY_UNIT());
             }
         }
     }
@@ -430,6 +464,8 @@ public class EditTemplateActivity extends Activity {
                     coord_overview.addFunction(f, x_min, x_max);
                 }
                 String name = db.getFunctionName(db_function_id);
+                Y_UNIT y_unit = db.getY_UNIT(db_function_id);
+                coord_overview.setYUnit(y_unit);
                 function_name.setText(name);
             } catch (JSONException e) {
                 // todo inform user
@@ -448,6 +484,7 @@ public class EditTemplateActivity extends Activity {
     private TextView total_number_frames_output;
     private TextView total_clip_duration_output;
     private TextView total_recording_time_output;
+    private Spinner shutter_delay_spinner;
 
     private EditText function_name;
     private Spinner choose_frame_rate;
@@ -473,6 +510,7 @@ public class EditTemplateActivity extends Activity {
     Settings settings;
 
     Point screen_size = new Point();
+    ArrayList<String> y_units_s = new ArrayList<>();
 
     // DEBUG
     private TextView seeker_y;
