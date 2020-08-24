@@ -21,6 +21,7 @@ public class BluetoothManager {
     public BluetoothManager(String device_name){
         initializer(device_name);
     }
+
     public BluetoothManager(){
         initializer("");
     }
@@ -84,6 +85,7 @@ public class BluetoothManager {
             output_stream = null;
             input_stream = null;
             socket = null;
+            connected_device = null;
         }
     }
 
@@ -131,7 +133,6 @@ public class BluetoothManager {
      */
     private void getPairedDevices(boolean refresh){
         if(refresh) {
-            // TODO do I have to clear the set?
             current_paired_devices = adapter.getBondedDevices();
         }
     }

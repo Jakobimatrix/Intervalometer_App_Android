@@ -230,7 +230,12 @@ public class Function {
         }
     }
 
+
     protected byte[] toByteStream(int min, int max){
+        throw new IllegalArgumentException( "Function::toByteStream: this method is 'abstract', don't use it." );
+    }
+
+    protected byte[] getNumPictures(int min, int max){
         byte[] num_pics = new byte[4];
         Utility.int2Bytes(max-min, num_pics);
         return num_pics;

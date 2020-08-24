@@ -84,7 +84,7 @@ public class QuadraticFunction extends Function {
         B = f(1)-f(0)                   f(n=0) = ...
         A = f(2)-f(1) - B               f(n=1) = ...
          */
-        byte[] num_pics = super.toByteStream(min, max);
+        byte[] num_pics = getNumPictures(min, max);
 
         byte[] buffer_c = new byte[4];
         byte[] buffer_b = new byte[4];
@@ -98,7 +98,7 @@ public class QuadraticFunction extends Function {
         Utility.int2Bytes(const_b, buffer_b);
         Utility.int2Bytes(const_a, buffer_a);
 
-        return new byte[]{Globals.NUM_VALUES_F_QUAD,
+        return new byte[]{Globals.SYMBOL_F_QUAD,
                 num_pics[0], num_pics[1], num_pics[2], num_pics[3],
                 buffer_c[0], buffer_c[1], buffer_c[2], buffer_c[3],
                 buffer_b[0], buffer_b[1], buffer_b[2], buffer_b[3],

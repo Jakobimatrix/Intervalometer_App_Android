@@ -25,15 +25,11 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 
 enum MSG{FIX,DISMISS,ERROR};
@@ -48,12 +44,12 @@ public class MainActivity extends Activity {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
         db = new DB(this);
+        bluetooth_manager = new BluetoothManager();
 
         loadSettings();
         connectWithGUI();
-        setButtonFunctions();
+        setGuiFunctions();
         loadTemplates();
-        //setUpBluetooth();
     }
 
     @Override
@@ -134,13 +130,14 @@ public class MainActivity extends Activity {
     void enableGuiElementsIf(){
         int num_selected = getNumSelected();
         boolean enable_copy_and_delete = num_selected > 0;
-        boolean enable_execute = num_selected == 1;
+        boolean enable_execute = (num_selected == 1) && (bluetooth_manager.isConnected() || true);
 
         copy_template_button.setEnabled(enable_copy_and_delete);
         delete_template_button.setEnabled(enable_copy_and_delete);
         run_selected_template_button.setEnabled(enable_execute);
 
         // Todo visualize
+        // .setBackground(getDrawable(R.drawable.));
     }
 
     /*!
@@ -157,7 +154,7 @@ public class MainActivity extends Activity {
         spinner_bluetooth_device = (Spinner) findViewById(R.id.spinner_bluetooth_device);
     }
 
-    private void setButtonFunctions(){
+    private void setGuiFunctions(){
         open_settings_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -193,6 +190,7 @@ public class MainActivity extends Activity {
                 }
             }
         });
+        setGuiFunctionsBt();
     }
 
     private void sendFunction2Device(){
@@ -206,6 +204,8 @@ public class MainActivity extends Activity {
                 db.Json2Function(this, fs, start, stop, ja);
             } catch (JSONException e) {
                 e.printStackTrace();
+                bluetooth_status.setText("Some Error reading from DB.");
+                return;
                 //todo tell user
             }
 
@@ -214,20 +214,25 @@ public class MainActivity extends Activity {
             for(int i = 0; i < fs.size(); i++){
                 Function f = fs.get(i);
                 double begin = start.get(i);
-                double end = start.get(i);
-                buffer = Utility.concatAll(buffer,f.toByteStream((int) Math.round(begin), (int) Math.round(end)));
+                double end = stop.get(i);
+                byte[] buffer_f = f.toByteStream((int) Math.round(begin), (int) Math.round(end));
+                Log.d("f: ",  Utility.bytes2string(buffer_f, buffer_f.length));
+                buffer = Utility.concatAll(buffer, buffer_f);
             }
             buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
 
+            Utility.bytes2string(buffer, buffer.length);
+            Log.d("f: ",  Utility.bytes2string(buffer, buffer.length));
+
             try {
                 if(bluetooth_manager.send(buffer)){
-                    Toast.makeText(this, "Successful Transmission", Toast.LENGTH_LONG).show();
+                    bluetooth_status.setText("Transmission: " + Utility.bytes2string(buffer, buffer.length));
                 }else{
-                    Toast.makeText(this, "Transmission failed", Toast.LENGTH_LONG).show();
+                    bluetooth_status.setText("Transmittion failed");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                PrintInfoMsg("Transmittion failed with exeption throw", MSG.ERROR, send_sample);
+                bluetooth_status.setText("Transmittion failed with exeption thrown");
             }
         }
     }
@@ -278,33 +283,28 @@ public class MainActivity extends Activity {
         loadTemplates();
     }
 
-    private void setUpBluetooth(){
-        if(bluetooth_manager == null){
-            bluetooth_manager = new BluetoothManager(settings.getLastConnectedDeviceName());
-        }else{
-            // update visible devices
-            bluetooth_manager.refresh();
-        }
-
+    private void setGuiFunctionsBt(){
+        bluetooth_connection_button.setEnabled(false);
         if(!bluetooth_manager.isBluetoothSupported()){
-            bluetooth_connection_button.setEnabled(false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_disabled_24));
             }
-            PrintInfoMsg(getString(R.string.bt_status_bt_unsupported), MSG.ERROR, shut_down);
             return;
         }
         if(!bluetooth_manager.isBluetoothEnabled()){
-            bluetooth_connection_button.setEnabled(false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_disabled_24));
             }
-            PrintInfoMsg(getString(R.string.bt_status_bt_off), MSG.FIX, restart_bluetooth);
             return;
         }
         bluetooth_connection_button.setEnabled(true);
+        updateBtDeviceSpinner();
+        setBtButtonFunction();
+    }
+
+    private void setBtButtonFunction(){
         if(bluetooth_manager.isConnected()){
-            // connection with last device was successful
+            enableSpinnerBluetooth(false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_audio_24));
             }
@@ -313,61 +313,63 @@ public class MainActivity extends Activity {
                 public void onClick(View v) {
                     try {
                         bluetooth_manager.disconnect();
-                        setUpBluetooth();
+                        setBtButtonFunction();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        PrintInfoMsg(getString(R.string.msg_bt_disconnect_failed), MSG.ERROR, do_nothing);
+                        bluetooth_status.setText(R.string.msg_bt_disconnect_failed);
                     }
                 }
             });
         }else{
             // no device connected
+            enableSpinnerBluetooth(true);
+            updateBtDeviceSpinner();
             bluetooth_status.setText(getString(R.string.bt_status_disconnected));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_24));
             }
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    enableSpinnerBluetooth(true);
-                    bluetooth_status.setText(getString(R.string.bt_status_select_device));
-                    ArrayList<String> spinnerArray = new ArrayList<String>();
-                    bluetooth_manager.getPairedDeviceNames(spinnerArray);
-                    ArrayAdapter<String> adapter = new ArrayAdapter<String>
-                            (getBaseContext(), android.R.layout.simple_spinner_item, spinnerArray);
-                    adapter.setDropDownViewResource(android.R.layout
-                            .simple_spinner_dropdown_item);
 
-                    user_is_interacting = false;
-                    spinner_bluetooth_device.setAdapter(adapter);
-                    spinner_bluetooth_device.setSelection(0,false);
-                    spinner_bluetooth_device.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view,
-                                                   int position, long id) {
-                            if(!user_is_interacting){
-                                return;
-                            }
-                            final String chosen_device = (String) parent.getItemAtPosition(position);
-                            try {
-                                bluetooth_manager.connect(chosen_device);
-                                enableSpinnerBluetooth(false);
-                                settings.setLastConnectedDeviceName(chosen_device);
-                                setUpBluetooth();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                PrintInfoMsg(getString(R.string.msg_bt_connecting_failed)
-                                        + " " + chosen_device + " "
-                                        + getString(R.string.msg_failed), MSG.FIX, restart_bluetooth);
-                            }
+                    String chosen_device = (String) spinner_bluetooth_device.getSelectedItem();
+                    try {
+                        if(!bluetooth_manager.connect(chosen_device)){
+                            bluetooth_status.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed);
+                            return;
                         }
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                            // TODO Auto-generated method stub
-                        }
-                    });
+                        settings.setLastConnectedDeviceName(chosen_device);
+                        setBtButtonFunction();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        bluetooth_status.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed + " an exception was thrown.");
+                    }
                 }
             });
         }
+    }
+
+    private void updateBtDeviceSpinner(){
+        bluetooth_manager.refresh();
+        bluetooth_status.setText(getString(R.string.bt_status_select_device));
+        ArrayList<String> spinnerArray = new ArrayList<>();
+        bluetooth_manager.getPairedDeviceNames(spinnerArray);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>
+                (getBaseContext(), android.R.layout.simple_spinner_item, spinnerArray);
+        adapter.setDropDownViewResource(android.R.layout
+                .simple_spinner_dropdown_item);
+
+        int position = 0;
+        String default_device = settings.getLastConnectedDeviceName();
+        for(int i = 0; i < spinnerArray.size(); i++){
+            String s = spinnerArray.get(i);
+            if(s.equals(default_device)){
+                position = i;
+                break;
+            }
+        }
+
+        spinner_bluetooth_device.setAdapter(adapter);
+        spinner_bluetooth_device.setSelection(position,false);
     }
 
     private void enableSpinnerBluetooth(boolean enable){
@@ -380,197 +382,7 @@ public class MainActivity extends Activity {
         spinner_bluetooth_device.setLayoutParams(layout);
     }
 
-    @Override
-    public void onUserInteraction() {
-        super.onUserInteraction();
-        user_is_interacting = true;
-    }
-
-    /*!
-     * \brief PrintInfoMsg Display a message for the user which can be dismissed by clicking on it.
-     * \param msg The to be displayed message
-     * \param type What kind of message that is (for appearance)
-     * \param func A function which should be called, if the user dismisses the message.
-     */
-    private void PrintInfoMsg(String msg, MSG type, final CallBackVoid func){
-        TextView tv = new TextView(this);
-        final int new_id = msg_id;
-        msg_id++;
-        msgs.put(new_id, tv);
-        // Needed since I dont know when the text is really written and displayed.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            tv.addOnLayoutChangeListener( new View.OnLayoutChangeListener()
-            {
-                public void onLayoutChange( View v,
-                                            int left,    int top,    int right,    int bottom,
-                                            int leftWas, int topWas, int rightWas, int bottomWas )
-                {
-                    moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe();
-                }
-            });
-        }
-        switch (type){
-            case FIX:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    tv.setTextColor(getColor(R.color.WARNING));
-                }else{
-                    tv.setTextColor(0xFFFFA500);
-                }
-                break;
-            case DISMISS:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    tv.setTextColor(getColor(R.color.Letters));
-                }else{
-                    tv.setTextColor(0xFFDED2BA);
-                }
-                break;
-            case ERROR:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    tv.setTextColor(getColor(R.color.ERROR));
-                }else{
-                    tv.setTextColor(0xFFFF0000);
-                }
-                break;
-            default: // gibts für sowas keine statischen compiler?!
-                throw new IllegalStateException("Unexpected value: " + type);
-        }
-
-        CharSequence text = "\n" + msg + "\n\n" + func.dismiss_info() + "\n";
-        tv.setText(text);
-
-        // let the info box vanish on clicking on it by removing the margin of the table layout.
-        tv.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // change the layout to trigger on layout change listener
-                func.callback();
-                final Integer currentID = new_id;
-                deleteMsg(currentID);
-            }
-        });
-        tv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 0f));
-        tv.setClickable(true);
-        tv.setFocusable(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            tv.setTextAlignment(tv.TEXT_ALIGNMENT_CENTER);
-        }
-        tv.setGravity(Gravity.CENTER_HORIZONTAL);
-        tv.setId(new_id);
-        //msg_layout.addView(tv);
-    }
-
-    /*!
-     * \brief CallBackVoid A function interface to give that as a parameter to another function since Java has no std::function.
-     */
-    public interface CallBackVoid{
-        CharSequence dismiss_info();
-        void callback();
-    }
-
-    final private CallBackVoid do_nothing = new CallBackVoid(){
-        public CharSequence dismiss_info(){return getString(R.string.msg_click_to_dismiss);}
-        public void callback(){}
-    };
-
-    final private CallBackVoid restart_bluetooth = new CallBackVoid(){
-        public CharSequence dismiss_info(){return getString(R.string.msg_click_after_fix);}
-        public void callback(){setUpBluetooth();}
-    };
-
-    final private CallBackVoid shut_down = new CallBackVoid(){
-        public CharSequence dismiss_info(){return getString(R.string.msg_click_to_shutdown);}
-        public void callback(){finish();}
-    };
-
-    final private CallBackVoid read = new CallBackVoid() {
-        @Override
-        public CharSequence dismiss_info(){return "DEBUG click to red";}
-
-        @Override
-        public void callback() {
-            Log.i("callbackRead", "called back");
-            StringBuilder msg = new StringBuilder("");
-            try {
-                if(bluetooth_manager.read(4, msg)){
-                    PrintInfoMsg("Next picture in "+msg+"ms", MSG.DISMISS, read);
-                }else{
-                    PrintInfoMsg("nothing to read", MSG.DISMISS, read);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                PrintInfoMsg("reading throw exeption", MSG.DISMISS, read);
-            }
-        }
-    };
-
-    final private CallBackVoid send_sample = new CallBackVoid(){
-        public CharSequence dismiss_info(){return "DEBUG click to transmit working example";}
-        public void callback(){
-// const , 15 pictures , c = 500 (alle 500 ms)
-
-            byte buffer_temp_a[] = new byte[4];
-            byte buffer_temp_b[] = new byte[4];
-            byte buffer_temp_c[] = new byte[4];
-            Utility.int2Bytes(1000, buffer_temp_c);
-            byte[] buffer_f1 = {0x01, 0x00,0x00,0x00,0x0F, buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3]};
-            Utility.int2Bytes(100, buffer_temp_b);
-            byte[] buffer_f2 = {0x02, 0x00,0x00,0x00,0x0A,
-                    buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
-                    buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
-            Utility.int2Bytes(-100, buffer_temp_b);
-            Utility.int2Bytes(2000, buffer_temp_c);
-            byte[] buffer_f3 = {0x02, 0x00,0x00,0x00,0x0A,
-                    buffer_temp_c[0],buffer_temp_c[1],buffer_temp_c[2],buffer_temp_c[3],
-                    buffer_temp_b[0],buffer_temp_b[1],buffer_temp_b[2],buffer_temp_b[3]};
-            byte[] buffer_fEnd = {0x00};
-            byte[] combined = Utility.concatAll(buffer_f1, buffer_f2, buffer_f3, buffer_fEnd);
-            try {
-                if(bluetooth_manager.send(combined)){
-                    PrintInfoMsg("Transmittion successful", MSG.DISMISS, send_sample);
-                }else{
-                    PrintInfoMsg("Transmittion failed", MSG.ERROR, send_sample);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                PrintInfoMsg("Transmittion failed with exeption throw", MSG.ERROR, send_sample);
-            }
-        }
-    };
-
-    /*!
-     * \brief getMessageHeight Calculates the height of all messages and returns the sum.
-     * \return sum of all heights.
-     */
-    private int getMessageHeight(){
-        final Collection<TextView> tvs = msgs.values();
-        int h = 0;
-        for (TextView tv : tvs) {
-            h = h + tv.getHeight();
-        }
-        return h;
-    }
-
-    /*!
-     * \brief deleteMsg Delete the message which ids was given
-     * \param id The message to delete.
-     */
-    private void deleteMsg(final Integer id){
-        ((ViewManager)msgs.get(id).getParent()).removeView(msgs.get(id));
-        msgs.remove(id);
-        moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe();
-    }
-
-    /*!
-     * \brief moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe moves the table view to show messages underneath.
-     */
-    private void moveTableVieweToMakePlaceForMessagesWhichIKnowVeryUglyDontJugeMe(){
-       // DrawerLayout.LayoutParams params = (DrawerLayout.LayoutParams) table_layout.getLayoutParams();
-        //params.setMargins(0,getMessageHeight(),0,0);
-        //table_layout.setLayoutParams(params);
-    }
-
     private Settings settings;
-    private Vector<String> paired_devices;
     private BluetoothManager bluetooth_manager = null;
 
     // UI
@@ -581,10 +393,7 @@ public class MainActivity extends Activity {
     private Button copy_template_button;
     private Button run_selected_template_button;
     private Button open_settings_button;
-    private Map<Integer,TextView> msgs = new HashMap<>();
-    private Integer msg_id = 0;
     private Spinner spinner_bluetooth_device;
-    private boolean user_is_interacting;
 
     private DB db;
     private LinkedHashMap<Integer, Boolean> selected = new LinkedHashMap<>();

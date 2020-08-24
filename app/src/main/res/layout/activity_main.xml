@@ -36,7 +36,7 @@
         android:id="@+id/bt_status"
         android:layout_width="match_parent"
         android:paddingTop="3sp"
-        android:layout_height="25sp"
+        android:layout_height="wrap_content"
         android:textColor="@color/Letters"
         android:layout_below="@id/title"
         android:background="@color/Disconnected"
