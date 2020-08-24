@@ -1,6 +1,8 @@
 package de.jakobimatrix.intervallometer;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
@@ -12,6 +14,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.content.ClipboardManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -91,6 +95,20 @@ public class SettingsActivity extends Activity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
         });
+
+        app_info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setClipboard(app_info.getText().toString());
+                Toast.makeText(getApplicationContext(), getString(R.string.version_info_copied), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void setClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Copied Text", text);
+        clipboard.setPrimaryClip(clip);
     }
 
     private void exit(){

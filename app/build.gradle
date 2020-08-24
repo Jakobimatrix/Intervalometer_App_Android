@@ -1,4 +1,12 @@
+import java.text.SimpleDateFormat
+
 apply plugin: 'com.android.application'
+
+def buildTime() {
+    def df = new SimpleDateFormat("yyyy-MM-dd")
+    df.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return df.format(new Date())
+}
 
 android {
     compileSdkVersion 29
@@ -9,8 +17,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
-        versionName "Abyssinian"
-
+        versionName "Abyssinian ${buildTime()}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
