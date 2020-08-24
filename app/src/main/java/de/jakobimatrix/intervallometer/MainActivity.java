@@ -130,12 +130,35 @@ public class MainActivity extends Activity {
     void enableGuiElementsIf(){
         int num_selected = getNumSelected();
         boolean enable_copy_and_delete = num_selected > 0;
-        boolean enable_execute = (num_selected == 1) && (bluetooth_manager.isConnected() || true);
+        boolean enable_execute = (num_selected == 1) && (bluetooth_manager.isConnected());
+        boolean edit_template = (num_selected == 1);
 
         copy_template_button.setEnabled(enable_copy_and_delete);
         delete_template_button.setEnabled(enable_copy_and_delete);
         run_selected_template_button.setEnabled(enable_execute);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if(enable_copy_and_delete){
+                copy_template_button.setBackground(getDrawable(R.drawable.ic_copy_template));
+                delete_template_button.setBackground(getDrawable(R.drawable.ic_bin_icon));
+            }else{
+                copy_template_button.setBackground(getDrawable(R.drawable.ic_copy_template_disabled));
+                delete_template_button.setBackground(getDrawable(R.drawable.ic_bin_icon_disabled));
+            }
+            if(enable_execute){
+                run_selected_template_button.setBackground(getDrawable(R.drawable.ic_start_intervalometer));
+            }else{
+                run_selected_template_button.setBackground(getDrawable(R.drawable.ic_start_intervalometer_disabled));
+            }
+            if(num_selected == 0){
+                add_new_template_button.setBackground(getDrawable(R.drawable.ic_new_template));
+
+            }else if (num_selected == 1){
+                add_new_template_button.setBackground(getDrawable(R.drawable.ic_edit_template));
+            }else{
+                add_new_template_button.setBackground(getDrawable(R.drawable.ic_unselect_templates));
+            }
+        }
         // Todo visualize
         // .setBackground(getDrawable(R.drawable.));
     }
@@ -171,7 +194,11 @@ public class MainActivity extends Activity {
         add_new_template_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startEditTemplateActivity(getSelectedTemplate());
+                if(getNumSelected() <2) {
+                    startEditTemplateActivity(getSelectedTemplate());
+                }else{
+                    uncheckAll();
+                }
             }
         });
 
@@ -193,6 +220,17 @@ public class MainActivity extends Activity {
         setGuiFunctionsBt();
     }
 
+    private void uncheckAll() {
+        while(selected_view.size() > 0){
+            Iterator it = selected_view.entrySet().iterator();
+            if (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+                View v = (View) pair.getValue();
+                v.performClick();
+            }
+        }
+    }
+
     private void sendFunction2Device(){
         int id = getSelectedTemplate();
         if(id > 0){
@@ -204,9 +242,8 @@ public class MainActivity extends Activity {
                 db.Json2Function(this, fs, start, stop, ja);
             } catch (JSONException e) {
                 e.printStackTrace();
-                bluetooth_status.setText("Some Error reading from DB.");
+                bluetooth_status.setText(getString(R.string.db_read_error));
                 return;
-                //todo tell user
             }
 
             byte[] buffer = {};
@@ -216,23 +253,21 @@ public class MainActivity extends Activity {
                 double begin = start.get(i);
                 double end = stop.get(i);
                 byte[] buffer_f = f.toByteStream((int) Math.round(begin), (int) Math.round(end));
-                Log.d("f: ",  Utility.bytes2string(buffer_f, buffer_f.length));
                 buffer = Utility.concatAll(buffer, buffer_f);
             }
             buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
 
             Utility.bytes2string(buffer, buffer.length);
-            Log.d("f: ",  Utility.bytes2string(buffer, buffer.length));
 
             try {
                 if(bluetooth_manager.send(buffer)){
-                    bluetooth_status.setText("Transmission: " + Utility.bytes2string(buffer, buffer.length));
+                    bluetooth_status.setText(getString(R.string.transmission) + ": " + Utility.bytes2string(buffer, buffer.length));
                 }else{
-                    bluetooth_status.setText("Transmittion failed");
+                    bluetooth_status.setText(getString(R.string.transmission_failed));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                bluetooth_status.setText("Transmittion failed with exeption thrown");
+                bluetooth_status.setText(getString(R.string.transmission_failed) + " " + String.valueOf(e.getMessage()));
             }
         }
     }

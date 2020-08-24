@@ -80,7 +80,7 @@
     <Button
         style="@style/clickableButtonBot"
         android:id="@+id/button_add_new_template"
-        android:background="@drawable/ic_plus_button" />
+        android:background="@drawable/ic_new_template" />
     <Space style="@style/spacerBottomButtons"/>
     <Button
         style="@style/clickableButtonBot"

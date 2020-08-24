@@ -159,8 +159,8 @@ public class Utility {
             e.printStackTrace();
             s = "throw exeption";
         }
-        Log.i("read as String:",s);
-        Log.i("read as Hex:", hex);
+        //Log.i("read as String:",s);
+        //Log.i("read as Hex:", hex);
 
         return hex;
     }

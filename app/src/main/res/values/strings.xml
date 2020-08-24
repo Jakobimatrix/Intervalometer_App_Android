@@ -6,6 +6,9 @@
     <string name="bt_status_bt_off">Please enable Bluetooth on your device.</string>
     <string name="bt_status_disconnected">Click the Bluetooth Symbol to Connect to Device.</string>
     <string name="bt_status_select_device">Please select a Bluetooth Device.</string>
+    <string name="transmission">Transmission</string>
+    <string name="transmission_failed">Transmission Failed!</string>
+    <string name="db_read_error">Error while reading from DB!</string>
     <!-- Info Msgs -->
     <string name="edit_template_save_dialog">Do you want to save the Changes?</string>
     <string name="yes">Yes</string>
