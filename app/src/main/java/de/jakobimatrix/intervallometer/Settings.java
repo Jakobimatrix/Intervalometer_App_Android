@@ -60,7 +60,7 @@ public class Settings {
     }
 
     public void setMinPeriodMs(int min_ms){
-        editor.putFloat(MIN_PERIOD_MS_KEY, min_ms);
+        editor.putInt(MIN_PERIOD_MS_KEY, min_ms);
         editor.apply();
     }
 

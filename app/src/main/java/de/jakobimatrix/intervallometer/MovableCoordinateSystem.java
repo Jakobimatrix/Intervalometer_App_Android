@@ -1018,10 +1018,6 @@ public class MovableCoordinateSystem extends Movable {
                 String function_string = (String) function_chooser.getSelectedItem();
                 SUPPORTED_FUNCTION selected_function = Function.FunctionString2Enum(activity, function_string);
                 int num_pictures = Integer.parseInt(num_pic_chooser.getText().toString());
-                if(id == 0){
-                    // the first function has the zero frame (which will be done without delay)
-                    num_pictures--;
-                }
                 functionCreate(id, edit_function, selected_function, num_pictures);
                 closeAddFunctionActivity();
             }
