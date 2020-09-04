@@ -200,8 +200,13 @@ public class MovableCoordinateSystem extends Movable {
 
         for(int i = functions.size()-1; i > -1; i--){
             MovableFunction mf = functions.get(i);
-            double manipulator_dif = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition().x - mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition().x;
-            if(manipulator_dif < stick_to_grid_distance.x/3.){
+
+            Pos3d p_R = mf.manipulator[MovableFunction.RIGHT_MANIPULATOR_ID].getPosition();
+            Pos3d p_L = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
+            Homography2d f2openGL = mf.getDrawableFunction().f2openGL;
+            Pos3d p_R_func = f2openGL.invTransform(p_R);
+            Pos3d p_L_func = f2openGL.invTransform(p_L);
+            if(p_R_func.x -  p_L_func.x < 1.){
 
                 if(i == active_function){
                     int right = i+1;
