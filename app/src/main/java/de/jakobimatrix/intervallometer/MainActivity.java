@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // to trigger the rotation
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
         db = new DB(this);
@@ -133,7 +133,6 @@ public class MainActivity extends Activity {
     }
 
     void enableGuiElementsIf(){
-        Log.d("enableGuiElem", "hi");
         int num_selected = getNumSelected();
         boolean enable_copy_and_delete = num_selected > 0;
         boolean enable_execute = (num_selected == 1) && (bluetooth_manager.isConnected());

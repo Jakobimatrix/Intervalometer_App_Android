@@ -37,10 +37,12 @@ public class LinearFunction extends Function {
         byte[] num_pics = getNumPictures(min, max);
         byte[] buffer_b = new byte[4];
         byte[] buffer_c = new byte[4];
-        int const_b = (int) Math.round(f(min + 1) - f(min));
-        int const_c = (int) Math.round(f(min));
-        Utility.int2Bytes(const_b, buffer_b);
-        Utility.int2Bytes(const_c, buffer_c);
+
+        double const_c = f(min);
+        double const_b = f(min + 1) - f(min);
+
+        Utility.int2Bytes(Globals.float2Int4byte(const_b), buffer_b);
+        Utility.int2Bytes(Globals.float2Int4byte(const_c), buffer_c);
 
         return new byte[]{Globals.SYMBOL_F_LIN,
                 num_pics[0], num_pics[1], num_pics[2], num_pics[3],

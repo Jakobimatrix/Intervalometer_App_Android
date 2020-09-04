@@ -1,5 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
+import android.util.Log;
+
 // evil globals disguised as an instance class.
 public class Globals {
     private static Globals mInstance= null;
@@ -11,6 +13,34 @@ public class Globals {
             mInstance = new Globals();
         }
         return mInstance;
+    }
+
+    /*!
+     * \brief isRepresentable Validates if the given floating point value can be represented
+     * on the microcontroller.
+     * \return True if the number can be represented.
+     */
+    public static boolean isRepresentableIn4ByteInt(double d){
+        return !(d > MAX_FLOAT_VALUE) && !(d < MIN_FLOAT_VALUE) && !(Math.abs(d) < MIN_NONZERO_FLOAT_VAlUE);
+    }
+
+    /*!
+     * \brief Convert a floating point number to an integer saving FLOAT_PRECISION decimals for
+     * arithmetic operations on microcontroller.
+     * \return int representation of float.
+     */
+    public static int float2Int4byte(double d){
+        if(d > MAX_FLOAT_VALUE){
+            Log.d("Warning:Globals", "float2Int4byte: " + d + " is bigger as the biggest possible representable float (" + MAX_FLOAT_VALUE + ")");
+            return 0x0FFFFFFF;
+        }else if( d < MIN_FLOAT_VALUE){
+            Log.d("Warning:Globals", "float2Int4byte: " + d + " is lower as the lowest possible representable float (" + MIN_FLOAT_VALUE + ")");
+            return 0xF0000000;
+        }else if( Math.abs(d) < MIN_NONZERO_FLOAT_VAlUE){
+            Log.d("Warning:Globals", "float2Int4byte: " + d + " is smaller than the smallest possible representable float (" + MIN_NONZERO_FLOAT_VAlUE + ")");
+            return 0;
+        }
+        return (int) Math.round(d*FLOAT_PRECISION);
     }
 
     static int screen_width = 0;
@@ -40,7 +70,12 @@ public class Globals {
     final static public byte NUM_VALUES_F_CONST = 2;
     final static public byte NUM_VALUES_F_LIN = 3;
     final static public byte NUM_VALUES_F_QUAD = 4;
+    final static public double FLOAT_PRECISION = 1000;
+    final static public double MAX_FLOAT_VALUE = 0x0FFFFFFF / FLOAT_PRECISION;
+    final static public double MIN_FLOAT_VALUE = 0xF0000000 / FLOAT_PRECISION;
+    final static public double MIN_NONZERO_FLOAT_VAlUE = 1. / FLOAT_PRECISION;
 
+    // Haptic
     final static long HOLD_DELAY_MS = 33;
 
     final static String ANDROID_CODE_URL = "https://github.com/Jakobimatrix/Intervalometer_App_Android";

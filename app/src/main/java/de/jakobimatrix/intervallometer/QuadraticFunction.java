@@ -1,5 +1,7 @@
 package de.jakobimatrix.intervallometer;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class QuadraticFunction extends Function {
@@ -80,9 +82,13 @@ public class QuadraticFunction extends Function {
         // f(n) = f(n-1) + A(n-1) + B   (I)
         /*
         https://math.stackexchange.com/questions/561795/how-to-write-a-recursive-equation-for-quadratic-sequence
-        C = f(0) = f(min)
+        C = f(0) = f(0)
         B = f(1)-f(0)                   f(n=0) = ...
         A = f(2)-f(1) - B               f(n=1) = ...
+
+        C = f(min) = f(min)
+        B = f(min + 1)-f(min)             f(n=0) = ...
+        A = f(min + 2)-f(min + 1) - B     f(n=1) = ...
          */
         byte[] num_pics = getNumPictures(min, max);
 
@@ -90,13 +96,19 @@ public class QuadraticFunction extends Function {
         byte[] buffer_b = new byte[4];
         byte[] buffer_a = new byte[4];
 
-        int const_c = (int) Math.round(f(min));
-        int const_b = (int) Math.round(f(1) - f(0));
-        int const_a = (int) Math.round(f(2) - f(1) - const_b);
+        double[] const_d = {
+                f(min),
+                f(min + 1) - f(min),
+                f(min + 2) - 2*f(min + 1) + f(min)};
 
-        Utility.int2Bytes(const_c, buffer_c);
-        Utility.int2Bytes(const_b, buffer_b);
-        Utility.int2Bytes(const_a, buffer_a);
+        int const_i[] = new int[3];
+        for(int i = 0; i < 3; i++){
+            const_i[i] = Globals.float2Int4byte(const_d[i]);
+        }
+
+        Utility.int2Bytes(const_i[0], buffer_c);
+        Utility.int2Bytes(const_i[1], buffer_b);
+        Utility.int2Bytes(const_i[2], buffer_a);
 
         return new byte[]{Globals.SYMBOL_F_QUAD,
                 num_pics[0], num_pics[1], num_pics[2], num_pics[3],

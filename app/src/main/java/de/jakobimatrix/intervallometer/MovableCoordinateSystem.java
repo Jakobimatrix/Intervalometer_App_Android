@@ -1035,6 +1035,7 @@ public class MovableCoordinateSystem extends Movable {
             if(!isValidFunctionId(id)){
                 Toast toast=Toast. makeText(activity.getApplicationContext(),activity.getString(R.string.something_went_wrong),Toast. LENGTH_SHORT);
                 toast.show();
+                return;
             }
             MovableFunction mf = getMovableFunction(id);
             left = mf.manipulator[MovableFunction.LEFT_MANIPULATOR_ID].getPosition();
