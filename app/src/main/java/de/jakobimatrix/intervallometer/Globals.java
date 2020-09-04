@@ -81,4 +81,5 @@ public class Globals {
     final static String ANDROID_CODE_URL = "https://github.com/Jakobimatrix/Intervalometer_App_Android";
     final static String HARDWARE_CODE_URL = "https://github.com/Jakobimatrix/Intervalometer_Hardware";
     final static String AUTHOR = "Jakob Wandel";
+    final static int NUM_SUPPORTED_FUNCTION_BYTES = 75; // as of v1.1
 }

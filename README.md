@@ -16,6 +16,7 @@ An App for Android to program the instructions for the intervalometer (see repos
  - [ ] Preview of the result (in a simulation (rendered movie), where the user can choose the scene)
  - [ ] Show plot of frame density over time like |  |  |  | | | |||| | |  | with a timeline
  - [ ] Show Label for Y-Axis and Labels (x,y) for selected Manipulators
-
+ - [ ] Before transmitting check if calculated coefficients resemble user input (not true 
+for very gentle slops (of Quadratic functons)
 
 

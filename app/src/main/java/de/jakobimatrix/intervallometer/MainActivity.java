@@ -5,32 +5,24 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Vector;
 
 enum MSG{FIX,DISMISS,ERROR};
 public class MainActivity extends Activity {
@@ -176,7 +168,7 @@ public class MainActivity extends Activity {
         copy_template_button = (Button) findViewById(R.id.button_copy_selected_template);
         run_selected_template_button = (Button) findViewById(R.id.button_start_intervalometer);
         open_settings_button = (Button) findViewById(R.id.button_settings);
-        bluetooth_status = (TextView) findViewById(R.id.bt_status);
+        status_msg = (TextView) findViewById(R.id.status_msg);
         spinner_bluetooth_device = (Spinner) findViewById(R.id.spinner_bluetooth_device);
     }
 
@@ -248,7 +240,7 @@ public class MainActivity extends Activity {
                 db.Json2Function(this, fs, start, stop, ja);
             } catch (JSONException e) {
                 e.printStackTrace();
-                bluetooth_status.setText(getString(R.string.db_read_error));
+                status_msg.setText(getString(R.string.db_read_error));
                 return;
             }
 
@@ -261,19 +253,24 @@ public class MainActivity extends Activity {
                 byte[] buffer_f = f.toByteStream((int) Math.round(begin), (int) Math.round(end));
                 buffer = Utility.concatAll(buffer, buffer_f);
             }
+
+            if(buffer.length > Globals.NUM_SUPPORTED_FUNCTION_BYTES){
+                status_msg.setText(String.format(getString(R.string.transmission_failed_too_long), Globals.NUM_SUPPORTED_FUNCTION_BYTES, buffer.length));
+                return;
+            }
             buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
 
             Utility.bytes2string(buffer, buffer.length);
 
             try {
                 if(bluetooth_manager.send(buffer)){
-                    bluetooth_status.setText(getString(R.string.transmission) + ": " + Utility.bytes2string(buffer, buffer.length));
+                    status_msg.setText(getString(R.string.transmission) + ": " + Utility.bytes2string(buffer, buffer.length));
                 }else{
-                    bluetooth_status.setText(getString(R.string.transmission_failed));
+                    status_msg.setText(getString(R.string.transmission_failed));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                bluetooth_status.setText(getString(R.string.transmission_failed) + " " + String.valueOf(e.getMessage()));
+                status_msg.setText(getString(R.string.transmission_failed) + " " + String.valueOf(e.getMessage()));
             }
         }
     }
@@ -349,7 +346,7 @@ public class MainActivity extends Activity {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_audio_24));
             }
-            bluetooth_status.setText(getString(R.string.bt_status_connected) + " "  + settings.getLastConnectedDeviceName());
+            status_msg.setText(getString(R.string.bt_status_connected) + " "  + settings.getLastConnectedDeviceName());
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     try {
@@ -357,7 +354,7 @@ public class MainActivity extends Activity {
                         setBtButtonFunction();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        bluetooth_status.setText(R.string.msg_bt_disconnect_failed);
+                        status_msg.setText(R.string.msg_bt_disconnect_failed);
                     }
                     enableGuiElementsIf();
                 }
@@ -366,7 +363,7 @@ public class MainActivity extends Activity {
             // no device connected
             enableSpinnerBluetooth(true);
             updateBtDeviceSpinner();
-            bluetooth_status.setText(getString(R.string.bt_status_disconnected));
+            status_msg.setText(getString(R.string.bt_status_disconnected));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 bluetooth_connection_button.setBackground(getDrawable(R.drawable.ic_baseline_bluetooth_24));
             }
@@ -375,14 +372,14 @@ public class MainActivity extends Activity {
                     String chosen_device = (String) spinner_bluetooth_device.getSelectedItem();
                     try {
                         if(!bluetooth_manager.connect(chosen_device)){
-                            bluetooth_status.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed);
+                            status_msg.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed);
                             return;
                         }
                         settings.setLastConnectedDeviceName(chosen_device);
                         setBtButtonFunction();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        bluetooth_status.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed + " an exception was thrown.");
+                        status_msg.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed + " an exception was thrown.");
                     }
                     enableGuiElementsIf();
                 }
@@ -392,7 +389,7 @@ public class MainActivity extends Activity {
 
     private void updateBtDeviceSpinner(){
         bluetooth_manager.refresh();
-        bluetooth_status.setText(getString(R.string.bt_status_select_device));
+        status_msg.setText(getString(R.string.bt_status_select_device));
         ArrayList<String> spinnerArray = new ArrayList<>();
         bluetooth_manager.getPairedDeviceNames(spinnerArray);
         ArrayAdapter<String> adapter = new ArrayAdapter<>
@@ -439,7 +436,7 @@ public class MainActivity extends Activity {
 
     // UI
     private Button bluetooth_connection_button;
-    private TextView bluetooth_status;
+    private TextView status_msg;
     private Button delete_template_button;
     private Button add_new_template_button;
     private Button copy_template_button;
