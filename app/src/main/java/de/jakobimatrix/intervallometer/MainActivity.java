@@ -253,25 +253,40 @@ public class MainActivity extends Activity {
                 byte[] buffer_f = f.toByteStream((int) Math.round(begin), (int) Math.round(end));
                 buffer = Utility.concatAll(buffer, buffer_f);
             }
+            buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
 
             if(buffer.length > Globals.NUM_SUPPORTED_FUNCTION_BYTES){
                 status_msg.setText(String.format(getString(R.string.transmission_failed_too_long), Globals.NUM_SUPPORTED_FUNCTION_BYTES, buffer.length));
                 return;
             }
-            buffer = Utility.concatAll(buffer, new byte[]{Globals.SYMBOL_STOP});
 
+            // todo simulate function (Hardware) to control buffer.
             Utility.bytes2string(buffer, buffer.length);
 
-            try {
-                if(bluetooth_manager.send(buffer)){
-                    status_msg.setText(getString(R.string.transmission) + ": " + Utility.bytes2string(buffer, buffer.length));
-                }else{
-                    status_msg.setText(getString(R.string.transmission_failed));
+            int send_pointer = 0;
+            int NUM_BYTES_SEND_SIMULTANEOUS = 10;
+
+            while(send_pointer < buffer.length) {
+                int diff = buffer.length - send_pointer;
+                int send_num = Math.min(NUM_BYTES_SEND_SIMULTANEOUS, diff);
+                byte[] send_bytes = new byte[send_num];
+
+                System.arraycopy(buffer, send_pointer, send_bytes, 0, send_num);
+                send_pointer += send_num;
+                try {
+                    if (!bluetooth_manager.send(send_bytes)) {
+                        status_msg.setText(getString(R.string.transmission_failed));
+                        return;
+                    }
+                    int LET_HARDWARE_CATCH_UP_MS = 100;
+                    Thread.sleep(LET_HARDWARE_CATCH_UP_MS);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                    status_msg.setText(getString(R.string.transmission_failed) + " " + String.valueOf(e.getMessage()));
+                    return;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                status_msg.setText(getString(R.string.transmission_failed) + " " + String.valueOf(e.getMessage()));
             }
+            status_msg.setText(getString(R.string.transmission) + ": " + Utility.bytes2string(buffer, buffer.length));
         }
     }
 

@@ -133,11 +133,7 @@ public class SigmoidFunction extends LinearFunction{
         byte[] left = left_parabola.toByteStream(min, mid);
         byte[] right = right_parabola.toByteStream(mid, max);
 
-        byte[] ret = new byte[left.length + right.length];
-        System.arraycopy(left, 0, ret, 0, left.length);
-        System.arraycopy(right, 0, ret, left.length, right.length);
-
-        return ret;
+        return Utility.concatAll(left, right);
     }
 
     double min_x;

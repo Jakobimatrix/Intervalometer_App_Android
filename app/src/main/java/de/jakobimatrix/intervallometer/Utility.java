@@ -156,6 +156,7 @@ public class Utility {
     public final static  String bytes2string(byte[] buffer, int length){
         // in Java int has 4 bytes
         // on ATtiny long has 4 bytes
+        // todo color protocol
         String hex = Bytes2String(buffer, length);
         String s = null;
         try {

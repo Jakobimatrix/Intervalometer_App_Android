@@ -1,5 +1,7 @@
 # Intervalometer_App_Android
 An App for Android to program the instructions for the intervalometer (see repository Intervalometer_Hardware)
+Make sure to check out equal TAGs. Commits without (or different) TAGs might not work 
+together.
 
 ### Features so far:
  * Connect Bluetooth module to mobile device and transfere static function commands (once).
@@ -17,6 +19,8 @@ An App for Android to program the instructions for the intervalometer (see repos
  - [ ] Show plot of frame density over time like |  |  |  | | | |||| | |  | with a timeline
  - [ ] Show Label for Y-Axis and Labels (x,y) for selected Manipulators
  - [ ] Before transmitting check if calculated coefficients resemble user input (not true 
-for very gentle slops (of Quadratic functons)
+for very gentle slops (of Quadratic functons). IF default float precision is not enough, 
+switch to the "Precision protocol"
+ - [ ] implement precision protocol: each constant has its own encoded precision divider
 
 
