@@ -9,21 +9,22 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.Vector;
 
 import static java.lang.Math.min;
 
 public class BluetoothManager {
 
-    public BluetoothManager(String device_name){
-        initializer(device_name);
-    }
+    private static BluetoothManager mInstance= null;
 
-    public BluetoothManager(){
-        initializer("");
+    protected BluetoothManager(){initializer("");}
+
+    public static synchronized BluetoothManager getInstance() {
+        if(null == mInstance){
+            mInstance = new BluetoothManager();
+        }
+        return mInstance;
     }
 
     private void initializer(String device_name){

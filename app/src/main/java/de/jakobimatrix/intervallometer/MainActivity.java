@@ -415,6 +415,16 @@ public class MainActivity extends Activity {
         spinner_bluetooth_device.setLayoutParams(layout);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            bluetooth_manager.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private Settings settings;
     private BluetoothManager bluetooth_manager = null;
 
