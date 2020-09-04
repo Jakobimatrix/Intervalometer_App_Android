@@ -15,7 +15,7 @@ An App for Android to program the instructions for the intervalometer (see repos
     * E.g. start with constant interval; when requested smoothly change interal over N frames to new constant target interval.
  - [ ] Preview of the result (in a simulation (rendered movie), where the user can choose the scene)
  - [ ] Show plot of frame density over time like |  |  |  | | | |||| | |  | with a timeline
-
+ - [ ] Show Label for Y-Axis and Labels (x,y) for selected Manipulators
 
 
 
