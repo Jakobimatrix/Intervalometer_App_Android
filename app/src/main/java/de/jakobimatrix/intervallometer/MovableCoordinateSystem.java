@@ -459,7 +459,6 @@ public class MovableCoordinateSystem extends Movable {
         // don't display comma if integer
         boolean is_integer = (d_tick == Math.round(d_tick));
         String tick = is_integer? ((Integer) d_tick.intValue()).toString(): d_tick.toString();
-        tick = tick.substring(0, Math.min(tick.length(), MAX_NUM_TICK_CHARS));
 
         if(!tick.contains(".")){
             return tick;
@@ -472,6 +471,16 @@ public class MovableCoordinateSystem extends Movable {
                 continue;
             }
             break;
+        }
+
+        int i = tick.indexOf('.');
+        if(0 == -1){
+            return tick;
+        }
+        int num_decimal_places = tick.length()-1 - i;
+        int cut = num_decimal_places - MAX_NUM_TICK_DECIMAL_PLACES;
+        if(cut > 0){
+            tick = tick.substring(0, tick.length()-cut);
         }
         return tick;
     }
@@ -1174,7 +1183,7 @@ public class MovableCoordinateSystem extends Movable {
     ArrayList <DrawableRectangle> y_grid;
     ArrayList <DrawableString> x_ticks = new ArrayList<>(NUM_TICK_LABELS);
     ArrayList <DrawableString> y_ticks = new ArrayList<>(NUM_TICK_LABELS);
-    final static int MAX_NUM_TICK_CHARS = 6;
+    final static int MAX_NUM_TICK_DECIMAL_PLACES = 2;
 
     final static float FONT_SIZE = 0.4f;
     final static int FONT_SIZE_PIX = 100;
