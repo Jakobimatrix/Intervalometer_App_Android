@@ -291,9 +291,6 @@ public class MovableCoordinateSystem extends Movable {
         if(duration > MOPSGESCHWINDIGKEIT_TICK_DURATION_HOLD_MS){
             multiply = 100000.;
         }
-        if(duration > ILLEGAL_FAST_TICK_DURATION_HOLD_MS){
-            multiply = 1000000.;
-        }
 
         // update the command for all functions
         Pos3d command = stick_to_grid_distance;
@@ -1156,7 +1153,6 @@ public class MovableCoordinateSystem extends Movable {
     final static long VERY_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 50*MEDIUM_TICK_DURATION_MS;
     final static long UBER_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 75*MEDIUM_TICK_DURATION_MS;
     final static long MOPSGESCHWINDIGKEIT_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 100*MEDIUM_TICK_DURATION_MS;
-    final static long ILLEGAL_FAST_TICK_DURATION_HOLD_MS = SLOW_TICK_DURATION_HOLD_MS + 125*MEDIUM_TICK_DURATION_MS;
 
     boolean lifted = true;
     long last_tap_edit_function = 0;

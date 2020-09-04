@@ -91,4 +91,7 @@ public class Settings {
     }};
 
     public final static int DEFAULT_FPS_ID = 3;
+
+    public final static double DEFAULT_SMALLEST_FRAME_TICK = 1.;
+    public final static double DEFAULT_SMALLEST_DELAY_TICK_MS = 100.;
 }

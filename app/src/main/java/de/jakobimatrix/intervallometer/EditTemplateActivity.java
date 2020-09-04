@@ -446,7 +446,8 @@ public class EditTemplateActivity extends Activity {
         float width = (float) Math.abs(top_right_view_gl.x - bot_left_view_gl.x);
         float height = (float) Math.abs(top_right_view_gl.y - bot_left_view_gl.y);
         coord_overview = new MovableCoordinateSystem(this, bot_left_view_gl, width, height);
-        coord_overview.stickToGrid(new Pos3d(1,1,0));
+
+        coord_overview.stickToGrid(new Pos3d(Settings.DEFAULT_SMALLEST_FRAME_TICK, Settings.DEFAULT_SMALLEST_DELAY_TICK_MS,0));
         coord_view_id = renderer.addMovable(coord_overview);
 
         if(db_function_id > -1){
