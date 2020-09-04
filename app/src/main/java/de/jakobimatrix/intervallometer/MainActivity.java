@@ -49,13 +49,13 @@ public class MainActivity extends Activity {
         loadSettings();
         connectWithGUI();
         setGuiFunctions();
-        loadTemplates();
+        loadTemplates(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadTemplates();
+        loadTemplates(true);
     }
 
     /*!
@@ -66,9 +66,14 @@ public class MainActivity extends Activity {
         settings = Settings.getInstance(this);
     }
 
-    private void loadTemplates(){
+    private void loadTemplates(boolean reload){
         LinkedHashMap<Integer, String> available_templates = db.getAllFunctionNames();
         LinearLayout ll = (LinearLayout) findViewById(R.id.scroll_view_templates_layout);
+        if(reload){
+            selected.clear();
+            selected_view.clear();
+            ll.removeAllViews();
+        }
         for (Map.Entry<Integer, String> entry : available_templates.entrySet()) {
             if(!selected.containsKey(entry.getKey())){
                 // new template
@@ -128,6 +133,7 @@ public class MainActivity extends Activity {
     }
 
     void enableGuiElementsIf(){
+        Log.d("enableGuiElem", "hi");
         int num_selected = getNumSelected();
         boolean enable_copy_and_delete = num_selected > 0;
         boolean enable_execute = (num_selected == 1) && (bluetooth_manager.isConnected());
@@ -186,6 +192,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 deleteSelectedTemplates();
+                enableGuiElementsIf();
             }
         });
 
@@ -197,6 +204,7 @@ public class MainActivity extends Activity {
                 }else{
                     uncheckAll();
                 }
+                enableGuiElementsIf();
             }
         });
 
@@ -204,6 +212,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 copySelectedTemplates();
+                enableGuiElementsIf();
             }
         });
 
@@ -313,7 +322,7 @@ public class MainActivity extends Activity {
         for (int id : selected_view.keySet()) {
             db.copyFunctionDescription(id);
         }
-        loadTemplates();
+        loadTemplates(false);
     }
 
     private void setGuiFunctionsBt(){
@@ -351,6 +360,7 @@ public class MainActivity extends Activity {
                         e.printStackTrace();
                         bluetooth_status.setText(R.string.msg_bt_disconnect_failed);
                     }
+                    enableGuiElementsIf();
                 }
             });
         }else{
@@ -363,7 +373,6 @@ public class MainActivity extends Activity {
             }
             bluetooth_connection_button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-
                     String chosen_device = (String) spinner_bluetooth_device.getSelectedItem();
                     try {
                         if(!bluetooth_manager.connect(chosen_device)){
@@ -376,6 +385,7 @@ public class MainActivity extends Activity {
                         e.printStackTrace();
                         bluetooth_status.setText(R.string.msg_bt_connecting_failed + " "+ chosen_device + " " + R.string.msg_failed + " an exception was thrown.");
                     }
+                    enableGuiElementsIf();
                 }
             });
         }
