@@ -7,7 +7,9 @@
 # Definitively text files 
 *.txt text
 *.c text
+*.cpp text
 *.h text
+*.hpp text
 *.java text
 *.gradle text
 *.xml text
