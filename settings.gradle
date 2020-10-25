@@ -1,2 +1,2 @@
-include ':app', ':positionlib'
+include ':app'
 rootProject.name = "Intervallometer"
