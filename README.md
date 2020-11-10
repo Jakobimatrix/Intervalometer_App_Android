@@ -12,6 +12,8 @@ together.
    * Sigmodid Function for smoother transitions
  * Name, save, copy and delete Function Command Templates
  
+![Preview](https://github.com/Jakobimatrix/Intervalometer_App_Android/tree/master/impressions/preview.gif)
+ 
 ## Further Ideas/Todos
  - [ ] Change intervalometer instructions online (while running) to react to situations
     * E.g. start with constant interval; when requested smoothly change interal over N frames to new constant target interval.
